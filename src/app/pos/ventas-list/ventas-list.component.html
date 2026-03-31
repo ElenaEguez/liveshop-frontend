@@ -1,0 +1,126 @@
+<div class="ventas-page">
+  <div class="page-header">
+    <h1>Historial de Ventas POS</h1>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filter-card">
+    <div class="filter-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Período</mat-label>
+        <mat-select [(ngModel)]="filters.periodo" (ngModelChange)="load()">
+          <mat-option value="hoy">Hoy</mat-option>
+          <mat-option value="7d">Últimos 7 días</mat-option>
+          <mat-option value="30d">Últimos 30 días</mat-option>
+          <mat-option value="año">Este año</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Sucursal</mat-label>
+        <mat-select [(ngModel)]="filters.sucursal_id" (ngModelChange)="load()">
+          <mat-option [value]="null">Todas</mat-option>
+          <mat-option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select [(ngModel)]="filters.status" (ngModelChange)="load()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="completada">Completada</mat-option>
+          <mat-option value="anulada">Anulada</mat-option>
+          <mat-option value="credito">Crédito</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  <!-- Tabla -->
+  <mat-card class="table-card">
+    <div class="loading-shade" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <mat-table [dataSource]="ventas" class="ventas-table">
+
+      <ng-container matColumnDef="numero_ticket">
+        <mat-header-cell *matHeaderCellDef>N° Ticket</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          <strong>{{ v.numero_ticket }}</strong>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ v.created_at | date:'dd/MM/yy HH:mm' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="cliente">
+        <mat-header-cell *matHeaderCellDef>Cliente</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ v.cliente_nombre }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="total">
+        <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          <strong>Bs. {{ v.total | number:'1.2-2' }}</strong>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="metodo">
+        <mat-header-cell *matHeaderCellDef>Método</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ v.metodo_pago_nombre || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="cajero">
+        <mat-header-cell *matHeaderCellDef>Cajero</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ v.usuario || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          <span class="status-chip" [class]="'status-' + v.status">{{ v.status }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(v)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Reimprimir" (click)="reimprimir(v)">
+            <mat-icon>print</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Cobrar crédito" color="accent"
+                  *ngIf="v.status === 'credito'"
+                  (click)="cobrarCredito(v)">
+            <mat-icon>payments</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Anular"
+                  [disabled]="!isHoy(v) || v.status === 'anulada'"
+                  (click)="anular(v)" color="warn">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+          No hay ventas en este período.
+        </td>
+      </tr>
+    </mat-table>
+
+    <mat-paginator [length]="totalCount"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="[10, 20, 50]"
+                   (page)="onPage($event)">
+    </mat-paginator>
+  </mat-card>
+</div>

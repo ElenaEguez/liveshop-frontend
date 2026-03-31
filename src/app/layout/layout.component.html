@@ -1,0 +1,76 @@
+<mat-sidenav-container class="app-container">
+
+  <!-- SIDENAV -->
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile ? 'over' : 'side'"
+    [opened]="!isMobile"
+    [fixedInViewport]="true"
+    class="app-sidenav">
+
+    <!-- Logo / Header -->
+    <div class="sidenav-header">
+      <div class="logo-area">
+        <mat-icon class="logo-icon">live_tv</mat-icon>
+        <span class="logo-text">LiveShop</span>
+      </div>
+      <button *ngIf="isMobile" mat-icon-button (click)="sidenav.close()" class="close-btn">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+    </div>
+
+    <!-- Navegación -->
+    <mat-nav-list class="nav-list">
+      <a mat-list-item
+         *ngFor="let item of navItems"
+         [routerLink]="item.route"
+         [class.active-link]="isActive(item.route)"
+         class="nav-item">
+        <mat-icon matListItemIcon
+          [matBadge]="pendingEcomOrders"
+          matBadgeColor="warn"
+          [matBadgeHidden]="item.route !== '/ecommerce-orders' || pendingEcomOrders === 0">
+          {{ item.icon }}
+        </mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    </mat-nav-list>
+
+    <!-- Footer -->
+    <div class="sidenav-footer">
+      <a mat-list-item (click)="logout()" class="nav-item logout-item">
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Cerrar Sesión</span>
+      </a>
+    </div>
+
+  </mat-sidenav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <mat-sidenav-content class="app-content">
+
+    <!-- TOOLBAR -->
+    <mat-toolbar class="app-toolbar">
+      <button *ngIf="isMobile" mat-icon-button (click)="sidenav.toggle()" class="menu-btn">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="page-title">{{ vendorName }}</span>
+      <span class="toolbar-spacer"></span>
+
+      <span class="vendor-badge">
+        <img *ngIf="logoUrl" [src]="logoUrl" alt="logo"
+             style="width:28px; height:28px; border-radius:50%; object-fit:cover; margin-right:6px;">
+        <mat-icon *ngIf="!logoUrl">store</mat-icon>
+        {{ vendorName }}
+      </span>
+    </mat-toolbar>
+
+    <!-- ROUTER OUTLET -->
+    <div class="page-content">
+      <router-outlet></router-outlet>
+    </div>
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

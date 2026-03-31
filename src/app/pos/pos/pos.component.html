@@ -1,0 +1,290 @@
+<div class="pos-shell">
+
+  <!-- ══ COLUMNA IZQUIERDA ══════════════════════════════════════════════════ -->
+  <div class="pos-left">
+
+    <!-- Header: sucursal + info turno -->
+    <div class="pos-header">
+      <div class="header-selects">
+        <mat-form-field appearance="outline" class="sucursal-select">
+          <mat-label>Sucursal</mat-label>
+          <mat-select [(ngModel)]="selectedSucursal" (ngModelChange)="onSucursalChange($event)">
+            <mat-option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="caja-select" *ngIf="selectedSucursal">
+          <mat-label>Caja</mat-label>
+          <mat-select [(ngModel)]="selectedCaja" (ngModelChange)="onCajaChange($event)">
+            <mat-option *ngFor="let c of cajas" [value]="c.id">{{ c.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="header-info">
+        <div class="turno-status" *ngIf="turnoActivo">
+          <mat-icon class="icon-open">lock_open</mat-icon>
+          <span>Caja abierta desde {{ turnoActivo.fecha_apertura | date:'HH:mm' }}</span>
+        </div>
+        <div class="header-time">{{ now | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+      </div>
+
+      <div class="header-actions" *ngIf="turnoActivo">
+        <button mat-stroked-button (click)="abrirMovimientoDialog('ingreso')" class="mov-btn">
+          <mat-icon>add_circle_outline</mat-icon> Ingresar
+        </button>
+        <button mat-stroked-button (click)="abrirMovimientoDialog('retiro')" class="mov-btn">
+          <mat-icon>remove_circle_outline</mat-icon> Retirar
+        </button>
+        <button mat-stroked-button color="warn" (click)="abrirCerrarDialog()">
+          <mat-icon>lock</mat-icon> Cerrar Caja
+        </button>
+      </div>
+    </div>
+
+    <!-- Búsqueda de producto -->
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar producto (nombre o código de barras)</mat-label>
+        <input matInput [formControl]="searchCtrl" placeholder="Escribe o escanea...">
+        <mat-icon matSuffix>qr_code_scanner</mat-icon>
+        <mat-spinner matSuffix *ngIf="searching" diameter="18"></mat-spinner>
+      </mat-form-field>
+
+      <!-- Resultados -->
+      <div class="search-results" *ngIf="searchResults.length > 0">
+        <div class="search-item"
+             *ngFor="let p of searchResults"
+             (click)="agregarProducto(p)">
+          <img *ngIf="p.imagen_thumbnail" [src]="p.imagen_thumbnail" class="thumb">
+          <mat-icon *ngIf="!p.imagen_thumbnail" class="thumb-icon">inventory_2</mat-icon>
+          <div class="search-item-info">
+            <div class="search-item-name">{{ p.name }}</div>
+            <div class="search-item-meta">
+              {{ p.barcode || p.internal_code || '' }}
+              · Stock: {{ p.stock_disponible }}
+            </div>
+            <div class="search-item-variants" *ngIf="p.variantes.length > 0">
+              <button mat-stroked-button class="variant-btn"
+                      *ngFor="let v of p.variantes"
+                      (click)="$event.stopPropagation(); agregarProducto(p, v)">
+                {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
+              </button>
+            </div>
+          </div>
+          <div class="search-item-price">Bs. {{ p.price | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carrito -->
+    <div class="cart-section">
+      <div class="cart-empty" *ngIf="carrito.length === 0">
+        <mat-icon>shopping_cart</mat-icon>
+        <p>El carrito está vacío</p>
+      </div>
+
+      <mat-table [dataSource]="carrito" class="cart-table" *ngIf="carrito.length > 0">
+
+        <ng-container matColumnDef="nombre">
+          <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div>
+              <div class="cart-prod-name">{{ item.product.name }}</div>
+              <div class="cart-variant" *ngIf="variantLabel(item)">{{ variantLabel(item) }}</div>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidad">
+          <mat-header-cell *matHeaderCellDef>Cant.</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="qty-control">
+              <button mat-icon-button (click)="decrementar(item)">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="qty-value">{{ item.cantidad }}</span>
+              <button mat-icon-button (click)="incrementar(item)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="precio">
+          <mat-header-cell *matHeaderCellDef>P.U.</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="subtotal">
+          <mat-header-cell *matHeaderCellDef>Subt.</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            {{ moneda }} {{ (item.precio_unitario * item.cantidad) | number:'1.2-2' }}
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="accion">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button mat-icon-button color="warn" (click)="eliminarItem(item)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','subtotal','accion']"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','subtotal','accion'];"></mat-row>
+      </mat-table>
+
+      <!-- Footer del carrito -->
+      <div class="cart-footer" *ngIf="carrito.length > 0">
+        <div class="footer-row">
+          <span>Subtotal</span>
+          <strong>{{ moneda }} {{ subtotal | number:'1.2-2' }}</strong>
+        </div>
+
+        <div class="footer-row discount-row">
+          <span>Descuento</span>
+          <div class="discount-input-wrap">
+            <span>{{ moneda }}</span>
+            <input type="number" [(ngModel)]="descuento" min="0" class="discount-input">
+          </div>
+        </div>
+
+        <div class="footer-row cupon-row" *ngIf="cuponAplicado">
+          <span>Cupón ({{ cuponAplicado.codigo }})</span>
+          <div class="cupon-applied">
+            <strong class="text-success">-{{ moneda }} {{ cuponAplicado.descuento | number:'1.2-2' }}</strong>
+            <button mat-icon-button (click)="quitarCupon()" class="remove-cupon">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="footer-row total-row">
+          <span>TOTAL</span>
+          <strong class="total-amount">{{ moneda }} {{ total | number:'1.2-2' }}</strong>
+        </div>
+
+        <!-- Cupón -->
+        <div class="cupon-section">
+          <mat-form-field appearance="outline" class="cupon-field">
+            <mat-label>Código de cupón</mat-label>
+            <input matInput [(ngModel)]="cuponCodigo" [disabled]="!!cuponAplicado"
+                   (keyup.enter)="aplicarCupon()">
+          </mat-form-field>
+          <button mat-stroked-button (click)="aplicarCupon()"
+                  [disabled]="!cuponCodigo || !!cuponAplicado || cuponLoading">
+            <mat-spinner *ngIf="cuponLoading" diameter="16" style="display:inline-block"></mat-spinner>
+            <span *ngIf="!cuponLoading">Aplicar</span>
+          </button>
+          <mat-error *ngIf="cuponError">{{ cuponError }}</mat-error>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COLUMNA DERECHA ════════════════════════════════════════════════════ -->
+  <div class="pos-right">
+
+    <!-- Cliente -->
+    <div class="right-section cliente-section">
+      <div class="section-title">
+        <mat-icon>person</mat-icon> Cliente
+      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput [(ngModel)]="clienteNombre" placeholder="Genérico">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Teléfono</mat-label>
+        <input matInput [(ngModel)]="clienteTelefono">
+      </mat-form-field>
+    </div>
+
+    <!-- Métodos de pago -->
+    <div class="right-section metodos-section">
+      <div class="section-title">
+        <mat-icon>payments</mat-icon> Método de pago
+      </div>
+      <div class="metodos-grid">
+        <button *ngFor="let m of metodosPago"
+                class="metodo-btn"
+                [class.selected]="selectedMetodo?.id === m.id"
+                (click)="selectMetodo(m)">
+          <mat-icon>{{ m.icono || 'payment' }}</mat-icon>
+          <span>{{ m.nombre }}</span>
+        </button>
+        <div *ngIf="metodosPago.length === 0" class="no-metodos">
+          Sin métodos configurados
+        </div>
+      </div>
+
+      <!-- Efectivo: monto recibido + vuelto -->
+      <div *ngIf="selectedMetodo?.tipo === 'efectivo'" class="efectivo-section">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Monto recibido ({{ moneda }})</mat-label>
+          <input matInput type="number" [(ngModel)]="montoRecibido" min="0">
+        </mat-form-field>
+        <div class="vuelto-display" *ngIf="montoRecibido !== null">
+          <span>Vuelto:</span>
+          <strong [class.vuelto-neg]="vuelto < 0">{{ moneda }} {{ vuelto | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <!-- QR: mostrar imagen del QR de la tienda -->
+      <div *ngIf="selectedMetodo?.tipo === 'qr'" class="qr-section">
+        <div *ngIf="vendorQrImage; else noQr" class="qr-image-wrap">
+          <p class="qr-label">Pagar con QR</p>
+          <img [src]="vendorQrImage" class="qr-image" alt="QR de pago">
+          <p class="qr-amount">Total a pagar: <strong>{{ moneda }} {{ total | number:'1.2-2' }}</strong></p>
+        </div>
+        <ng-template #noQr>
+          <p class="qr-no-img">No hay QR configurado. Configúralo en <em>Mi Tienda</em>.</p>
+        </ng-template>
+      </div>
+
+      <!-- Toggle crédito -->
+      <div class="credito-toggle-row">
+        <mat-slide-toggle [(ngModel)]="esCredito" color="warn"
+                          (ngModelChange)="onCreditoChange($event)">
+          Venta a crédito
+        </mat-slide-toggle>
+      </div>
+
+      <!-- Crédito: plazo -->
+      <div *ngIf="esCredito" class="credito-section">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Plazo en días</mat-label>
+          <input matInput type="number" [(ngModel)]="plazoDias" min="1" placeholder="Ej: 30">
+        </mat-form-field>
+        <p class="credito-hint">
+          <mat-icon>info_outline</mat-icon>
+          La venta quedará registrada como crédito pendiente de cobro.
+        </p>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="right-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notas</mat-label>
+        <textarea matInput [(ngModel)]="notas" rows="2"></textarea>
+      </mat-form-field>
+    </div>
+
+    <!-- COBRAR -->
+    <div class="cobrar-section">
+      <button mat-raised-button class="cobrar-btn"
+              [disabled]="carritoVacio || cobrando || !selectedSucursal"
+              (click)="cobrar()">
+        <mat-spinner *ngIf="cobrando" diameter="22" style="display:inline-block; margin-right:8px;"></mat-spinner>
+        <mat-icon *ngIf="!cobrando">point_of_sale</mat-icon>
+        <span>{{ cobrando ? 'Procesando...' : 'COBRAR — ' + moneda + ' ' + (total | number:'1.2-2') }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,166 @@
+<div class="almacen-page">
+
+  <!-- Toolbar -->
+  <div class="page-toolbar">
+    <h1><mat-icon>warehouse</mat-icon> Almacén / Kardex</h1>
+    <div class="toolbar-actions">
+      <button mat-stroked-button (click)="descargarXLSX()">
+        <mat-icon>download</mat-icon> Descargar CSV
+      </button>
+      <button mat-raised-button color="primary" (click)="abrirAjuste()">
+        <mat-icon>add</mat-icon> Nuevo Ajuste
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filter-card">
+    <div class="filter-row">
+
+      <!-- Período chips -->
+      <div class="periodo-chips">
+        <span class="filter-label">Período:</span>
+        <button *ngFor="let p of [
+          {v:'todo',label:'Todo'},
+          {v:'hoy',label:'Hoy'},
+          {v:'7d',label:'7 días'},
+          {v:'30d',label:'30 días'},
+          {v:'año',label:'Este año'},
+          {v:'dia',label:'Por día'}
+        ]"
+          mat-stroked-button class="periodo-chip"
+          [class.active]="filters.periodo === p.v"
+          (click)="filters.periodo = p.v; resetPage()">
+          {{ p.label }}
+        </button>
+      </div>
+
+      <!-- Rango de fechas (solo si periodo=dia) -->
+      <ng-container *ngIf="filters.periodo === 'dia'">
+        <mat-form-field appearance="outline">
+          <mat-label>Desde</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.fecha_desde" (change)="resetPage()">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Hasta</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.fecha_hasta" (change)="resetPage()">
+        </mat-form-field>
+      </ng-container>
+
+      <!-- Producto -->
+      <mat-form-field appearance="outline">
+        <mat-label>Producto</mat-label>
+        <mat-select [(ngModel)]="filters.product_id" (ngModelChange)="resetPage()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let inv of inventories" [value]="inv.product">{{ inv.product_name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Almacén -->
+      <mat-form-field appearance="outline">
+        <mat-label>Almacén</mat-label>
+        <mat-select [(ngModel)]="filters.almacen_id" (ngModelChange)="resetPage()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Tipo -->
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select [(ngModel)]="filters.tipo" (ngModelChange)="resetPage()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="entrada">Entrada</mat-option>
+          <mat-option value="salida">Salida</mat-option>
+          <mat-option value="ajuste">Ajuste</mat-option>
+          <mat-option value="transferencia">Transferencia</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+  </mat-card>
+
+  <!-- Tabla -->
+  <mat-card class="table-card">
+    <div class="loading-shade" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+    <mat-table [dataSource]="movimientos" class="kardex-table">
+
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.created_at | date:'dd/MM/yy HH:mm' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="almacen">
+        <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.almacen_nombre || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="motivo">
+        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.motivo }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="tipo">
+        <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+        <mat-cell *matCellDef="let m">
+          <span class="tipo-chip" [class]="tipoClass(m.tipo)">{{ tipoLabel(m.tipo) }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="documento">
+        <mat-header-cell *matHeaderCellDef>Documento</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.documento_ref || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="cantidad">
+        <mat-header-cell *matHeaderCellDef>Cantidad</mat-header-cell>
+        <mat-cell *matCellDef="let m">
+          <span [class.positive]="m.cantidad > 0" [class.negative]="m.cantidad < 0">
+            {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="producto">
+        <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+        <mat-cell *matCellDef="let m"><strong>{{ m.product_name }}</strong></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="stock_anterior">
+        <mat-header-cell *matHeaderCellDef>St. Anterior</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.stock_anterior }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="stock_actual">
+        <mat-header-cell *matHeaderCellDef>St. Actual</mat-header-cell>
+        <mat-cell *matCellDef="let m"><strong>{{ m.stock_actual }}</strong></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="costo_promedio">
+        <mat-header-cell *matHeaderCellDef>Costo Prom.</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.costo_promedio ? ('Bs. ' + m.costo_promedio) : '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="usuario">
+        <mat-header-cell *matHeaderCellDef>Usuario</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.usuario_nombre || m.usuario_email || '—' }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+          No hay movimientos con los filtros aplicados.
+        </td>
+      </tr>
+    </mat-table>
+
+    <mat-paginator [length]="totalCount"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="[10, 20, 50, 100]"
+                   (page)="onPage($event)">
+    </mat-paginator>
+  </mat-card>
+</div>

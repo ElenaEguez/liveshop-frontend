@@ -1,0 +1,56 @@
+.modal-wrapper {
+  padding: 24px;
+  min-width: 380px;
+  max-width: 480px;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.modal-form { display: flex; flex-direction: column; gap: 12px; }
+
+.full-width { width: 100%; }
+
+.perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.perm-row {
+  padding: 4px 0;
+}
+
+.perm-label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  margin-left: 2px;
+}
+
+.perm-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.perm-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

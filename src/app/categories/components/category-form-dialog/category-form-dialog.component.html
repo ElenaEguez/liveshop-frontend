@@ -1,0 +1,38 @@
+<div style="padding:0;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between;
+              padding:20px 24px 16px; border-bottom:1px solid #f3f4f6;">
+    <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:#111827;">
+      {{ isEdit ? 'Editar Categoría' : 'Nueva Categoría' }}
+    </h2>
+    <button mat-icon-button (click)="cancel()" style="color:#6b7280;">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" style="padding:24px; display:flex; flex-direction:column; gap:16px;">
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Nombre *</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Ropa, Electrónica...">
+      <mat-error *ngIf="form.get('name')?.hasError('required')">El nombre es requerido</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="description" rows="3"
+                placeholder="Descripción opcional..."></textarea>
+    </mat-form-field>
+
+  </form>
+
+  <div style="display:flex; justify-content:flex-end; gap:12px;
+              padding:16px 24px; border-top:1px solid #f3f4f6;">
+    <button mat-stroked-button (click)="cancel()" [disabled]="saving">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="save()"
+            [disabled]="form.invalid || saving">
+      {{ saving ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear') }}
+    </button>
+  </div>
+
+</div>

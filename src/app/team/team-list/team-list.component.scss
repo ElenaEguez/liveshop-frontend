@@ -1,0 +1,177 @@
+.team-page {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+
+  mat-icon { color: #6b7280; }
+}
+
+.member-count {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.limit-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: #92400e;
+  margin-bottom: 16px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px 24px;
+  text-align: center;
+  color: #9ca3af;
+
+  mat-icon { font-size: 56px; width: 56px; height: 56px; }
+  p { font-size: 0.95rem; margin: 0; }
+}
+
+.table-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+mat-header-cell {
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+mat-cell, mat-header-cell {
+  padding: 0 12px;
+}
+
+mat-row:hover {
+  background: #f9fafb;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #374151;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+// Role chips
+.role-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.role-assistant {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &.role-payments {
+    background: #fed7aa;
+    color: #9a3412;
+  }
+
+  &.role-admin {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+// modal reuse
+::ng-deep .modal-wrapper {
+  padding: 8px 4px;
+}
+
+::ng-deep .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #111827;
+}
+
+::ng-deep .modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+::ng-deep .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+::ng-deep .form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+::ng-deep .full-width {
+  width: 100%;
+}

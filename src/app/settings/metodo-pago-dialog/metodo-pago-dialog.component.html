@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar' : 'Nuevo' }} Método de Pago</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="mp-form">
+
+    <div class="mp-row">
+      <mat-form-field appearance="outline" class="flex-2">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Ej: Efectivo">
+        <mat-error *ngIf="form.get('nombre')?.hasError('required')">Requerido</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="flex-1">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option *ngFor="let t of tipoChoices" [value]="t.value">{{ t.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="icono-section">
+      <span class="icono-label">Ícono</span>
+      <div class="icono-grid">
+        <button *ngFor="let ic of iconoChoices" type="button"
+                class="icono-btn"
+                [class.selected]="form.get('icono')?.value === ic"
+                [matTooltip]="ic"
+                (click)="form.patchValue({icono: ic})">
+          <mat-icon>{{ ic }}</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline" class="orden-field">
+      <mat-label>Orden de visualización</mat-label>
+      <input matInput type="number" formControlName="orden" min="0">
+    </mat-form-field>
+
+    <mat-error *ngIf="error" class="form-error">{{ error }}</mat-error>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button color="primary"
+          [disabled]="form.invalid || loading"
+          (click)="guardar()">
+    <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block; margin-right:6px"></mat-spinner>
+    <span>{{ loading ? 'Guardando…' : 'Guardar' }}</span>
+  </button>
+</mat-dialog-actions>

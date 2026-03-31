@@ -1,0 +1,168 @@
+// ── RESET GLOBAL ────────────────────────────────────────
+:host {
+  display: block;
+  height: 100vh;
+  width: 100%;
+}
+
+$primary:      #db0000;
+$primary-dark: #a80000;
+$accent:       #ff6f00;
+$toolbar-h:    64px;
+$sidenav-w:    230px;
+
+// ── CONTENEDOR RAÍZ ─────────────────────────────────────
+.app-container {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+}
+
+// ── SIDENAV ─────────────────────────────────────────────
+.app-sidenav {
+  width: $sidenav-w;
+  min-width: $sidenav-w;
+  background: $primary;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  border-right: none !important;
+
+  .sidenav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: $toolbar-h;
+    background: $primary-dark;
+    flex-shrink: 0;
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      .logo-icon { color: white; font-size: 26px; width: 26px; height: 26px; }
+      .logo-text  { color: white; font-weight: 700; font-size: 20px; }
+    }
+    .close-btn { color: white; }
+  }
+
+  .nav-list {
+    flex: 1;
+    padding-top: 8px;
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    color: rgba(255,255,255,0.85) !important;
+    border-radius: 0 24px 24px 0;
+    margin-right: 12px;
+    margin-bottom: 2px;
+    transition: background 0.2s;
+    cursor: pointer;
+
+    mat-icon { color: rgba(255,255,255,0.85) !important; }
+
+    &:hover {
+      background: rgba(255,255,255,0.12) !important;
+      color: white !important;
+      mat-icon { color: white !important; }
+    }
+
+    &.active-link {
+      background: $accent !important;
+      color: white !important;
+      font-weight: 600;
+      mat-icon { color: white !important; }
+    }
+  }
+
+  .sidenav-footer {
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+
+    .logout-item {
+      cursor: pointer;
+      color: rgba(255,255,255,0.7) !important;
+      mat-icon { color: rgba(255,255,255,0.7) !important; }
+      &:hover {
+        background: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        mat-icon { color: white !important; }
+      }
+    }
+  }
+}
+
+// ── ÁREA DE CONTENIDO ────────────────────────────────────
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;        // clave: evita overflow en flex
+  overflow: hidden;
+}
+
+// ── TOOLBAR ─────────────────────────────────────────────
+.app-toolbar {
+  width: 100%;
+  flex-shrink: 0;
+  background: #a80000;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(241, 238, 238, 0.08);
+  height: $toolbar-h;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  .menu-btn { color: #333; }
+
+  .page-title {
+    font-weight: 600;
+    font-size: 18px;
+    color: #fff8f8;
+    margin-left: 8px;
+  }
+
+  .toolbar-spacer { flex: 1 1 auto; }
+
+  .vendor-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #555;
+    background: #f5f5f5;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+
+    mat-icon { font-size: 18px; width: 18px; height: 18px; color: $primary; }
+  }
+}
+
+// ── ZONA DE PÁGINA ───────────────────────────────────────
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  background: #f5f7fa;
+
+  > * {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+}

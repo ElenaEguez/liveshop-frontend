@@ -1,0 +1,48 @@
+<div class="modal-wrapper">
+
+  <h2 class="modal-title">
+    <mat-icon>manage_accounts</mat-icon>
+    {{ isEdit ? 'Editar rol' : 'Nuevo rol' }}
+  </h2>
+
+  <form [formGroup]="form" class="modal-form">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre del rol</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Vendedor, Cajero, Supervisor...">
+      <mat-error>El nombre es obligatorio</mat-error>
+    </mat-form-field>
+
+    <p style="font-size:0.85rem; font-weight:600; color:#374151; margin:8px 0 4px;">
+      Módulos accesibles para este rol
+    </p>
+
+    <div *ngIf="isEdit" style="display:flex;align-items:center;gap:6px;background:#fff8e1;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.78rem;color:#92400e;">
+      <mat-icon style="font-size:16px;width:16px;height:16px;flex-shrink:0">info</mat-icon>
+      Los cambios aplican la próxima vez que el miembro inicie sesión.
+    </div>
+
+    <div class="perm-list">
+      <div *ngFor="let mod of modules" class="perm-row">
+        <mat-checkbox [formControlName]="mod.key" color="primary">
+          <div class="perm-label">
+            <span class="perm-name">{{ mod.label }}</span>
+            <span class="perm-desc">{{ mod.description }}</span>
+          </div>
+        </mat-checkbox>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="modal-actions">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button mat-raised-button color="primary"
+            (click)="onSubmit()"
+            [disabled]="form.invalid || saving">
+      <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
+      {{ saving ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Crear rol') }}
+    </button>
+  </div>
+
+</div>

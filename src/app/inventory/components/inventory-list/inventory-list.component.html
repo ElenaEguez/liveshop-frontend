@@ -1,0 +1,252 @@
+<div style="width: 100%;">
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Inventario</h1>
+    <span style="background:#fef2f2; color:#db0000; padding:6px 14px; border-radius:20px;
+                 font-size:0.875rem; font-weight:600;">
+      {{ inventory.length }} productos
+    </span>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Categoría</mat-label>
+      <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange()">
+        <mat-option [value]="null">Todas</mat-option>
+        <mat-option *ngFor="let cat of categories" [value]="cat.id">
+          <mat-icon style="font-size:16px;vertical-align:middle;margin-right:4px;">filter_list</mat-icon>
+          {{ cat.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="sucursales.length > 0">
+      <mat-label>Sucursal</mat-label>
+      <mat-select [(ngModel)]="selectedSucursalId" (selectionChange)="onSucursalChange()">
+        <mat-option [value]="null">Todas</mat-option>
+        <mat-option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="almacenes.length > 0">
+      <mat-label>Almacén</mat-label>
+      <mat-select [(ngModel)]="selectedAlmacenId" (selectionChange)="onAlmacenChange()">
+        <mat-option [value]="null">Todos</mat-option>
+        <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button *ngIf="hasActiveFilters" mat-stroked-button (click)="clearFilters()"
+            style="height:48px; color:#6b7280; border-color:#d1d5db;">
+      <mat-icon>clear</mat-icon> Limpiar filtros
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <table mat-table [dataSource]="inventory" style="width:100%;" multiTemplateDataRows>
+
+      <ng-container matColumnDef="product_name">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:16px;">Producto</th>
+        <td mat-cell *matCellDef="let item" style="padding:16px; font-weight:500;">
+          {{ item.product_name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Stock Total</th>
+        <td mat-cell *matCellDef="let item">
+          <span style="font-weight:600; color:#374151;">{{ item.quantity }} uds.</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="reserved_quantity">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Vendido</th>
+        <td mat-cell *matCellDef="let item">
+          <span style="background:#fef9c3; color:#854d0e; padding:4px 10px;
+                       border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ item.reserved_quantity }} uds.
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="available_quantity">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Disponible</th>
+        <td mat-cell *matCellDef="let item">
+          <span [style.background]="getAvailableBg(item.available_quantity)"
+                [style.color]="getAvailableColor(item.available_quantity)"
+                style="padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ item.available_quantity <= 0 ? 'Agotado' : item.available_quantity + ' uds.' }}
+          </span>
+          <span *ngIf="item.available_quantity > 0 && item.available_quantity <= 5"
+                style="margin-left:6px; font-size:0.75rem; color:#854d0e;">⚠ Stock bajo</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="purchase_cost">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Costo de compra</th>
+        <td mat-cell *matCellDef="let item">
+          <span *ngIf="item.purchase_cost !== null && item.purchase_cost !== undefined; else noCost">
+            Bs. {{ item.purchase_cost | number:'1.2-2' }}
+          </span>
+          <ng-template #noCost><span style="color:#9ca3af;">—</span></ng-template>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="margin">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Margen / ud.</th>
+        <td mat-cell *matCellDef="let item">
+          <ng-container *ngIf="getMargin(item) !== null; else noMargin">
+            <span [style.color]="getMargin(item)! < 0 ? '#dc2626' : '#166534'" style="font-weight:600;">
+              Bs. {{ getMargin(item)! | number:'1.2-2' }}
+            </span>
+          </ng-container>
+          <ng-template #noMargin><span style="color:#9ca3af;">—</span></ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Columna Variantes -->
+      <ng-container matColumnDef="variantes">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Variantes</th>
+        <td mat-cell *matCellDef="let item">
+          <button mat-icon-button (click)="toggleVariants(item)"
+                  [matTooltip]="isExpanded(item) ? 'Ocultar variantes' : 'Ver variantes'"
+                  [style.color]="isExpanded(item) ? '#db0000' : '#6b7280'">
+            <mat-icon>{{ isExpanded(item) ? 'expand_less' : 'account_tree' }}</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openKardex(item)"
+                  matTooltip="Ver movimientos de stock"
+                  style="color:#3b82f6;">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Acciones</th>
+        <td mat-cell *matCellDef="let item">
+          <button mat-icon-button (click)="openEditStock(item)"
+                  matTooltip="Editar stock" style="color:#db0000;">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <!-- Fila expandida: sub-tabla de variantes -->
+      <ng-container matColumnDef="expandedDetail">
+        <td mat-cell *matCellDef="let item" [attr.colspan]="displayedColumns.length" style="padding:0;">
+          <div *ngIf="isExpanded(item)" class="variant-detail-row">
+
+            <div *ngIf="isLoadingVariants(item)" style="padding:16px; text-align:center;">
+              <mat-progress-spinner mode="indeterminate" diameter="24" style="margin:auto;"></mat-progress-spinner>
+            </div>
+
+            <ng-container *ngIf="!isLoadingVariants(item)">
+              <div *ngIf="getVariants(item).length === 0"
+                   style="padding:12px 24px; color:#9ca3af; font-size:0.875rem;">
+                Este producto no tiene variantes estructuradas.
+              </div>
+
+              <table *ngIf="getVariants(item).length > 0" class="variant-subtable">
+                <thead>
+                  <tr>
+                    <th>Talla</th>
+                    <th>Color</th>
+                    <th>SKU</th>
+                    <th>Stock Variante</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let v of getVariants(item)">
+                    <td>
+                      <span *ngIf="v.talla" class="talla-chip">{{ v.talla }}</span>
+                      <span *ngIf="!v.talla" style="color:#9ca3af;">—</span>
+                    </td>
+                    <td>
+                      <div *ngIf="v.color" class="color-cell">
+                        <span class="color-swatch"
+                              [style.background]="v.color_hex || '#e5e7eb'"
+                              [matTooltip]="v.color">
+                        </span>
+                        {{ v.color }}
+                      </div>
+                      <span *ngIf="!v.color" style="color:#9ca3af;">—</span>
+                    </td>
+                    <td style="color:#6b7280; font-size:0.8rem;">{{ v.sku || '—' }}</td>
+                    <td style="font-weight:600;">
+                      {{ v.stock_extra > 0 ? v.stock_extra + ' uds.' : 'Usa stock prod.' }}
+                    </td>
+                    <td>
+                      <span [style.background]="v.stock_extra <= 0 ? '#fef9c3' : (v.stock_extra <= 5 ? '#fee2e2' : '#dcfce7')"
+                            [style.color]="v.stock_extra <= 0 ? '#854d0e' : (v.stock_extra <= 5 ? '#991b1b' : '#166534')"
+                            style="padding:2px 8px; border-radius:12px; font-size:0.78rem; font-weight:600;">
+                        {{ v.stock_extra <= 0 ? 'Sin stock propio' : (v.stock_extra <= 5 ? 'Stock bajo' : 'Disponible') }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ng-container>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" style="background:#f9fafb;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          style="border-bottom:1px solid #f3f4f6;"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+    </table>
+
+    <div *ngIf="inventory.length === 0"
+         style="text-align:center; padding:48px; color:#9ca3af;">
+      <mat-icon style="font-size:48px; width:48px; height:48px;">inventory</mat-icon>
+      <p style="margin-top:12px; font-size:1rem;">No hay inventario disponible</p>
+      <p style="margin:4px 0 0; font-size:0.875rem;">
+        El inventario se crea automáticamente al agregar productos.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Resumen de costos ────────────────────────────────────────────────── -->
+  <div *ngIf="inventory.length > 0"
+       style="display:flex; gap:16px; flex-wrap:wrap; margin-top:16px;">
+
+    <div style="flex:1; min-width:200px; background:#fff; border-radius:10px;
+                box-shadow:0 1px 4px rgba(0,0,0,0.08); padding:16px 20px;">
+      <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase;
+                  letter-spacing:.05em; margin-bottom:4px;">Valor total en stock</div>
+      <div style="font-size:1.25rem; font-weight:700; color:#111827;">
+        Bs. {{ totalStockValue | number:'1.2-2' }}
+      </div>
+      <div style="font-size:0.78rem; color:#6b7280; margin-top:2px;">stock × precio de venta</div>
+    </div>
+
+    <ng-container *ngIf="hasCostData">
+      <div style="flex:1; min-width:200px; background:#fff; border-radius:10px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.08); padding:16px 20px;">
+        <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase;
+                    letter-spacing:.05em; margin-bottom:4px;">Costo total en stock</div>
+        <div style="font-size:1.25rem; font-weight:700; color:#374151;">
+          Bs. {{ totalCostValue | number:'1.2-2' }}
+        </div>
+        <div style="font-size:0.78rem; color:#6b7280; margin-top:2px;">stock × costo de compra</div>
+      </div>
+
+      <div style="flex:1; min-width:200px; background:#fff; border-radius:10px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.08); padding:16px 20px;">
+        <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase;
+                    letter-spacing:.05em; margin-bottom:4px;">Utilidad Bruta</div>
+        <div style="font-size:1.25rem; font-weight:700;"
+             [style.color]="totalMargin >= 0 ? '#16a34a' : '#dc2626'">
+          Bs. {{ totalMargin | number:'1.2-2' }}
+        </div>
+        <div style="font-size:0.78rem; color:#6b7280; margin-top:2px;">valor en stock − costo en stock</div>
+      </div>
+    </ng-container>
+
+  </div>
+
+</div>

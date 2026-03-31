@@ -1,0 +1,163 @@
+.dlg-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  mat-icon { color: #c62828; }
+}
+
+.dlg-content {
+  min-width: 420px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 4px !important;
+}
+
+.center-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* ── Section titles ── */
+.arqueo-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #555;
+  margin-bottom: 6px;
+  mat-icon { font-size: 16px; color: #1565c0; }
+}
+.arqueo-title.mt { margin-top: 8px; }
+
+/* ── Arqueo table ── */
+.arqueo-table {
+  background: #f8f9ff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e3eaf8;
+}
+
+.arqueo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid #eef0f8;
+
+  &:last-child { border-bottom: none; }
+
+  &.green { background: #f0faf1; }
+  &.blue  { background: #eff6ff; }
+  &.red   { background: #fff5f5; }
+  &.total-row {
+    background: #e8eeff;
+    padding: 10px 14px;
+  }
+}
+
+.arqueo-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #444;
+}
+
+.row-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; color: #666; }
+
+.arqueo-val {
+  font-weight: 500;
+  color: #111;
+}
+
+.arqueo-val.esperado { color: #1565c0; font-size: 15px; }
+
+/* ── Otros metodos ── */
+.otros-metodos {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid #eee;
+}
+
+.otros-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.otros-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+  padding: 3px 0;
+  small { color: #aaa; }
+}
+
+/* ── Result box ── */
+.result-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 8px 0 4px;
+
+  &.exacto {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    color: #1b5e20;
+  }
+  &.sobrante {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #e65100;
+  }
+  &.faltante {
+    background: #ffebee;
+    border: 1px solid #ef9a9a;
+    color: #b71c1c;
+  }
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-icon { font-size: 32px !important; width: 32px !important; height: 32px !important; }
+
+.result-label {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.result-hint { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+.result-amount {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* ── Form ── */
+.full-width { width: 100%; }
+.mt-sm { margin-top: 8px; }
+
+.error-msg {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 13px;
+}

@@ -1,0 +1,296 @@
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.dlg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dlg-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dlg-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #1565c0;
+}
+
+.dlg-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.dlg-subtitle {
+  font-size: 13px;
+  color: #777;
+  margin-top: 2px;
+}
+
+.close-btn { color: #999; }
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
+.dlg-body {
+  padding: 20px 24px !important;
+  max-height: 62vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Totals card ──────────────────────────────────────────────────────────── */
+.totals-card {
+  display: flex;
+  align-items: center;
+  background: #f8f9ff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  gap: 0;
+}
+
+.total-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.total-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+}
+
+.total-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+}
+.total-val.paid { color: #1565c0; }
+.total-val.debt { color: #c62828; }
+.total-val.zero { color: #2e7d32; }
+
+.total-divider {
+  width: 1px;
+  height: 36px;
+  background: #dde1f0;
+  margin: 0 8px;
+}
+
+/* ── Progress ─────────────────────────────────────────────────────────────── */
+.progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-track {
+  height: 12px;
+  background: #e8eaf6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1565c0 0%, #42a5f5 100%);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  min-width: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+}
+
+.progress-pct {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.progress-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.vence-tag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #c62828;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+.pct-tag { color: #888; }
+
+/* ── Section headers ──────────────────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+
+  mat-icon { font-size: 18px; color: #1565c0; }
+}
+
+.badge {
+  background: #e3eaf8;
+  color: #1565c0;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.mt { margin-top: 4px; }
+
+/* ── Spinner / empty ──────────────────────────────────────────────────────── */
+.center-spin {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.empty-pagos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  color: #bbb;
+  font-size: 13px;
+
+  mat-icon { font-size: 28px; width: 28px; height: 28px; }
+}
+
+/* ── Pagos list ───────────────────────────────────────────────────────────── */
+.pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pago-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f0faf1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border-left: 3px solid #43a047;
+}
+
+.pago-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #43a047;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pago-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pago-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pago-monto {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1b5e20;
+}
+
+.pago-metodo {
+  background: #c8e6c9;
+  color: #2e7d32;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.pago-meta, .pago-notas {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #666;
+}
+
+.meta-icon { font-size: 13px !important; width: 13px !important; height: 13px !important; }
+
+/* ── Form ─────────────────────────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "monto metodo"
+    "notas notas";
+  gap: 4px 12px;
+}
+
+.field-monto  { grid-area: monto; }
+.field-metodo { grid-area: metodo; }
+.field-notas  { grid-area: notas; }
+
+/* ── Ya cobrado ───────────────────────────────────────────────────────────── */
+.ya-cobrado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: #e8f5e9;
+  border-radius: 10px;
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 15px;
+
+  mat-icon { font-size: 26px; width: 26px; height: 26px; }
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.dlg-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-registrar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

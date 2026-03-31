@@ -1,0 +1,90 @@
+<h2 mat-dialog-title>Vista previa del ticket</h2>
+
+<mat-dialog-content>
+  <!-- Ticket térmico -->
+  <div class="ticket-wrapper" id="ticket-print" [style.max-width.px]="ticketWidthPx">
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="store-name">{{ config?.nombre_empresa || data.vendorName }}</div>
+        <div class="ticket-meta" *ngIf="config?.ruc_nit">NIT/RUC: {{ config!.ruc_nit }}</div>
+        <div class="ticket-meta" *ngIf="config?.direccion">{{ config!.direccion }}</div>
+        <div class="ticket-meta" *ngIf="config?.telefono">Tel: {{ config!.telefono }}</div>
+        <div class="ticket-meta">
+          Ticket N°: <strong>{{ data.venta.numero_ticket }}</strong>
+        </div>
+        <div class="ticket-meta">
+          {{ data.venta.created_at | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+        <div class="ticket-meta" *ngIf="data.venta.sucursal_nombre">
+          {{ data.venta.sucursal_nombre }}
+        </div>
+      </div>
+
+      <div class="ticket-divider">--------------------------------</div>
+
+      <div class="ticket-client">
+        Cliente: {{ data.venta.cliente_nombre || 'Genérico' }}
+      </div>
+
+      <div class="ticket-divider">--------------------------------</div>
+
+      <!-- Ítems -->
+      <div class="ticket-items">
+        <div class="ticket-item-header">
+          <span>PRODUCTO</span>
+          <span>CANT</span>
+          <span>P.U.</span>
+          <span>SUBT.</span>
+        </div>
+        <div class="ticket-item" *ngFor="let item of data.venta.items">
+          <span class="item-name">{{ item.product_name }}</span>
+          <span>{{ item.cantidad }}</span>
+          <span>{{ item.precio_unitario | number:'1.2-2' }}</span>
+          <span>{{ item.subtotal | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="ticket-divider">--------------------------------</div>
+
+      <!-- Totales -->
+      <div class="ticket-totals">
+        <div class="ticket-total-row" *ngIf="+data.venta.descuento > 0">
+          <span>Descuento:</span>
+          <span>-{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.descuento | number:'1.2-2' }}</span>
+        </div>
+        <div class="ticket-total-row total-final">
+          <span>TOTAL:</span>
+          <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.total | number:'1.2-2' }}</span>
+        </div>
+        <div class="ticket-total-row" *ngIf="data.venta.metodo_pago_nombre">
+          <span>Pago:</span>
+          <span>{{ data.venta.metodo_pago_nombre }}</span>
+        </div>
+        <div class="ticket-total-row" *ngIf="data.venta.monto_recibido && !data.venta.es_credito">
+          <span>Recibido:</span>
+          <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.monto_recibido | number:'1.2-2' }}</span>
+        </div>
+        <div class="ticket-total-row" *ngIf="data.venta.vuelto && +data.venta.vuelto > 0 && !data.venta.es_credito">
+          <span>Vuelto:</span>
+          <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.vuelto | number:'1.2-2' }}</span>
+        </div>
+        <div class="ticket-total-row credito" *ngIf="data.venta.es_credito">
+          <span>CRÉDITO — Plazo:</span>
+          <span>{{ data.venta.plazo_dias }} días</span>
+        </div>
+      </div>
+
+      <div class="ticket-divider">--------------------------------</div>
+      <div class="ticket-footer">{{ config?.texto_pie || '¡Gracias por su compra!' }}</div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="imprimir()">
+    <mat-icon>print</mat-icon> Imprimir
+  </button>
+  <button *ngIf="data.showNuevaVenta !== false" mat-raised-button color="primary" (click)="nuevaVenta()">
+    <mat-icon>add_shopping_cart</mat-icon> Nueva Venta
+  </button>
+</mat-dialog-actions>

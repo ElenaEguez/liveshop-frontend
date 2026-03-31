@@ -1,0 +1,45 @@
+<div class="variant-selector" *ngIf="tallas.length > 0 || loadingTallas">
+
+  <!-- Paso 1: Tallas -->
+  <div class="vs-step">
+    <span class="vs-label">Talla</span>
+    <div class="vs-chips" *ngIf="!loadingTallas; else spinnerTpl">
+      <button *ngFor="let t of tallas"
+              type="button"
+              class="vs-chip"
+              [class.vs-chip--active]="selectedTalla === t"
+              (click)="selectTalla(t)">
+        {{ t }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Paso 2: Colores -->
+  <div class="vs-step" *ngIf="selectedTalla">
+    <span class="vs-label">Color</span>
+    <div class="vs-swatches" *ngIf="!loadingColores; else spinnerTpl">
+      <button *ngFor="let c of colores"
+              type="button"
+              class="vs-swatch"
+              [class.vs-swatch--active]="selectedVariantId === c.id"
+              [class.vs-swatch--agotado]="c.stock_extra === 0"
+              [style.background]="c.color_hex || '#e5e7eb'"
+              [matTooltip]="c.color + (c.stock_extra === 0 ? ' (Agotado)' : '')"
+              (click)="selectColor(c)">
+        <mat-icon *ngIf="selectedVariantId === c.id" class="check-icon">check</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Limpiar selección -->
+  <button *ngIf="selectedVariantId" type="button" mat-button class="vs-clear" (click)="clear()">
+    <mat-icon>close</mat-icon> Cambiar variante
+  </button>
+
+</div>
+
+<ng-template #spinnerTpl>
+  <div style="padding: 4px 0;">
+    <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+  </div>
+</ng-template>

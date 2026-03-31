@@ -1,0 +1,153 @@
+.arqueos-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: #1565c0;
+}
+
+h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.header-sub { margin: 2px 0 0; font-size: 13px; color: #888; }
+
+/* ── Period bar ── */
+.period-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  button { font-size: 13px; }
+  button.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+}
+
+.count-label {
+  margin-left: auto;
+  font-size: 13px;
+  color: #888;
+}
+
+/* ── Loading ── */
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+/* ── Table ── */
+.table-wrap {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  overflow-x: auto;
+}
+
+.arqueos-table {
+  width: 100%;
+  min-width: 900px;
+}
+
+.arqueos-table th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb;
+  white-space: nowrap;
+}
+
+.num-col {
+  text-align: right !important;
+  justify-content: flex-end;
+}
+
+.esperado-col { color: #1565c0; font-weight: 600; }
+
+/* ── Row highlight ── */
+.row-faltante { background: #fff5f5; }
+
+/* ── Cell styles ── */
+.fecha-main { font-size: 13px; font-weight: 500; }
+.fecha-sub  { font-size: 11px; color: #999; }
+
+.badge-abierto {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+}
+
+.caja-nombre { font-size: 13px; font-weight: 500; }
+.suc-nombre  { font-size: 11px; color: #999; }
+
+.cajero-cell { font-size: 12px; color: #555; max-width: 140px; }
+
+.notas-cell {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+  max-width: 200px;
+  white-space: normal;
+}
+
+.na { color: #ccc; }
+
+/* ── Diferencia chip ── */
+.dif-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.faltante { background: #fee2e2; color: #b91c1c; }
+  &.sobrante { background: #fff3cd; color: #92400e; }
+  &.cuadrado { background: #dcfce7; color: #166534; }
+}
+
+.dif-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+
+/* ── Empty ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 60px;
+  color: #ccc;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; }
+  p { font-size: 14px; margin: 0; }
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #555;
+}

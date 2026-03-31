@@ -1,0 +1,60 @@
+<div class="modal-wrapper">
+
+  <h2 class="modal-title">
+    <mat-icon>person_add</mat-icon>
+    Invitar miembro al equipo
+  </h2>
+
+  <form [formGroup]="form" class="modal-form">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com">
+      <mat-icon matPrefix>email</mat-icon>
+      <mat-error *ngIf="form.get('email')?.hasError('required')">El email es obligatorio</mat-error>
+      <mat-error *ngIf="form.get('email')?.hasError('email')">Ingresá un email válido</mat-error>
+    </mat-form-field>
+
+    <div class="form-grid-2">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Juan">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Apellido</mat-label>
+        <input matInput formControlName="apellido" placeholder="Pérez">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rol</mat-label>
+      <mat-select formControlName="custom_role">
+        <mat-option *ngFor="let r of roles" [value]="r.id">
+          {{ r.name }}
+        </mat-option>
+      </mat-select>
+      <mat-error>Seleccioná un rol</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contraseña temporal (opcional)</mat-label>
+      <input matInput formControlName="password" type="password"
+             placeholder="Se genera automáticamente si se deja vacío">
+      <mat-icon matPrefix>lock</mat-icon>
+      <mat-hint>Si se deja vacío, el miembro deberá usar "Olvidé mi contraseña"</mat-hint>
+    </mat-form-field>
+
+  </form>
+
+  <div class="modal-actions">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button mat-raised-button color="primary"
+            (click)="onSubmit()"
+            [disabled]="form.invalid || saving">
+      <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
+      {{ saving ? 'Enviando...' : 'Agregar miembro' }}
+    </button>
+  </div>
+
+</div>

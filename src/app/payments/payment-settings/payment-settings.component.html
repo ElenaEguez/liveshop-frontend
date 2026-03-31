@@ -1,0 +1,89 @@
+<div style="padding:24px; max-width:640px;">
+
+  <div style="margin-bottom:24px;">
+    <h1 style="margin:0; font-size:1.5rem; font-weight:700; color:#111827;">
+      Configuración de Pagos
+    </h1>
+    <p style="margin:4px 0 0; color:#6b7280; font-size:0.875rem;">
+      Este QR e instrucciones se muestran a tus clientes al momento de pagar.
+    </p>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center; padding:48px;">
+    <mat-progress-spinner mode="indeterminate" diameter="40" style="margin:auto;"></mat-progress-spinner>
+  </div>
+
+  <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()" style="display:flex; flex-direction:column; gap:24px;">
+
+    <!-- QR de pago -->
+    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); padding:20px;">
+      <h2 style="margin:0 0 16px; font-size:1rem; font-weight:600; color:#111827; display:flex; align-items:center; gap:8px;">
+        <mat-icon style="color:#db0000;">qr_code_2</mat-icon>
+        QR de pago
+      </h2>
+
+      <!-- QR actual -->
+      <div *ngIf="currentQrUrl && !qrPreview"
+           style="text-align:center; margin-bottom:16px;">
+        <p style="font-size:0.75rem; color:#6b7280; margin:0 0 8px;">QR actual:</p>
+        <img [src]="currentQrUrl" alt="QR de pago"
+             style="max-width:200px; border-radius:8px; border:1px solid #e5e7eb;">
+      </div>
+
+      <!-- Preview del nuevo QR -->
+      <div *ngIf="qrPreview"
+           style="text-align:center; margin-bottom:16px;">
+        <p style="font-size:0.75rem; color:#6b7280; margin:0 0 8px;">Nuevo QR (sin guardar):</p>
+        <img [src]="qrPreview" alt="Preview QR"
+             style="max-width:200px; border-radius:8px; border:2px solid #db0000;">
+      </div>
+
+      <div style="border:2px dashed #e5e7eb; border-radius:8px; padding:16px; text-align:center;">
+        <input type="file" accept="image/*" #qrInput
+               (change)="onQrSelected($event)"
+               style="display:none;">
+        <button type="button" mat-stroked-button (click)="qrInput.click()"
+                style="margin-bottom:8px;">
+          <mat-icon style="margin-right:4px;">upload</mat-icon>
+          {{ selectedQrFile ? selectedQrFile.name : (currentQrUrl ? 'Cambiar QR' : 'Subir imagen QR') }}
+        </button>
+        <p style="margin:0; font-size:0.75rem; color:#9ca3af;">
+          Subí la imagen del QR de tu billetera (Tigo Money, banco, etc.)
+        </p>
+      </div>
+    </div>
+
+    <!-- Instrucciones -->
+    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); padding:20px;">
+      <h2 style="margin:0 0 16px; font-size:1rem; font-weight:600; color:#111827; display:flex; align-items:center; gap:8px;">
+        <mat-icon style="color:#db0000;">info</mat-icon>
+        Instrucciones de pago
+      </h2>
+
+      <mat-form-field appearance="outline" style="width:100%;">
+        <mat-label>Instrucciones para el cliente</mat-label>
+        <textarea matInput formControlName="payment_instructions"
+                  rows="4"
+                  placeholder="Ej: Escanea el QR con Tigo Money. Envía el comprobante con tu nombre completo."></textarea>
+        <mat-hint>Se muestra debajo del QR en la pantalla de pago del cliente.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%; margin-top:12px;">
+        <mat-label>Métodos aceptados</mat-label>
+        <input matInput formControlName="accepted_payment_methods"
+               placeholder="Ej: QR, Tigo Money, Banco Unión">
+        <mat-hint>Texto informativo para el cliente.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Botón guardar -->
+    <button mat-raised-button color="primary"
+            type="submit"
+            [disabled]="saving"
+            style="align-self:flex-start; padding:0 32px;">
+      <mat-icon style="margin-right:4px;">save</mat-icon>
+      {{ saving ? 'Guardando...' : 'Guardar configuración' }}
+    </button>
+
+  </form>
+</div>

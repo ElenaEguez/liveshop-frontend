@@ -1,0 +1,655 @@
+<!-- CARGANDO -->
+<div *ngIf="loading" class="loading-screen">
+  <mat-spinner diameter="48"></mat-spinner>
+</div>
+
+<!-- ERROR -->
+<div *ngIf="!loading && error" class="error-screen">
+  <span class="error-emoji">📴</span>
+  <h2>Live no disponible</h2>
+  <p>{{ error }}</p>
+</div>
+
+<!-- MAIN -->
+<div *ngIf="!loading && !error" class="live-page">
+
+  <!-- ══ HERO ══════════════════════════════════════════════ -->
+  <div class="live-hero"
+       *ngIf="(!allowMultipleCart && !orderConfirmed) || (allowMultipleCart && cartStep === 'shopping')">
+    <div class="hero-content">
+      <div class="live-badge">
+        <span class="pulse-dot"></span>
+        EN VIVO
+      </div>
+      <h1 class="live-title">{{ session?.title }}</h1>
+      <p class="store-name">
+        <mat-icon>storefront</mat-icon>
+        {{ session?.vendor_name || 'Tienda' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ CAROUSEL DE PROMOCIONES ══════════════════════════ -->
+  <div class="promo-carousel" *ngIf="promociones.length > 0">
+    <div class="promo-track" [style.transform]="'translateX(-' + carouselIndex * 100 + '%)'">
+      <div class="promo-slide" *ngFor="let promo of promociones">
+        <img *ngIf="promo.imagen" [src]="promo.imagen" [alt]="promo.titulo" class="promo-img">
+        <div class="promo-text" [class.no-image]="!promo.imagen">
+          <strong class="promo-titulo">{{ promo.titulo }}</strong>
+          <span class="promo-desc" *ngIf="promo.descripcion">{{ promo.descripcion }}</span>
+        </div>
+      </div>
+    </div>
+    <button *ngIf="promociones.length > 1" class="carousel-btn carousel-btn--prev" (click)="carouselPrev()">&#8249;</button>
+    <button *ngIf="promociones.length > 1" class="carousel-btn carousel-btn--next" (click)="carouselNext()">&#8250;</button>
+    <div class="carousel-dots" *ngIf="promociones.length > 1">
+      <span *ngFor="let p of promociones; let i = index"
+            class="carousel-dot"
+            [class.active]="i === carouselIndex"
+            (click)="carouselIndex = i"></span>
+    </div>
+  </div>
+
+  <!-- ══ BODY ══════════════════════════════════════════════ -->
+  <div class="live-body">
+
+    <!-- ══════════════════════════════════════════════════════
+         SINGLE-PRODUCT FLOW  (allowMultipleCart === false)
+         ══════════════════════════════════════════════════════ -->
+    <ng-container *ngIf="!allowMultipleCart">
+
+      <!-- ── Paso 1: Elegir Producto ────────────────────── -->
+      <div class="step-card" *ngIf="!orderConfirmed" [class.completed]="selectedProduct">
+        <div class="step-header">
+          <div class="step-number" [class.done]="selectedProduct">
+            <mat-icon *ngIf="selectedProduct">check</mat-icon>
+            <span *ngIf="!selectedProduct">1</span>
+          </div>
+          <h2 class="step-title">Elegí tu producto</h2>
+        </div>
+
+        <div class="products-grid">
+          <div *ngFor="let product of products"
+               class="product-card"
+               [class.selected]="selectedProduct?.id === product.id"
+               (click)="selectProduct(product)">
+            <div class="product-image">
+              <img *ngIf="product.images?.length"
+                   [src]="product.images[0].image || product.images[0]"
+                   [alt]="product.name">
+              <div *ngIf="!product.images?.length" class="product-no-image">
+                <mat-icon>inventory_2</mat-icon>
+              </div>
+              <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+              <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
+              <span class="stock-badge"
+                    [class.out]="(product.available_quantity ?? product.stock) === 0">
+                {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 2: Detalle + variantes ───────────────── -->
+      <div class="step-card" *ngIf="selectedProduct && !orderConfirmed" [@slideIn] id="section-detail">
+        <div class="product-detail">
+          <div class="detail-image" *ngIf="selectedProduct.images?.length">
+            <img [src]="selectedProduct.images[0].image || selectedProduct.images[0]"
+                 [alt]="selectedProduct.name">
+          </div>
+          <div class="detail-info">
+            <h2>{{ selectedProduct.name }}</h2>
+            <p class="detail-desc" *ngIf="selectedProduct.description">{{ selectedProduct.description }}</p>
+            <div class="detail-price"><span>Bs. {{ selectedProduct.price | number:'1.2-2' }}</span></div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedProduct.variants?.length" class="variants-section">
+          <h3 class="variants-title">Elegí la variante</h3>
+          <div class="variants-grid">
+            <button *ngFor="let variant of selectedProduct.variants"
+                    class="variant-btn"
+                    [class.selected]="selectedVariant === variant"
+                    [disabled]="variant.stock === 0"
+                    (click)="selectVariant(variant)">
+              <span class="variant-label">
+                {{ variant.size ? variant.size : '' }}{{ variant.size && variant.color ? ' / ' : '' }}{{ variant.color ? variant.color : '' }}
+              </span>
+              <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
+            </button>
+          </div>
+          <p *ngIf="!selectedVariant" class="variant-hint">
+            <mat-icon>info_outline</mat-icon>
+            Seleccioná una variante para continuar
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Paso 3: Formulario ─────────────────────────── -->
+      <div class="step-card order-form-card"
+           *ngIf="selectedProduct && (selectedVariant || !selectedProduct.variants?.length) && !reservationId && !orderConfirmed"
+           [@slideIn] id="section-form">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <h2 class="step-title">Tus datos</h2>
+        </div>
+
+        <form [formGroup]="orderForm" class="order-form">
+          <div class="quantity-row">
+            <span class="qty-label">Cantidad</span>
+            <div class="quantity-control">
+              <button type="button" mat-icon-button
+                      (click)="decreaseQty()"
+                      [disabled]="orderForm.get('quantity')?.value <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="qty-value">{{ orderForm.get('quantity')?.value }}</span>
+              <button type="button" mat-icon-button
+                      (click)="increaseQty()"
+                      [disabled]="orderForm.get('quantity')?.value >= maxStock">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Tu nombre completo</mat-label>
+            <input matInput formControlName="customer_name" placeholder="Ej: María López">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error>El nombre es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Tu WhatsApp / Teléfono</mat-label>
+            <input matInput formControlName="customer_phone" placeholder="Ej: 70012345" type="tel">
+            <mat-icon matPrefix>phone</mat-icon>
+            <mat-error>El teléfono es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Notas (opcional)</mat-label>
+            <textarea matInput formControlName="notes" rows="2"
+                      placeholder="Dirección de entrega, instrucciones..."></textarea>
+            <mat-icon matPrefix>notes</mat-icon>
+          </mat-form-field>
+
+          <!-- Cupón -->
+          <div class="cupon-section">
+            <div class="cupon-row">
+              <mat-form-field appearance="outline" class="cupon-field">
+                <mat-label>Código de cupón (opcional)</mat-label>
+                <input matInput [(ngModel)]="cuponCodigo" [ngModelOptions]="{standalone: true}"
+                       placeholder="Ej: DESCUENTO10"
+                       (keyup.enter)="aplicarCupon(singleProductTotal)">
+                <mat-icon matPrefix>local_offer</mat-icon>
+              </mat-form-field>
+              <button type="button" mat-stroked-button class="cupon-btn"
+                      *ngIf="cuponValido !== true"
+                      [disabled]="!cuponCodigo.trim() || cuponChecking"
+                      (click)="aplicarCupon(singleProductTotal)">
+                {{ cuponChecking ? '...' : 'Aplicar' }}
+              </button>
+              <button type="button" mat-icon-button color="warn" class="cupon-clear-btn"
+                      *ngIf="cuponValido === true"
+                      (click)="limpiarCupon()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div *ngIf="cuponValido === true" class="cupon-ok">
+              <mat-icon>check_circle</mat-icon>
+              Descuento aplicado: Bs. {{ cuponDescuento | number:'1.2-2' }}
+            </div>
+            <div *ngIf="cuponValido === false" class="cupon-err">
+              <mat-icon>error_outline</mat-icon>
+              {{ cuponError }}
+            </div>
+          </div>
+
+          <div class="order-total">
+            <span class="total-label">Total a pagar</span>
+            <div class="total-amounts">
+              <span *ngIf="cuponDescuentoNum > 0" class="total-original">
+                Bs. {{ singleProductTotal | number:'1.2-2' }}
+              </span>
+              <span class="total-amount">
+                Bs. {{ (singleProductTotal - cuponDescuentoNum) | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <button mat-raised-button color="primary" class="submit-btn"
+                  [disabled]="orderForm.invalid || isSubmitting"
+                  (click)="submitOrder()">
+            <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isSubmitting">shopping_cart_checkout</mat-icon>
+            {{ isSubmitting ? 'Enviando...' : 'Confirmar Pedido' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Paso 4: QR de pago ─────────────────────────── -->
+      <div class="step-card payment-card" *ngIf="reservationId && !orderConfirmed" [@slideIn] id="section-payment">
+        <div class="payment-header">
+          <mat-icon class="payment-icon">check_circle</mat-icon>
+          <h2>¡Pedido recibido!</h2>
+          <p>{{ vendorQR ? 'Escaneá el QR y enviá tu comprobante' : 'Realizá el pago y subí tu comprobante' }}</p>
+        </div>
+
+        <div class="order-summary">
+          <div class="summary-row">
+            <span>Producto</span>
+            <strong>{{ selectedProduct?.name }}</strong>
+          </div>
+          <div class="summary-row" *ngIf="selectedVariant">
+            <span>Variante</span>
+            <strong>{{ variantDetail }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Cantidad</span>
+            <strong>{{ orderForm.get('quantity')?.value }}</strong>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <strong>Bs. {{ (singleProductTotal - cuponDescuentoNum) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="qr-container" *ngIf="vendorQR">
+          <img [src]="vendorQR" alt="QR de pago" class="qr-image">
+          <p class="qr-hint">Escaneá con tu app bancaria o Tigo Money</p>
+        </div>
+        <div *ngIf="!vendorQR" class="no-qr-msg">
+          <mat-icon>info_outline</mat-icon>
+          <span>El vendedor te indicará cómo realizar el pago. Subí tu comprobante una vez realizado.</span>
+        </div>
+        <div *ngIf="session?.payment_instructions" class="payment-instructions">
+          {{ session.payment_instructions }}
+        </div>
+
+        <div class="upload-section">
+          <h3>Subí tu comprobante de pago</h3>
+          <div class="upload-box" (click)="receiptInput.click()" [class.has-file]="receiptFile">
+            <input #receiptInput type="file" accept="image/*" capture="environment"
+                   (change)="onReceiptSelected($event)" style="display:none">
+            <div *ngIf="!receiptFile" class="upload-prompt">
+              <mat-icon>camera_alt</mat-icon>
+              <span>Fotografiar o subir comprobante</span>
+              <small>JPG, PNG hasta 5MB</small>
+            </div>
+            <div *ngIf="receiptFile" class="upload-preview">
+              <img [src]="receiptPreview" alt="Comprobante">
+              <button type="button" mat-icon-button (click)="$event.stopPropagation(); clearReceipt()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <button mat-raised-button color="primary" class="submit-btn"
+                  [disabled]="!receiptFile || isUploadingReceipt"
+                  (click)="submitReceipt()">
+            <mat-spinner *ngIf="isUploadingReceipt" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isUploadingReceipt">send</mat-icon>
+            {{ isUploadingReceipt ? 'Enviando...' : 'Enviar Comprobante' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Paso 5: Confirmación final ────────────────── -->
+      <div class="step-card success-card" *ngIf="orderConfirmed" [@slideIn]>
+        <div class="success-content">
+          <div class="success-icon"><mat-icon>check_circle</mat-icon></div>
+          <h2>¡Comprobante enviado!</h2>
+          <p>El vendedor confirmará tu pago y te contactará por WhatsApp.</p>
+          <div class="success-detail">
+            <mat-icon>phone</mat-icon>
+            {{ orderForm.get('customer_phone')?.value }}
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         CART FLOW  (allowMultipleCart === true)
+         ══════════════════════════════════════════════════════ -->
+    <ng-container *ngIf="allowMultipleCart">
+
+      <!-- ── Shopping: grid + detail ───────────────────── -->
+      <ng-container *ngIf="cartStep === 'shopping'">
+
+        <!-- Products grid -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <h2 class="step-title">Elegí tus productos</h2>
+          </div>
+          <div class="products-grid">
+            <div *ngFor="let product of products"
+                 class="product-card"
+                 [class.selected]="selectedProduct?.id === product.id"
+                 (click)="selectProduct(product)">
+              <div class="product-image">
+                <img *ngIf="product.images?.length"
+                     [src]="product.images[0].image || product.images[0]"
+                     [alt]="product.name">
+                <div *ngIf="!product.images?.length" class="product-no-image">
+                  <mat-icon>inventory_2</mat-icon>
+                </div>
+                <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
+                  <mat-icon>check_circle</mat-icon>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
+                <span class="stock-badge"
+                      [class.out]="(product.available_quantity ?? product.stock) === 0">
+                  {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product detail + variants + add to cart -->
+        <div class="step-card" *ngIf="selectedProduct" [@slideIn] id="section-detail">
+          <div class="product-detail">
+            <div class="detail-image" *ngIf="selectedProduct.images?.length">
+              <img [src]="selectedProduct.images[0].image || selectedProduct.images[0]"
+                   [alt]="selectedProduct.name">
+            </div>
+            <div class="detail-info">
+              <h2>{{ selectedProduct.name }}</h2>
+              <p class="detail-desc" *ngIf="selectedProduct.description">{{ selectedProduct.description }}</p>
+              <div class="detail-price"><span>Bs. {{ selectedProduct.price | number:'1.2-2' }}</span></div>
+            </div>
+          </div>
+
+          <div *ngIf="selectedProduct.variants?.length" class="variants-section">
+            <h3 class="variants-title">Elegí la variante</h3>
+            <div class="variants-grid">
+              <button *ngFor="let variant of selectedProduct.variants"
+                      class="variant-btn"
+                      [class.selected]="selectedVariant === variant"
+                      [disabled]="variant.stock === 0"
+                      (click)="selectVariant(variant)">
+                <span class="variant-label">
+                  {{ variant.size ? variant.size : '' }}{{ variant.size && variant.color ? ' / ' : '' }}{{ variant.color ? variant.color : '' }}
+                </span>
+                <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
+              </button>
+            </div>
+            <p *ngIf="!selectedVariant" class="variant-hint">
+              <mat-icon>info_outline</mat-icon>
+              Seleccioná una variante para continuar
+            </p>
+          </div>
+
+          <!-- Qty + Add to cart button -->
+          <div class="cart-add-row" *ngIf="selectedVariant || !selectedProduct.variants?.length">
+            <div class="quantity-row">
+              <span class="qty-label">Cantidad</span>
+              <div class="quantity-control">
+                <button type="button" mat-icon-button
+                        (click)="decreaseQty()"
+                        [disabled]="orderForm.get('quantity')?.value <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="qty-value">{{ orderForm.get('quantity')?.value }}</span>
+                <button type="button" mat-icon-button
+                        (click)="increaseQty()"
+                        [disabled]="orderForm.get('quantity')?.value >= maxStock">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+            <button mat-raised-button color="primary" class="add-to-cart-btn" (click)="addToCart()">
+              <mat-icon>add_shopping_cart</mat-icon>
+              Agregar al carrito
+            </button>
+          </div>
+        </div>
+
+      </ng-container><!-- /shopping -->
+
+      <!-- ── Payment: QR + receipt upload ─────────────── -->
+      <ng-container *ngIf="cartStep === 'payment'">
+        <div class="step-card payment-card" [@slideIn] id="section-cart-payment">
+          <div class="payment-header">
+            <mat-icon class="payment-icon">check_circle</mat-icon>
+            <h2>¡Pedidos recibidos!</h2>
+            <p>{{ vendorQR ? 'Escaneá el QR y enviá un único comprobante' : 'Realizá el pago y subí tu comprobante' }}</p>
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row total">
+              <span>{{ cartTotalOrdered }} pedido{{ cartTotalOrdered !== 1 ? 's' : '' }} confirmado{{ cartTotalOrdered !== 1 ? 's' : '' }}</span>
+              <strong>Bs. {{ cartTotalAmount | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div *ngIf="cartFailedItems.length" class="cart-failed-alert">
+            <mat-icon>warning</mat-icon>
+            <div>
+              <strong>Algunos productos no se pudieron procesar:</strong>
+              <ul>
+                <li *ngFor="let msg of cartFailedItems">{{ msg }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="qr-container" *ngIf="vendorQR">
+            <img [src]="vendorQR" alt="QR de pago" class="qr-image">
+            <p class="qr-hint">Escaneá con tu app bancaria o Tigo Money</p>
+          </div>
+          <div *ngIf="!vendorQR" class="no-qr-msg">
+            <mat-icon>info_outline</mat-icon>
+            <span>El vendedor te indicará cómo realizar el pago. Subí tu comprobante una vez realizado.</span>
+          </div>
+          <div *ngIf="session?.payment_instructions" class="payment-instructions">
+            {{ session.payment_instructions }}
+          </div>
+
+          <div class="upload-section">
+            <h3>Subí tu comprobante de pago</h3>
+            <div class="upload-box" (click)="cartReceiptInput.click()" [class.has-file]="receiptFile">
+              <input #cartReceiptInput type="file" accept="image/*" capture="environment"
+                     (change)="onReceiptSelected($event)" style="display:none">
+              <div *ngIf="!receiptFile" class="upload-prompt">
+                <mat-icon>camera_alt</mat-icon>
+                <span>Fotografiar o subir comprobante</span>
+                <small>JPG, PNG hasta 5MB</small>
+              </div>
+              <div *ngIf="receiptFile" class="upload-preview">
+                <img [src]="receiptPreview" alt="Comprobante">
+                <button type="button" mat-icon-button (click)="$event.stopPropagation(); clearReceipt()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <button mat-raised-button color="primary" class="submit-btn"
+                    [disabled]="!receiptFile || isUploadingReceipt"
+                    (click)="submitCartReceipt()">
+              <mat-spinner *ngIf="isUploadingReceipt" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!isUploadingReceipt">send</mat-icon>
+              {{ isUploadingReceipt ? 'Enviando...' : 'Enviar Comprobante' }}
+            </button>
+          </div>
+        </div>
+      </ng-container><!-- /payment -->
+
+      <!-- ── Done ──────────────────────────────────────── -->
+      <ng-container *ngIf="cartStep === 'done'">
+        <div class="step-card success-card" [@slideIn]>
+          <div class="success-content">
+            <div class="success-icon"><mat-icon>check_circle</mat-icon></div>
+            <h2>¡Comprobante enviado!</h2>
+            <p>El vendedor confirmará tu pago y te contactará por WhatsApp.</p>
+            <div class="success-detail">
+              <mat-icon>phone</mat-icon>
+              {{ cartCustomerForm.get('customer_phone')?.value }}
+            </div>
+          </div>
+        </div>
+      </ng-container><!-- /done -->
+
+    </ng-container><!-- /allowMultipleCart -->
+
+  </div><!-- /live-body -->
+
+  <!-- ── Cart FAB ─────────────────────────────────────────── -->
+  <button *ngIf="allowMultipleCart && cartStep === 'shopping' && cart.length > 0"
+          class="cart-fab" (click)="openCart()">
+    <mat-icon>shopping_cart</mat-icon>
+    <span class="cart-fab-badge" [class.pop]="badgePop">{{ cartCount }}</span>
+  </button>
+
+  <!-- ── Cart Overlay ─────────────────────────────────────── -->
+  <div *ngIf="cartOpen" class="cart-overlay" (click)="closeCart()"></div>
+
+  <!-- ── Cart Panel ───────────────────────────────────────── -->
+  <div *ngIf="cartOpen" class="cart-panel" [@panelSlide]>
+
+    <!-- Items step -->
+    <ng-container *ngIf="cartPanelStep === 'items'">
+      <div class="cart-panel-header">
+        <h3>Mi carrito</h3>
+        <button mat-icon-button (click)="closeCart()"><mat-icon>close</mat-icon></button>
+      </div>
+
+      <div class="cart-panel-body">
+        <div *ngFor="let item of cart; let i = index" class="cart-item">
+          <div class="cart-item-info">
+            <span class="cart-item-name">{{ item.product.name }}</span>
+            <span class="cart-item-variant" *ngIf="item.variantLabel">{{ item.variantLabel }}</span>
+            <span class="cart-item-price">
+              Bs. {{ (item.product.price * item.quantity) | number:'1.2-2' }}
+            </span>
+          </div>
+          <div class="cart-item-controls">
+            <button mat-icon-button (click)="updateCartQty(i, -1)">
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="cart-item-qty">{{ item.quantity }}</span>
+            <button mat-icon-button (click)="updateCartQty(i, 1)">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="removeCartItem(i)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-panel-footer">
+        <div class="cart-panel-total">
+          <span>Total</span>
+          <strong>Bs. {{ cartTotal | number:'1.2-2' }}</strong>
+        </div>
+        <button mat-raised-button color="primary" class="submit-btn" (click)="goToCartCustomer()">
+          <mat-icon>arrow_forward</mat-icon>
+          Continuar
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Customer step -->
+    <ng-container *ngIf="cartPanelStep === 'customer'">
+      <div class="cart-panel-header">
+        <button mat-icon-button (click)="backToCartItems()"><mat-icon>arrow_back</mat-icon></button>
+        <h3>Tus datos</h3>
+        <button mat-icon-button (click)="closeCart()"><mat-icon>close</mat-icon></button>
+      </div>
+
+      <div class="cart-panel-body">
+        <form [formGroup]="cartCustomerForm" class="order-form">
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Tu nombre completo</mat-label>
+            <input matInput formControlName="customer_name" placeholder="Ej: María López">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error>El nombre es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Tu WhatsApp / Teléfono</mat-label>
+            <input matInput formControlName="customer_phone" placeholder="Ej: 70012345" type="tel">
+            <mat-icon matPrefix>phone</mat-icon>
+            <mat-error>El teléfono es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Notas (opcional)</mat-label>
+            <textarea matInput formControlName="notes" rows="2"
+                      placeholder="Dirección de entrega..."></textarea>
+            <mat-icon matPrefix>notes</mat-icon>
+          </mat-form-field>
+
+          <!-- Cupón -->
+          <div class="cupon-section">
+            <div class="cupon-row">
+              <mat-form-field appearance="outline" class="cupon-field">
+                <mat-label>Código de cupón (opcional)</mat-label>
+                <input matInput [(ngModel)]="cuponCodigo" [ngModelOptions]="{standalone: true}"
+                       placeholder="Ej: DESCUENTO10"
+                       (keyup.enter)="aplicarCupon(cartTotal)">
+                <mat-icon matPrefix>local_offer</mat-icon>
+              </mat-form-field>
+              <button type="button" mat-stroked-button class="cupon-btn"
+                      *ngIf="cuponValido !== true"
+                      [disabled]="!cuponCodigo.trim() || cuponChecking"
+                      (click)="aplicarCupon(cartTotal)">
+                {{ cuponChecking ? '...' : 'Aplicar' }}
+              </button>
+              <button type="button" mat-icon-button color="warn" class="cupon-clear-btn"
+                      *ngIf="cuponValido === true"
+                      (click)="limpiarCupon()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div *ngIf="cuponValido === true" class="cupon-ok">
+              <mat-icon>check_circle</mat-icon>
+              Descuento aplicado: Bs. {{ cuponDescuento | number:'1.2-2' }}
+            </div>
+            <div *ngIf="cuponValido === false" class="cupon-err">
+              <mat-icon>error_outline</mat-icon>
+              {{ cuponError }}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="cart-panel-footer">
+        <div class="cart-panel-total">
+          <span>{{ cartCount }} item{{ cartCount !== 1 ? 's' : '' }}</span>
+          <div class="total-amounts">
+            <span *ngIf="cuponDescuentoNum > 0" class="total-original">
+              Bs. {{ cartTotal | number:'1.2-2' }}
+            </span>
+            <strong>Bs. {{ (cartTotal - cuponDescuentoNum) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+        <button mat-raised-button color="primary" class="submit-btn"
+                [disabled]="cartCustomerForm.invalid || isSubmittingCart"
+                (click)="submitCartOrders()">
+          <mat-spinner *ngIf="isSubmittingCart" diameter="20"></mat-spinner>
+          <mat-icon *ngIf="!isSubmittingCart">shopping_cart_checkout</mat-icon>
+          {{ isSubmittingCart ? 'Procesando...' : 'Confirmar Pedidos' }}
+        </button>
+      </div>
+    </ng-container>
+
+  </div><!-- /cart-panel -->
+
+  <!-- Footer -->
+  <div class="live-footer">
+    <span>Powered by</span>
+    <strong>LiveShop Bolivia</strong>
+  </div>
+
+</div>

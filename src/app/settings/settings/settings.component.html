@@ -1,0 +1,408 @@
+<div class="settings-page">
+  <h1 class="page-title"><mat-icon>settings</mat-icon> Configuración</h1>
+
+  <mat-tab-group animationDuration="200ms">
+
+    <!-- ══ TAB 1: Métodos de Pago ══════════════════════════════════════════ -->
+    <mat-tab label="Métodos de Pago">
+      <div class="tab-content">
+        <div class="tab-header">
+          <h2>Métodos de Pago</h2>
+          <button mat-raised-button color="primary" (click)="abrirMetodoDialog()">
+            <mat-icon>add</mat-icon> Nuevo
+          </button>
+        </div>
+
+        <mat-table [dataSource]="metodosPago" class="settings-table">
+          <ng-container matColumnDef="icono">
+            <mat-header-cell *matHeaderCellDef>Ícono</mat-header-cell>
+            <mat-cell *matCellDef="let m"><mat-icon>{{ m.icono || 'payment' }}</mat-icon></mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="nombre">
+            <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
+            <mat-cell *matCellDef="let m"><strong>{{ m.nombre }}</strong></mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="tipo">
+            <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+            <mat-cell *matCellDef="let m">{{ m.tipo }}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="orden">
+            <mat-header-cell *matHeaderCellDef>Orden</mat-header-cell>
+            <mat-cell *matCellDef="let m">{{ m.orden }}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="acciones">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let m">
+              <button mat-icon-button matTooltip="Editar" (click)="abrirMetodoDialog(m)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="eliminarMetodo(m)"><mat-icon>delete</mat-icon></button>
+            </mat-cell>
+          </ng-container>
+          <mat-header-row *matHeaderRowDef="mpCols"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: mpCols;"></mat-row>
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" colspan="5">Sin métodos de pago. Agrega uno para usarlo en el POS.</td>
+          </tr>
+        </mat-table>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 2: Ticket Térmico ══════════════════════════════════════════ -->
+    <mat-tab label="Ticket Térmico">
+      <div class="tab-content ticket-tab">
+
+        <!-- Formulario -->
+        <div class="ticket-form-col">
+          <h2>Configuración del Ticket</h2>
+          <form [formGroup]="ticketForm" class="ticket-form">
+
+            <div class="toggle-row">
+              <mat-slide-toggle formControlName="mostrar_logo">Mostrar logo</mat-slide-toggle>
+              <mat-slide-toggle formControlName="mostrar_qr">Mostrar QR</mat-slide-toggle>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nombre de empresa</mat-label>
+              <input matInput formControlName="nombre_empresa">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>RUC / NIT</mat-label>
+              <input matInput formControlName="ruc_nit">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Dirección</mat-label>
+              <input matInput formControlName="direccion">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Teléfono</mat-label>
+              <input matInput formControlName="telefono">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Texto pie de página</mat-label>
+              <input matInput formControlName="texto_pie">
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Moneda</mat-label>
+                <input matInput formControlName="moneda" placeholder="Bs.">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Ancho</mat-label>
+                <mat-select formControlName="ancho_ticket">
+                  <mat-option [value]="58">58 mm</mat-option>
+                  <mat-option [value]="80">80 mm</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <button mat-raised-button color="primary" type="button"
+                    [disabled]="ticketForm.invalid || ticketSaving" (click)="saveTicket()">
+              <mat-spinner *ngIf="ticketSaving" diameter="18" style="display:inline-block"></mat-spinner>
+              <span *ngIf="!ticketSaving">Guardar Configuración</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Vista previa -->
+        <div class="ticket-preview-col">
+          <h2>Vista Previa</h2>
+          <div class="ticket-preview-wrapper">
+            <div class="ticket-preview" [style.width.px]="ticketWidthPx">
+              <div class="tp-header">
+                <div class="tp-store">{{ ticketPreview.nombre_empresa || 'Nombre empresa' }}</div>
+                <div class="tp-meta" *ngIf="ticketPreview.ruc_nit">NIT: {{ ticketPreview.ruc_nit }}</div>
+                <div class="tp-meta" *ngIf="ticketPreview.direccion">{{ ticketPreview.direccion }}</div>
+                <div class="tp-meta" *ngIf="ticketPreview.telefono">Tel: {{ ticketPreview.telefono }}</div>
+              </div>
+              <div class="tp-div">--------------------------------</div>
+              <div class="tp-meta">Ticket N°: <strong>T0001</strong></div>
+              <div class="tp-meta">{{ now | date:'dd/MM/yyyy HH:mm' }}</div>
+              <div class="tp-div">--------------------------------</div>
+              <div class="tp-meta">Cliente: Genérico</div>
+              <div class="tp-div">--------------------------------</div>
+              <div class="tp-items">
+                <div *ngFor="let item of sampleItems" class="tp-item">
+                  <span>{{ item.nombre }}</span>
+                  <span>{{ item.cant }} x {{ item.precio | number:'1.2-2' }}</span>
+                </div>
+              </div>
+              <div class="tp-div">--------------------------------</div>
+              <div class="tp-total">
+                <span>TOTAL:</span>
+                <strong>{{ ticketPreview.moneda }} {{ sampleTotal | number:'1.2-2' }}</strong>
+              </div>
+              <div class="tp-div">--------------------------------</div>
+              <div class="tp-footer">{{ ticketPreview.texto_pie }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 3: Sucursales & Cajas ════════════════════════════════════════ -->
+    <mat-tab label="Sucursales y Cajas">
+      <div class="tab-content">
+        <div class="tab-header">
+          <h2>Sucursales y Cajas</h2>
+          <button mat-raised-button color="primary" (click)="abrirSucursalDialog()">
+            <mat-icon>add</mat-icon> Nueva Sucursal
+          </button>
+        </div>
+
+        <!-- Cards de sucursales -->
+        <div class="sucursal-grid">
+          <mat-card *ngFor="let suc of sucursales" class="sucursal-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>store</mat-icon>
+              <mat-card-title>{{ suc.nombre }}</mat-card-title>
+              <mat-card-subtitle>
+                <span class="suc-badge" [class.activa]="suc.activa">
+                  {{ suc.activa ? 'Activa' : 'Inactiva' }}
+                </span>
+                <span *ngIf="suc.es_principal" class="suc-badge principal">Principal</span>
+              </mat-card-subtitle>
+              <div class="suc-actions">
+                <button mat-icon-button matTooltip="Editar sucursal"
+                        (click)="abrirSucursalDialog(suc)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button
+                        [matTooltip]="suc.activa ? 'Desactivar sucursal' : 'Activar sucursal'"
+                        [color]="suc.activa ? 'warn' : 'primary'"
+                        (click)="toggleSucursal(suc)">
+                  <mat-icon>{{ suc.activa ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Eliminar sucursal"
+                        (click)="eliminarSucursal(suc)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p *ngIf="suc.direccion" class="suc-dir"><mat-icon>place</mat-icon> {{ suc.direccion }}</p>
+
+              <!-- Cajas -->
+              <div class="section-subtitle">
+                <mat-icon>point_of_sale</mat-icon> Cajas
+              </div>
+              <div class="item-list">
+                <div *ngFor="let c of (cajasBySucursal[suc.id] || [])" class="item-row">
+                  <mat-icon>monitor</mat-icon>
+                  <span class="item-name">{{ c.nombre }}</span>
+                  <button mat-icon-button color="warn" class="item-delete-btn"
+                          matTooltip="Eliminar caja"
+                          (click)="eliminarCaja(suc.id, c)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+                <div class="add-inline">
+                  <input [(ngModel)]="newCajaNombre[suc.id]" placeholder="Nombre caja" class="inline-input"
+                         (keyup.enter)="agregarCaja(suc.id)">
+                  <button mat-icon-button (click)="agregarCaja(suc.id)"><mat-icon>add</mat-icon></button>
+                </div>
+              </div>
+
+              <!-- Almacenes -->
+              <div class="section-subtitle">
+                <mat-icon>warehouse</mat-icon> Almacenes
+              </div>
+              <div class="item-list">
+                <div *ngFor="let a of (suc.almacenes || [])" class="item-row">
+                  <mat-icon>inventory</mat-icon>
+                  <span class="item-name">{{ a.nombre }}</span>
+                  <button mat-icon-button color="warn" class="item-delete-btn"
+                          matTooltip="Eliminar almacén"
+                          (click)="eliminarAlmacen(suc.id, a)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+                <div class="add-inline">
+                  <input [(ngModel)]="newAlmacenNombre[suc.id]" placeholder="Nombre almacén" class="inline-input"
+                         (keyup.enter)="agregarAlmacen(suc.id)">
+                  <button mat-icon-button (click)="agregarAlmacen(suc.id)"><mat-icon>add</mat-icon></button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <div class="empty-state" *ngIf="!sucursales.length">
+            <mat-icon>store_mall_directory</mat-icon>
+            <p>Sin sucursales. Agrega la primera arriba.</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 4: Comprobantes ════════════════════════════════════════════ -->
+    <mat-tab label="Comprobantes">
+      <div class="tab-content">
+        <h2>Comprobantes</h2>
+        <mat-table [dataSource]="comprobantes" class="settings-table">
+
+          <ng-container matColumnDef="tipo">
+            <mat-header-cell *matHeaderCellDef>Comprobante</mat-header-cell>
+            <mat-cell *matCellDef="let c"><strong>{{ c.tipo_display }}</strong></mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="serie">
+            <mat-header-cell *matHeaderCellDef>Serie</mat-header-cell>
+            <mat-cell *matCellDef="let c">{{ c.serie }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="correlativo">
+            <mat-header-cell *matHeaderCellDef>Correlativo</mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <ng-container *ngIf="editingComp !== c.id">
+                {{ c.correlativo | number:'6.0-0' }}
+              </ng-container>
+              <input *ngIf="editingComp === c.id"
+                     type="number" class="correlativo-input"
+                     [(ngModel)]="editCorrelativo[c.id]"
+                     (keyup.enter)="guardarCorrelativo(c)">
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <button mat-icon-button *ngIf="editingComp !== c.id" (click)="editarCorrelativo(c)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" *ngIf="editingComp === c.id" (click)="guardarCorrelativo(c)">
+                <mat-icon>save</mat-icon>
+              </button>
+              <button mat-icon-button *ngIf="editingComp === c.id" (click)="editingComp = null">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="compCols"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: compCols;"></mat-row>
+        </mat-table>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 5: Cupones ════════════════════════════════════════════════ -->
+    <mat-tab label="Cupones">
+      <div class="tab-content">
+        <div class="tab-header">
+          <h2>Cupones de Descuento</h2>
+          <button mat-raised-button color="primary" (click)="abrirCuponDialog()">
+            <mat-icon>add</mat-icon> Nuevo Cupón
+          </button>
+        </div>
+
+        <mat-table [dataSource]="cupones" class="settings-table">
+
+          <ng-container matColumnDef="codigo">
+            <mat-header-cell *matHeaderCellDef>Código</mat-header-cell>
+            <mat-cell *matCellDef="let c"><strong>{{ c.codigo }}</strong></mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="tipo">
+            <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+            <mat-cell *matCellDef="let c">{{ c.tipo === 'porcentaje' ? 'Porcentaje' : 'Monto fijo' }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="valor">
+            <mat-header-cell *matHeaderCellDef>Valor</mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <strong>{{ c.valor }}{{ c.tipo === 'porcentaje' ? '%' : ' Bs.' }}</strong>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="usos">
+            <mat-header-cell *matHeaderCellDef>Usos</mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              {{ c.usos_actuales }} / {{ c.usos_maximos ?? '∞' }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="vencimiento">
+            <mat-header-cell *matHeaderCellDef>Vencimiento</mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              {{ c.fecha_vencimiento ? (c.fecha_vencimiento | date:'dd/MM/yyyy') : '—' }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <mat-slide-toggle [checked]="c.activo" (change)="toggleCupon(c)" color="primary">
+                {{ c.activo ? 'Activo' : 'Inactivo' }}
+              </mat-slide-toggle>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <button mat-icon-button matTooltip="Editar" (click)="abrirCuponDialog(c)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="eliminarCupon(c)"><mat-icon>delete</mat-icon></button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="cuponCols"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: cuponCols;"></mat-row>
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" [attr.colspan]="cuponCols.length">Sin cupones creados.</td>
+          </tr>
+        </mat-table>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 6: Categorías de Gasto ════════════════════════════════════════ -->
+    <mat-tab label="Categorías de Gasto">
+      <div class="tab-content">
+        <div class="tab-header">
+          <h2>Categorías de Gasto</h2>
+        </div>
+
+        <!-- Nueva categoría -->
+        <div class="add-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de categoría</mat-label>
+            <input matInput [(ngModel)]="newCategoriaNombre" (keyup.enter)="agregarCategoria()"
+                   placeholder="Ej: Arriendo, Servicios básicos...">
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="agregarCategoria()"
+                  [disabled]="!newCategoriaNombre.trim()">
+            <mat-icon>add</mat-icon> Agregar
+          </button>
+        </div>
+
+        <!-- Lista de categorías -->
+        <mat-table [dataSource]="categoriasGasto" class="settings-table">
+          <ng-container matColumnDef="nombre">
+            <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
+            <mat-cell *matCellDef="let c">{{ c.nombre }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let c">
+              <button mat-icon-button color="warn" matTooltip="Eliminar"
+                      (click)="eliminarCategoria(c)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="['nombre', 'acciones']"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: ['nombre', 'acciones'];"></mat-row>
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" colspan="2">Sin categorías creadas.</td>
+          </tr>
+        </mat-table>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

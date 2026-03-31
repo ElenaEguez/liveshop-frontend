@@ -42,4 +42,9 @@ testem.log
 
 # System Files
 .DS_Store
+
+node_modules/
+dist/
+.env
+*.log
 Thumbs.db

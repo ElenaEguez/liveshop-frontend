@@ -1,0 +1,172 @@
+<div class="team-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <mat-icon>group</mat-icon>
+        Mi equipo
+        <span class="member-count">({{ activeCount }}/{{ MAX_MEMBERS }} miembros)</span>
+      </h1>
+      <p class="page-subtitle">Gestioná los accesos de tu equipo de trabajo</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group animationDuration="200ms">
+
+    <!-- ══ TAB: MIEMBROS ══════════════════════════════════ -->
+    <mat-tab label="Miembros">
+      <div class="tab-content">
+
+        <div class="tab-actions">
+          <p *ngIf="!canInvite" class="limit-msg">
+            <mat-icon>info_outline</mat-icon>
+            Límite de {{ MAX_MEMBERS }} miembros activos alcanzado.
+          </p>
+          <button mat-raised-button color="primary"
+                  (click)="openInvite()"
+                  [disabled]="!canInvite || roles.length === 0">
+            <mat-icon>person_add</mat-icon>
+            Agregar miembro
+          </button>
+        </div>
+
+        <p *ngIf="roles.length === 0 && !loadingRoles" class="no-roles-hint">
+          <mat-icon>info_outline</mat-icon>
+          Primero creá al menos un rol en la pestaña <strong>Roles</strong> para poder invitar miembros.
+        </p>
+
+        <div *ngIf="loadingMembers" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loadingMembers && members.length === 0" class="empty-state">
+          <mat-icon>group_off</mat-icon>
+          <p>Todavía no tenés miembros en tu equipo.</p>
+          <button mat-stroked-button color="primary"
+                  (click)="openInvite()"
+                  [disabled]="roles.length === 0">
+            <mat-icon>person_add</mat-icon>
+            Agregar el primero
+          </button>
+        </div>
+
+        <div *ngIf="!loadingMembers && members.length > 0" class="table-card mat-elevation-z2">
+          <mat-table [dataSource]="members">
+
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
+              <mat-cell *matCellDef="let m">
+                <div class="member-name">
+                  <div class="avatar">{{ (m.user_name || m.user_email)[0].toUpperCase() }}</div>
+                  <span>{{ m.user_name || '—' }}</span>
+                </div>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+              <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+              <mat-cell *matCellDef="let m">{{ m.user_email }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+              <mat-header-cell *matHeaderCellDef>Rol</mat-header-cell>
+              <mat-cell *matCellDef="let m">
+                <span class="role-chip">{{ m.custom_role_name || 'Sin rol' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+              <mat-cell *matCellDef="let m">
+                <mat-slide-toggle
+                  [checked]="m.is_active"
+                  color="primary"
+                  (change)="toggleActive(m)"
+                  [matTooltip]="m.is_active ? 'Activo' : 'Inactivo'">
+                </mat-slide-toggle>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef></mat-header-cell>
+              <mat-cell *matCellDef="let m">
+                <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDeleteMember(m)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="memberColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: memberColumns;"></mat-row>
+          </mat-table>
+        </div>
+
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB: ROLES ════════════════════════════════════ -->
+    <mat-tab label="Roles">
+      <div class="tab-content">
+
+        <div class="tab-actions">
+          <button mat-raised-button color="primary" (click)="openRoleDialog()">
+            <mat-icon>add</mat-icon>
+            Nuevo rol
+          </button>
+        </div>
+
+        <div *ngIf="loadingRoles" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loadingRoles && roles.length === 0" class="empty-state">
+          <mat-icon>manage_accounts</mat-icon>
+          <p>No tenés roles definidos todavía.</p>
+          <button mat-stroked-button color="primary" (click)="openRoleDialog()">
+            <mat-icon>add</mat-icon>
+            Crear el primero
+          </button>
+        </div>
+
+        <div *ngIf="!loadingRoles && roles.length > 0" class="table-card mat-elevation-z2">
+          <mat-table [dataSource]="roles">
+
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef>Nombre del rol</mat-header-cell>
+              <mat-cell *matCellDef="let r">
+                <strong>{{ r.name }}</strong>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="perms">
+              <mat-header-cell *matHeaderCellDef>Módulos con acceso</mat-header-cell>
+              <mat-cell *matCellDef="let r">
+                <span class="perm-summary">{{ permSummary(r) }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef></mat-header-cell>
+              <mat-cell *matCellDef="let r">
+                <button mat-icon-button matTooltip="Editar" (click)="openRoleDialog(r)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDeleteRole(r)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="roleColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: roleColumns;"></mat-row>
+          </mat-table>
+        </div>
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

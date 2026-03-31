@@ -1,0 +1,131 @@
+<div class="gastos-page">
+
+  <div class="page-toolbar">
+    <h1><mat-icon>receipt_long</mat-icon> Gastos Operativos</h1>
+    <button mat-raised-button color="primary" (click)="nuevoGasto()">
+      <mat-icon>add</mat-icon> Gasto
+    </button>
+  </div>
+
+  <!-- Filtros de período -->
+  <mat-card class="filter-card">
+    <div class="periodo-row">
+      <button *ngFor="let p of [
+        {v:'todo',  label:'Todo'},
+        {v:'7d',    label:'Últimos 7 días'},
+        {v:'30d',   label:'Últimos 30 días'},
+        {v:'año',   label:'Último año'},
+        {v:'hoy',   label:'Hoy'},
+        {v:'dia',   label:'Por Día'}
+      ]"
+        mat-stroked-button class="periodo-chip"
+        [class.active]="activePeriodo === p.v"
+        (click)="setPeriodo(p.v)">
+        {{ p.label }}
+      </button>
+      <button mat-stroked-button class="clear-chip" (click)="limpiarFiltro()">
+        <mat-icon>clear</mat-icon> Limpiar
+      </button>
+    </div>
+
+    <div *ngIf="showDatePicker" class="date-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" [(ngModel)]="activeFecha" (change)="load()">
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  <!-- Turnos de Caja -->
+  <mat-card class="table-card turnos-card" *ngIf="turnos.length > 0">
+    <div class="section-title">
+      <mat-icon>point_of_sale</mat-icon>
+      Movimientos de Caja (Turnos POS)
+    </div>
+    <mat-table [dataSource]="turnos">
+
+      <ng-container matColumnDef="caja">
+        <mat-header-cell *matHeaderCellDef>Caja / Turno</mat-header-cell>
+        <mat-cell *matCellDef="let t">
+          <mat-icon class="caja-icon">point_of_sale</mat-icon>
+          <span>{{ t.caja_nombre || 'Caja #' + t.caja }}</span>
+          <span class="turno-date">{{ t.fecha_apertura | date:'dd/MM HH:mm' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="apertura">
+        <mat-header-cell *matHeaderCellDef>Apertura</mat-header-cell>
+        <mat-cell *matCellDef="let t">Bs. {{ t.monto_apertura | number:'1.2-2' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ventas">
+        <mat-header-cell *matHeaderCellDef>Ventas</mat-header-cell>
+        <mat-cell *matCellDef="let t" class="positive-val">Bs. {{ t.total_ventas | number:'1.2-2' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="retiros">
+        <mat-header-cell *matHeaderCellDef>Retiros</mat-header-cell>
+        <mat-cell *matCellDef="let t" class="negative-val">
+          {{ (+t.total_retiros > 0) ? ('Bs. ' + (t.total_retiros | number:'1.2-2')) : '—' }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+        <mat-cell *matCellDef="let t">
+          <span class="turno-badge" [class.abierto]="t.status === 'abierto'" [class.cerrado]="t.status === 'cerrado'">
+            {{ t.status === 'abierto' ? 'Abierto' : 'Cerrado' }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="turnosCols"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: turnosCols;"></mat-row>
+    </mat-table>
+  </mat-card>
+
+  <!-- Tabla por categoría -->
+  <mat-card class="table-card">
+    <div class="loading-shade" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+    <mat-table [dataSource]="catRows">
+
+      <ng-container matColumnDef="categoria">
+        <mat-header-cell *matHeaderCellDef>Categoría</mat-header-cell>
+        <mat-cell *matCellDef="let r">
+          <mat-icon class="cat-icon">folder</mat-icon>
+          <strong>{{ r.categoria.nombre }}</strong>
+          <span class="count-badge">{{ r.count }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="total">
+        <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
+        <mat-cell *matCellDef="let r">
+          <strong class="total-amount">Bs. {{ r.total | number:'1.2-2' }}</strong>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let r">
+          <button mat-stroked-button class="action-btn" (click)="verGastos(r)">
+            <mat-icon>list</mat-icon> Ver Gastos
+          </button>
+          <button mat-icon-button color="warn" matTooltip="Eliminar categoría"
+                  [disabled]="r.categoria.id === 0"
+                  (click)="eliminarCategoria(r)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="3">Sin gastos en este período.</td>
+      </tr>
+    </mat-table>
+  </mat-card>
+</div>

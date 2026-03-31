@@ -1,0 +1,62 @@
+<div style="width: 100%;">
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Categorías</h1>
+    <button mat-raised-button color="primary" (click)="openForm()"
+            style="display:flex; align-items:center; gap:8px; padding:0 20px; height:42px;">
+      <mat-icon>add</mat-icon>
+      Nueva Categoría
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <table mat-table [dataSource]="categories" style="width:100%;">
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef
+            style="font-weight:600; color:#374151; padding:16px;">Nombre</th>
+        <td mat-cell *matCellDef="let c" style="padding:16px; font-weight:500;">
+          <span style="background:#fef2f2; color:#db0000; padding:4px 10px;
+                       border-radius:20px; font-size:0.85rem;">
+            {{ c.name }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Descripción</th>
+        <td mat-cell *matCellDef="let c" style="color:#6b7280; font-size:0.875rem;">
+          {{ c.description || '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Acciones</th>
+        <td mat-cell *matCellDef="let c">
+          <button mat-icon-button (click)="openForm(c)" matTooltip="Editar" style="color:#db0000;">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="delete(c)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" style="background:#f9fafb;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          style="border-bottom:1px solid #f3f4f6;"></tr>
+    </table>
+
+    <div *ngIf="categories.length === 0"
+         style="text-align:center; padding:48px; color:#9ca3af;">
+      <mat-icon style="font-size:48px; width:48px; height:48px;">category</mat-icon>
+      <p style="margin-top:12px; font-size:1rem;">No hay categorías aún</p>
+      <button mat-raised-button color="primary" (click)="openForm()" style="margin-top:8px;">
+        Crear primera categoría
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,294 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+const API = 'http://localhost:8000/api/v1';
+
+// ── Interfaces ────────────────────────────────────────────────────────────────
+
+export interface Sucursal {
+  id: number;
+  nombre: string;
+  direccion: string;
+  es_principal: boolean;
+  activa: boolean;
+}
+
+export interface Caja {
+  id: number;
+  nombre: string;
+  activa: boolean;
+  sucursal: number;
+}
+
+export interface TurnoCaja {
+  id: number;
+  caja: number;
+  caja_nombre?: string;
+  sucursal_nombre?: string;
+  usuario_nombre?: string;
+  usuario_email?: string;
+  status: 'abierto' | 'cerrado';
+  monto_apertura: string;
+  monto_cierre: string | null;
+  efectivo_esperado: string | null;
+  diferencia_cierre: string | null;
+  fecha_apertura: string;
+  fecha_cierre: string | null;
+  total_ventas: string;
+  notas_cierre?: string;
+}
+
+export interface MetodoPago {
+  id: number;
+  nombre: string;
+  tipo: string;
+  icono: string;
+  activo: boolean;
+  orden: number;
+}
+
+export interface ProductVariantPOS {
+  id: number;
+  talla: string;
+  color: string;
+  color_hex: string;
+  sku: string;
+  stock_extra: number;
+  is_active: boolean;
+}
+
+export interface ProductoPOS {
+  id: number;
+  name: string;
+  barcode: string;
+  internal_code: string;
+  price: number;
+  purchase_cost: number | null;
+  stock_disponible: number;
+  variantes: ProductVariantPOS[];
+  imagen_thumbnail: string | null;
+}
+
+export interface CartItem {
+  product: ProductoPOS;
+  variant: ProductVariantPOS | null;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+export interface VentaPOSItem {
+  id: number;
+  product: number;
+  product_name: string;
+  variant: number | null;
+  cantidad: number;
+  precio_unitario: string;
+  costo_unitario: string | null;
+  subtotal: string;
+}
+
+export interface VentaPOS {
+  id: number;
+  numero_ticket: string;
+  vendor: number;
+  sucursal: number;
+  sucursal_nombre: string;
+  caja: number | null;
+  turno: number | null;
+  cliente_nombre: string;
+  cliente_telefono: string;
+  metodo_pago: number | null;
+  metodo_pago_nombre: string | null;
+  subtotal: string;
+  descuento: string;
+  total: string;
+  monto_recibido: string | null;
+  vuelto: string | null;
+  cupon: number | null;
+  status: 'completada' | 'anulada' | 'credito';
+  usuario: number | null;
+  es_credito: boolean;
+  plazo_dias: number | null;
+  fecha_vencimiento_credito: string | null;
+  notas: string;
+  created_at: string;
+  items: VentaPOSItem[];
+  monto_pagado: string;
+  saldo_pendiente: string;
+}
+
+export interface PagoCredito {
+  id: number;
+  monto: string;
+  metodo_pago: number | null;
+  metodo_pago_nombre: string | null;
+  notas: string;
+  usuario_nombre: string;
+  created_at: string;
+}
+
+export interface VentaPOSCreatePayload {
+  sucursal_id: number;
+  caja_id?: number | null;
+  turno_id?: number | null;
+  cliente_nombre?: string;
+  cliente_telefono?: string;
+  metodo_pago_id?: number | null;
+  items: { product_id: number; variant_id?: number | null; cantidad: number; precio_unitario: number }[];
+  descuento?: number;
+  cupon_codigo?: string | null;
+  monto_recibido?: number | null;
+  es_credito?: boolean;
+  plazo_dias?: number | null;
+  notas?: string;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+export interface TurnoResumen {
+  turno: TurnoCaja;
+  total_ventas: string;
+  cantidad_ventas: number;
+  total_ventas_efectivo: string;
+  total_ingresos: string;
+  total_retiros: string;
+  efectivo_esperado: string;
+  diferencia: string;
+  ventas_por_metodo: { metodo: string; total: string; cantidad: number }[];
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
+@Injectable({ providedIn: 'root' })
+export class PosService {
+  constructor(private http: HttpClient) {}
+
+  // ── Sucursales / Cajas ───────────────────────────────────────────────────
+
+  getSucursales(): Observable<Sucursal[]> {
+    return this.http.get<Sucursal[]>(`${API}/branches/sucursales/`);
+  }
+
+  getCajas(sucursalId: number): Observable<Caja[]> {
+    return this.http.get<Caja[]>(`${API}/branches/sucursales/${sucursalId}/cajas/`);
+  }
+
+  // ── Métodos de pago ──────────────────────────────────────────────────────
+
+  getMetodosPago(): Observable<MetodoPago[]> {
+    return this.http.get<MetodoPago[]>(`${API}/pos/metodos-pago/`);
+  }
+
+  // ── Productos ────────────────────────────────────────────────────────────
+
+  buscarProducto(q: string): Observable<ProductoPOS[]> {
+    const params = new HttpParams().set('q', q);
+    return this.http.get<ProductoPOS[]>(`${API}/pos/buscar-producto/`, { params });
+  }
+
+  // ── Ventas ───────────────────────────────────────────────────────────────
+
+  crearVenta(payload: VentaPOSCreatePayload): Observable<VentaPOS> {
+    return this.http.post<VentaPOS>(`${API}/pos/ventas/`, payload);
+  }
+
+  getVentas(filters?: {
+    periodo?: string;
+    sucursal_id?: number;
+    status?: string;
+    page?: number;
+    page_size?: number;
+  }): Observable<PaginatedResponse<VentaPOS>> {
+    let params = new HttpParams();
+    if (filters?.periodo)    params = params.set('periodo', filters.periodo);
+    if (filters?.sucursal_id) params = params.set('sucursal_id', String(filters.sucursal_id));
+    if (filters?.status)     params = params.set('status', filters.status);
+    if (filters?.page)       params = params.set('page', String(filters.page));
+    if (filters?.page_size)  params = params.set('page_size', String(filters.page_size));
+    return this.http.get<PaginatedResponse<VentaPOS>>(`${API}/pos/ventas/`, { params });
+  }
+
+  getVenta(id: number): Observable<VentaPOS> {
+    return this.http.get<VentaPOS>(`${API}/pos/ventas/${id}/`);
+  }
+
+  anularVenta(id: number): Observable<VentaPOS> {
+    return this.http.post<VentaPOS>(`${API}/pos/ventas/${id}/anular/`, {});
+  }
+
+  registrarMovimientoCaja(turnoId: number, tipo: 'ingreso' | 'retiro', concepto: string, monto: number): Observable<any> {
+    return this.http.post(`${API}/pos/turnos/${turnoId}/movimiento/`, { tipo, concepto, monto });
+  }
+
+  getTurnos(periodo = 'today'): Observable<any[]> {
+    return this.http.get<any[]>(`${API}/pos/turnos/list_turnos/`, {
+      params: new HttpParams().set('periodo', periodo),
+    });
+  }
+
+  cobrarCredito(id: number, metodo_pago_id?: number, monto_recibido?: number): Observable<VentaPOS> {
+    return this.http.post<VentaPOS>(`${API}/pos/ventas/${id}/cobrar-credito/`, {
+      metodo_pago_id: metodo_pago_id ?? null,
+      monto_recibido: monto_recibido ?? null,
+    });
+  }
+
+  getPagosCredito(ventaId: number): Observable<PagoCredito[]> {
+    return this.http.get<PagoCredito[]>(`${API}/pos/ventas/${ventaId}/pagos-credito/`);
+  }
+
+  registrarPagoCredito(ventaId: number, payload: { monto: number; metodo_pago_id?: number | null; notas?: string }): Observable<{ pago: PagoCredito; venta: VentaPOS }> {
+    return this.http.post<{ pago: PagoCredito; venta: VentaPOS }>(`${API}/pos/ventas/${ventaId}/pagos-credito/`, payload);
+  }
+
+  // ── Turnos de caja ───────────────────────────────────────────────────────
+
+  getTurnoActivo(cajaId: number): Observable<{ turno: TurnoCaja | null }> {
+    const params = new HttpParams().set('caja_id', String(cajaId));
+    return this.http.get<{ turno: TurnoCaja | null }>(`${API}/pos/turnos/activo/`, { params });
+  }
+
+  abrirTurno(cajaId: number, montoApertura: number): Observable<TurnoCaja> {
+    return this.http.post<TurnoCaja>(`${API}/pos/turnos/abrir/`, {
+      caja_id: cajaId,
+      monto_apertura: montoApertura,
+    });
+  }
+
+  cerrarTurno(turnoId: number, montoCierre: number, notas?: string): Observable<any> {
+    return this.http.post<any>(`${API}/pos/turnos/${turnoId}/cerrar/`, {
+      monto_cierre: montoCierre,
+      notas_cierre: notas || '',
+    });
+  }
+
+  getResumenTurno(turnoId: number): Observable<TurnoResumen> {
+    return this.http.get<TurnoResumen>(`${API}/pos/turnos/${turnoId}/resumen/`);
+  }
+
+  getArqueos(periodo = 'month', page = 1, pageSize = 20): Observable<{ count: number; page: number; pages: number; results: TurnoCaja[] }> {
+    const params = new HttpParams()
+      .set('periodo', periodo)
+      .set('page', String(page))
+      .set('page_size', String(pageSize));
+    return this.http.get<{ count: number; page: number; pages: number; results: TurnoCaja[] }>(`${API}/pos/turnos/arqueos/`, { params });
+  }
+
+  // ── Cupones ──────────────────────────────────────────────────────────────
+
+  validarCupon(codigo: string, total: number): Observable<{
+    valido: boolean;
+    descuento_aplicado?: string;
+    cupon_id?: number;
+    error?: string;
+  }> {
+    const params = new HttpParams().set('codigo', codigo).set('total', String(total));
+    return this.http.get<any>(`${API}/cupones/validar/`, { params });
+  }
+}

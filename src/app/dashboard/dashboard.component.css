@@ -1,0 +1,81 @@
+/* Dashboard Layout Styles */
+:host {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.flex {
+  display: flex !important;
+}
+
+.h-screen {
+  height: 100vh !important;
+}
+
+/* Custom Colors */
+.bg-liveshop-blue {
+  background-color: #1565C0;
+}
+
+.bg-liveshop-orange {
+  background-color: #FF6D00;
+}
+
+.text-liveshop-blue {
+  color: #1565C0;
+}
+
+.text-liveshop-orange {
+  color: #FF6D00;
+}
+
+.hover\:bg-liveshop-blue:hover {
+  background-color: #1565C0;
+}
+
+.hover\:bg-liveshop-orange:hover {
+  background-color: #FF6D00;
+}
+
+/* Custom scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+}

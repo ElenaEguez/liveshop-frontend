@@ -1,0 +1,136 @@
+<div style="width: 100%; max-width: 720px;">
+
+  <!-- Header -->
+  <div style="margin-bottom:24px;">
+    <h1 style="margin:0 0 4px; font-size:1.75rem; font-weight:700; color:#111827;">Mi Tienda</h1>
+    <p style="margin:0; color:#6b7280; font-size:0.875rem;">
+      Configura el perfil y los datos de pago de tu tienda.
+    </p>
+  </div>
+
+  <!-- Spinner -->
+  <div *ngIf="loading" style="text-align:center; padding:48px;">
+    <mat-progress-spinner mode="indeterminate" diameter="40" style="margin:auto;"></mat-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Datos generales -->
+    <mat-card style="margin-bottom:24px; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+      <mat-card-header>
+        <mat-card-title style="font-size:1rem; font-weight:600; color:#111827;">
+          Información de la tienda
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content style="padding:16px 16px 0;">
+        <form [formGroup]="form" style="display:flex; flex-direction:column; gap:16px;">
+
+          <mat-form-field appearance="outline" style="width:100%;">
+            <mat-label>Nombre de la tienda *</mat-label>
+            <input matInput formControlName="store_name" placeholder="Ej: Mi Tienda Bolivia">
+            <mat-icon matSuffix>store</mat-icon>
+            <mat-error *ngIf="form.get('store_name')?.hasError('required')">
+              El nombre es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Slug -->
+          <div style="position:relative;">
+            <mat-form-field appearance="outline" style="width:100%;">
+              <mat-label>Slug (URL de tu live)</mat-label>
+              <span matPrefix style="color:#6b7280; font-size:0.85rem; padding-right:2px;">liveshop.bo/live/</span>
+              <input matInput formControlName="slug" placeholder="mi-tienda">
+              <button mat-icon-button matSuffix type="button"
+                      matTooltip="Regenerar desde nombre"
+                      (click)="resetSlugFromName()">
+                <mat-icon style="font-size:18px; width:18px; height:18px;">refresh</mat-icon>
+              </button>
+              <mat-hint style="color:#6b7280;">Solo letras minúsculas, números y guiones</mat-hint>
+              <mat-error *ngIf="form.get('slug')?.hasError('required')">
+                El slug es requerido
+              </mat-error>
+              <mat-error *ngIf="form.get('slug')?.hasError('pattern')">
+                Solo letras minúsculas, números y guiones (ej: mi-tienda-2)
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" style="width:100%;">
+            <mat-label>Teléfono / WhatsApp</mat-label>
+            <input matInput formControlName="phone" placeholder="+591 70000000">
+            <mat-icon matSuffix>phone</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="width:100%;">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+                      placeholder="Describe tu tienda, productos, horarios..."></textarea>
+          </mat-form-field>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- QR de pago -->
+    <mat-card style="margin-bottom:24px; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+      <mat-card-header>
+        <mat-card-title style="font-size:1rem; font-weight:600; color:#111827;">
+          QR de pago
+        </mat-card-title>
+        <mat-card-subtitle style="color:#6b7280; font-size:0.8rem;">
+          Tus clientes verán este QR para hacer transferencias durante el live.
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content style="padding:16px;">
+
+        <!-- Preview del QR actual o nuevo -->
+        <div *ngIf="currentQrUrl"
+             style="text-align:center; margin-bottom:16px;">
+          <img [src]="currentQrUrl"
+               alt="QR de pago"
+               style="max-width:220px; max-height:220px; border-radius:10px;
+                      border:2px solid #e5e7eb; object-fit:contain;">
+          <p *ngIf="qrPreviewUrl"
+             style="margin:8px 0 0; font-size:0.75rem; color:#6b7280;">
+            Vista previa — guarda los cambios para confirmar.
+          </p>
+        </div>
+
+        <div *ngIf="!currentQrUrl"
+             style="text-align:center; padding:32px; background:#f9fafb;
+                    border-radius:8px; margin-bottom:16px;">
+          <mat-icon style="font-size:48px; width:48px; height:48px; color:#9ca3af;">qr_code</mat-icon>
+          <p style="margin:8px 0 0; color:#9ca3af; font-size:0.875rem;">
+            Sin QR cargado aún
+          </p>
+        </div>
+
+        <!-- Input de archivo -->
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+                      background:#f3f4f6; padding:8px 16px; border-radius:8px;
+                      border:1px dashed #d1d5db; font-size:0.875rem; color:#374151;">
+          <mat-icon style="font-size:18px; width:18px; height:18px;">upload</mat-icon>
+          {{ currentQrUrl ? 'Cambiar QR de pago' : 'Subir QR de pago' }}
+          <input type="file" accept="image/*" (change)="onQrFileChange($event)"
+                 style="display:none;">
+        </label>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Botón guardar -->
+    <div style="display:flex; justify-content:flex-end;">
+      <button mat-raised-button color="primary"
+              (click)="save()"
+              [disabled]="form.invalid || saving"
+              style="padding:0 32px; height:44px; font-size:1rem;">
+        <mat-icon style="margin-right:8px;">save</mat-icon>
+        {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+
+  </ng-container>
+
+</div>

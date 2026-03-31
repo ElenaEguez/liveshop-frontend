@@ -1,0 +1,117 @@
+<h2 mat-dialog-title class="dlg-title">
+  <mat-icon>lock</mat-icon> Cerrar Turno de Caja
+</h2>
+
+<mat-dialog-content class="dlg-content">
+
+  <div *ngIf="loadingResumen" class="center-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loadingResumen && resumen">
+
+    <!-- ── ARQUEO DE EFECTIVO ─────────────────────────────── -->
+    <div class="arqueo-title">
+      <mat-icon>calculate</mat-icon> Arqueo de Efectivo
+    </div>
+
+    <div class="arqueo-table">
+      <div class="arqueo-row">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">lock_open</mat-icon> Fondo inicial
+        </span>
+        <span class="arqueo-val">Bs. {{ resumen.turno.monto_apertura | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row green">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">point_of_sale</mat-icon>
+          Ventas en efectivo ({{ resumen.cantidad_ventas }} ventas)
+        </span>
+        <span class="arqueo-val">+ Bs. {{ resumen.total_ventas_efectivo | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row blue" *ngIf="+resumen.total_ingresos > 0">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">add_circle_outline</mat-icon> Ingresos manuales
+        </span>
+        <span class="arqueo-val">+ Bs. {{ resumen.total_ingresos | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row red" *ngIf="+resumen.total_retiros > 0">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">remove_circle_outline</mat-icon> Retiros manuales
+        </span>
+        <span class="arqueo-val">− Bs. {{ resumen.total_retiros | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row total-row">
+        <span class="arqueo-label"><strong>Efectivo esperado en caja</strong></span>
+        <span class="arqueo-val esperado"><strong>Bs. {{ resumen.efectivo_esperado | number:'1.2-2' }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Otros métodos (informativo) -->
+    <div class="otros-metodos" *ngIf="resumen.ventas_por_metodo.length > 0">
+      <div class="otros-title">Ventas por método (informativo)</div>
+      <div class="otros-row" *ngFor="let m of resumen.ventas_por_metodo">
+        <span>{{ m.metodo }} <small>({{ m.cantidad }})</small></span>
+        <span>Bs. {{ m.total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- ── CONTEO FÍSICO ─────────────────────────────────── -->
+    <div class="arqueo-title mt">
+      <mat-icon>payments</mat-icon> Conteo físico
+    </div>
+
+    <form [formGroup]="form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Efectivo contado en caja (Bs.)</mat-label>
+        <input matInput type="number" formControlName="monto_cierre" min="0">
+        <mat-hint>Ingresa el monto que físicamente cuenta en caja</mat-hint>
+      </mat-form-field>
+
+      <!-- Diferencia / resultado del arqueo -->
+      <div class="result-box" [class.sobrante]="diferencia > 0" [class.faltante]="diferencia < 0" [class.exacto]="diferencia === 0">
+        <div class="result-left">
+          <mat-icon class="result-icon">
+            {{ diferencia > 0 ? 'trending_up' : diferencia < 0 ? 'trending_down' : 'check_circle' }}
+          </mat-icon>
+          <div>
+            <div class="result-label">
+              {{ diferencia > 0 ? 'SOBRANTE' : diferencia < 0 ? 'FALTANTE' : 'CUADRADO' }}
+            </div>
+            <div class="result-hint" *ngIf="diferencia !== 0">
+              {{ diferencia < 0 ? 'Hay menos efectivo del esperado' : 'Hay más efectivo del esperado' }}
+            </div>
+          </div>
+        </div>
+        <div class="result-amount">
+          Bs. {{ diferenciaAbs | number:'1.2-2' }}
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width mt-sm">
+        <mat-label>{{ diferencia !== 0 ? 'Razón de la diferencia (requerida si hay faltante/sobrante)' : 'Notas de cierre (opcional)' }}</mat-label>
+        <textarea matInput formControlName="notas_cierre" rows="2"
+                  [placeholder]="diferencia < 0 ? 'Ej: Se realizó un gasto de emergencia de...' : 'Observaciones del turno'">
+        </textarea>
+      </mat-form-field>
+
+      <mat-error *ngIf="error" class="error-msg">{{ error }}</mat-error>
+    </form>
+
+  </ng-container>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button color="warn"
+          [disabled]="form.invalid || loading || loadingResumen"
+          (click)="cerrar()">
+    <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
+    <mat-icon *ngIf="!loading">lock</mat-icon>
+    {{ loading ? 'Cerrando…' : 'Cerrar Turno' }}
+  </button>
+</mat-dialog-actions>

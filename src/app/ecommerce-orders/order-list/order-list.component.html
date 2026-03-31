@@ -1,0 +1,147 @@
+<div class="page-wrapper">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon>shopping_bag</mat-icon>
+      Pedidos Web
+    </h1>
+    <span class="order-count" *ngIf="!loading">{{ totalCount }} pedido{{ totalCount !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Status tabs -->
+  <mat-tab-group class="status-tabs" animationDuration="150ms"
+    (selectedIndexChange)="onTabChange(tabs[$event].value)">
+    <mat-tab *ngFor="let tab of tabs" [label]="tab.label"></mat-tab>
+  </mat-tab-group>
+
+  <!-- Toolbar: search -->
+  <div class="list-toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput placeholder="Buscar por cliente o pedido..."
+        [(ngModel)]="search" (keyup.enter)="onSearch()">
+      <button *ngIf="search" matSuffix mat-icon-button (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+    <button mat-stroked-button (click)="onSearch()">Buscar</button>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error-bar">
+    <mat-icon>error_outline</mat-icon> {{ error }}
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div *ngIf="loading" class="loading-wrap">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Cargando pedidos...</span>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && !error" class="table-wrap">
+    <table mat-table [dataSource]="orders" class="orders-table mat-elevation-z1">
+
+      <!-- ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>#Pedido</th>
+        <td mat-cell *matCellDef="let row">
+          <strong class="order-id">#{{ row.id }}</strong>
+        </td>
+      </ng-container>
+
+      <!-- Customer -->
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef>Cliente</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="customer-name">{{ row.customer_name }}</div>
+          <div class="customer-phone">{{ row.customer_phone }}</div>
+        </td>
+      </ng-container>
+
+      <!-- Total -->
+      <ng-container matColumnDef="total">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="total-amount">Bs {{ row.total | number:'1.2-2' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Payment method -->
+      <ng-container matColumnDef="payment">
+        <th mat-header-cell *matHeaderCellDef>Método pago</th>
+        <td mat-cell *matCellDef="let row">
+          {{ paymentLabels[row.payment_method] || row.payment_method }}
+        </td>
+      </ng-container>
+
+      <!-- Delivery -->
+      <ng-container matColumnDef="delivery">
+        <th mat-header-cell *matHeaderCellDef>Entrega</th>
+        <td mat-cell *matCellDef="let row">
+          {{ deliveryLabels[row.delivery_method] || row.delivery_method }}
+        </td>
+      </ng-container>
+
+      <!-- Status -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-badge" [ngClass]="'status-' + row.status">
+            {{ row.status | titlecase }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <div class="row-actions" (click)="$event.stopPropagation()">
+            <button *ngIf="row.status === 'pending'"
+              mat-icon-button color="primary"
+              matTooltip="Confirmar"
+              (click)="quickConfirm($event, row)">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <button *ngIf="row.status === 'pending' || row.status === 'confirmed'"
+              mat-icon-button color="warn"
+              matTooltip="Cancelar"
+              (click)="quickCancel($event, row)">
+              <mat-icon>cancel</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Ver detalle" (click)="openDetail(row)">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"
+        class="order-row" (click)="openDetail(row)"></tr>
+
+    </table>
+
+    <!-- Empty state -->
+    <div *ngIf="orders.length === 0" class="empty-state">
+      <mat-icon>shopping_bag</mat-icon>
+      <p>No hay pedidos para mostrar.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button mat-icon-button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button mat-icon-button [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+  </div>
+
+</div>

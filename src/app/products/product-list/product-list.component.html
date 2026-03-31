@@ -1,0 +1,124 @@
+<div style="width: 100%;">
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Productos</h1>
+    <button mat-raised-button color="primary" (click)="openProductForm()"
+            style="display:flex; align-items:center; gap:8px; padding: 0 20px; height:42px;">
+      <mat-icon>add</mat-icon>
+      Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div style="display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+    <mat-form-field appearance="outline" style="flex:1; min-width:200px;">
+      <mat-label>Buscar productos</mat-label>
+      <input matInput [formControl]="searchControl" placeholder="Nombre, descripción...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:220px;">
+      <mat-label>Categoría</mat-label>
+      <mat-select [formControl]="categoryControl">
+        <mat-option value="">Todas las categorías</mat-option>
+        <mat-option *ngFor="let category of categories" [value]="category.id">
+          {{ category.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Tabla -->
+  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <table mat-table [dataSource]="products" style="width:100%;">
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef
+            style="font-weight:600; color:#374151; padding:16px;">Nombre</th>
+        <td mat-cell *matCellDef="let product"
+            style="padding:16px; font-weight:500;">{{ product.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Precio</th>
+        <td mat-cell *matCellDef="let product">
+          <span style="font-weight:600; color:#db0000;">Bs. {{ product.price | number:'1.2-2' }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="stock">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Stock</th>
+        <td mat-cell *matCellDef="let product">
+          <span [style.background]="product.stock > 10 ? '#dcfce7' : product.stock > 0 ? '#fef9c3' : '#fee2e2'"
+                [style.color]="product.stock > 10 ? '#166534' : product.stock > 0 ? '#854d0e' : '#991b1b'"
+                style="padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ product.stock }} uds.
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Categoría</th>
+        <td mat-cell *matCellDef="let product">
+          <span style="background:#fef2f2; color:#db0000; padding:4px 10px; border-radius:20px; font-size:0.85rem;">
+            {{ getCategoryName(product.category) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Estado</th>
+        <td mat-cell *matCellDef="let product">
+          <span [style.background]="product.is_active ? '#dcfce7' : '#f3f4f6'"
+                [style.color]="product.is_active ? '#166534' : '#6b7280'"
+                style="padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ product.is_active ? '● Activo' : '○ Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Acciones</th>
+        <td mat-cell *matCellDef="let product">
+          <button mat-icon-button (click)="viewProduct(product)" matTooltip="Ver detalle"
+                  style="color:#6b7280;">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openProductForm(product)" matTooltip="Editar"
+                  style="color:#db0000;">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteProduct(product)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"
+          style="background:#f9fafb;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          style="border-bottom:1px solid #f3f4f6;"></tr>
+    </table>
+
+    <!-- Estado vacío -->
+    <div *ngIf="products && products.length === 0"
+         style="text-align:center; padding:48px; color:#9ca3af;">
+      <mat-icon style="font-size:48px; width:48px; height:48px;">inventory_2</mat-icon>
+      <p style="margin-top:12px; font-size:1rem;">No hay productos aún</p>
+      <button mat-raised-button color="primary" (click)="openProductForm()" style="margin-top:8px;">
+        Crear primer producto
+      </button>
+    </div>
+  </div>
+
+  <!-- Paginador -->
+  <mat-paginator
+    [length]="totalPages * 10"
+    [pageSize]="10"
+    [pageIndex]="currentPage - 1"
+    (page)="onPageChange($event.pageIndex + 1)"
+    style="background:transparent; margin-top:8px;">
+  </mat-paginator>
+
+</div>

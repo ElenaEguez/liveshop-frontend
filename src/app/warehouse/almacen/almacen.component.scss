@@ -1,0 +1,38 @@
+.almacen-page { padding: 16px; }
+
+.page-toolbar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 22px; }
+  .toolbar-actions { display: flex; gap: 8px; }
+}
+
+.filter-card { margin-bottom: 16px;
+  .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .filter-label { font-size: 13px; color: #666; white-space: nowrap; }
+  .periodo-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    .periodo-chip { font-size: 12px; height: 30px; &.active { background: #1565c0; color: #fff; } }
+  }
+  mat-form-field { min-width: 130px; margin: 0; }
+}
+
+.table-card { position: relative; padding: 0; overflow: hidden; }
+
+.loading-shade {
+  position: absolute; inset: 0; background: rgba(255,255,255,.7);
+  display: flex; align-items: center; justify-content: center; z-index: 5;
+}
+
+.kardex-table { width: 100%; }
+
+.no-data { text-align: center; padding: 32px; color: #888; }
+
+.tipo-chip {
+  padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+  &.chip-entrada    { background: #e8f5e9; color: #2e7d32; }
+  &.chip-salida     { background: #ffebee; color: #c62828; }
+  &.chip-ajuste     { background: #fff3e0; color: #e65100; }
+  &.chip-transfer   { background: #e3f2fd; color: #1565c0; }
+}
+
+.positive { color: #2e7d32; font-weight: 600; }
+.negative { color: #c62828; font-weight: 600; }

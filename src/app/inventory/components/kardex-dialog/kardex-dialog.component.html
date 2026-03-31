@@ -1,0 +1,149 @@
+<h2 mat-dialog-title class="kd-title">
+  <mat-icon class="kd-title-icon">inventory_2</mat-icon>
+  Movimientos — {{ data.productName }}
+</h2>
+
+<mat-dialog-content class="kd-content">
+
+  <!-- Filtros -->
+  <div class="kd-filters">
+    <mat-form-field appearance="outline" class="kd-filter-sm">
+      <mat-label>Tipo</mat-label>
+      <mat-select [(ngModel)]="filterTipo">
+        <mat-option *ngFor="let o of tipoOpts" [value]="o.value">{{ o.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="kd-filter-md">
+      <mat-label>Motivo</mat-label>
+      <mat-select [(ngModel)]="filterMotivo">
+        <mat-option *ngFor="let o of motivoOpts" [value]="o.value">{{ o.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="kd-filter-date">
+      <mat-label>Desde</mat-label>
+      <input matInput type="date" [(ngModel)]="filterDesde">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="kd-filter-date">
+      <mat-label>Hasta</mat-label>
+      <input matInput type="date" [(ngModel)]="filterHasta">
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" (click)="applyFilters()" style="height:48px;">
+      <mat-icon>search</mat-icon> Filtrar
+    </button>
+
+    <button mat-stroked-button (click)="clearFilters()" style="height:48px; color:#6b7280;">
+      <mat-icon>clear</mat-icon>
+    </button>
+  </div>
+
+  <!-- Resumen rápido -->
+  <div class="kd-summary" *ngIf="!loading && movimientos.length > 0">
+    <span class="kd-summary-item">
+      <strong>{{ totalCount }}</strong> movimientos
+    </span>
+    <span class="kd-summary-item salidas">
+      <mat-icon style="font-size:14px;vertical-align:middle;">arrow_upward</mat-icon>
+      <strong>{{ totalSalidas }}</strong> uds. salidas
+    </span>
+    <span class="kd-summary-item entradas">
+      <mat-icon style="font-size:14px;vertical-align:middle;">arrow_downward</mat-icon>
+      <strong>{{ totalEntradas }}</strong> uds. entradas
+    </span>
+  </div>
+
+  <!-- Spinner -->
+  <div *ngIf="loading" class="kd-spinner">
+    <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+  </div>
+
+  <!-- Tabla -->
+  <div *ngIf="!loading" class="kd-table-wrap">
+    <table mat-table [dataSource]="movimientos" class="kd-table">
+
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef>Fecha</th>
+        <td mat-cell *matCellDef="let m">
+          {{ m.created_at | date:'dd/MM/yy HH:mm' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="tipo">
+        <th mat-header-cell *matHeaderCellDef>Tipo</th>
+        <td mat-cell *matCellDef="let m">
+          <span class="kd-chip"
+                [style.background]="tipoBg(m.tipo)"
+                [style.color]="tipoColor(m.tipo)">
+            {{ m.tipo | titlecase }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="motivo">
+        <th mat-header-cell *matHeaderCellDef>Motivo</th>
+        <td mat-cell *matCellDef="let m" style="font-size:0.85rem;">
+          <div style="color:#374151;">{{ motivoLabel(m.motivo) }}</div>
+          <div *ngIf="m.notas" style="color:#9ca3af; font-size:0.75rem;">{{ m.notas }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cantidad">
+        <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+        <td mat-cell *matCellDef="let m">
+          <span [style.color]="m.cantidad > 0 ? '#166534' : '#991b1b'"
+                style="font-weight:700; font-size:1rem;">
+            {{ cantidadLabel(m) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="stock">
+        <th mat-header-cell *matHeaderCellDef>Stock</th>
+        <td mat-cell *matCellDef="let m" style="font-size:0.82rem; color:#374151;">
+          {{ m.stock_anterior }} → <strong>{{ m.stock_actual }}</strong>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="documento">
+        <th mat-header-cell *matHeaderCellDef>Documento</th>
+        <td mat-cell *matCellDef="let m" style="font-size:0.8rem; color:#6b7280;">
+          {{ m.documento_ref || '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="usuario">
+        <th mat-header-cell *matHeaderCellDef>Usuario</th>
+        <td mat-cell *matCellDef="let m" style="font-size:0.8rem; color:#6b7280;">
+          {{ m.usuario_nombre || m.usuario_email || '—' }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div *ngIf="movimientos.length === 0" class="kd-empty">
+      <mat-icon>inbox</mat-icon>
+      <p>Sin movimientos para los filtros seleccionados</p>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="kd-pagination" *ngIf="!loading && totalPages > 1">
+    <button mat-icon-button [disabled]="currentPage === 1" (click)="prevPage()">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <span>Página {{ currentPage }} de {{ totalPages }}</span>
+    <button mat-icon-button [disabled]="currentPage === totalPages" (click)="nextPage()">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

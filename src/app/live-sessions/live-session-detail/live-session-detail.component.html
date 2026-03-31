@@ -1,0 +1,196 @@
+<div style="padding:24px;">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+    <button mat-icon-button (click)="goBack()" matTooltip="Volver" style="color:#6b7280;">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div style="flex:1;">
+      <h1 style="margin:0; font-size:1.5rem; font-weight:700; color:#111827;">
+        {{ session?.title ?? 'Cargando...' }}
+      </h1>
+      <p style="margin:4px 0 0; color:#6b7280; font-size:0.875rem;">
+        {{ session?.scheduled_at | date:'dd/MM/yyyy HH:mm' }}
+        <span *ngIf="session?.description" style="margin-left:8px;">· {{ session?.description }}</span>
+      </p>
+    </div>
+
+    <span *ngIf="session"
+          [style.background]="getStatusBg(session.status)"
+          [style.color]="getStatusColor(session.status)"
+          style="padding:6px 14px; border-radius:20px; font-size:0.875rem; font-weight:600;">
+      {{ getStatusLabel(session.status) }}
+    </span>
+
+    <button *ngIf="session?.status === 'scheduled'"
+            mat-raised-button color="primary"
+            (click)="startSession()"
+            style="display:flex; align-items:center; gap:4px;">
+      <mat-icon>play_arrow</mat-icon>
+      Iniciar Live
+    </button>
+
+    <button *ngIf="session?.status === 'live'"
+            mat-raised-button color="warn"
+            (click)="endSession()"
+            style="display:flex; align-items:center; gap:4px;">
+      <mat-icon>stop</mat-icon>
+      Finalizar Live
+    </button>
+  </div>
+
+  <!-- URL para compartir -->
+  <div *ngIf="session?.slug"
+       style="background:#fef2f2; border:1px solid #bfdbfe; border-radius:10px;
+              padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <mat-icon style="color:#db0000; flex-shrink:0;">link</mat-icon>
+    <div style="flex:1; min-width:0;">
+      <p style="margin:0 0 2px; font-size:0.75rem; font-weight:600; color:#db0000; text-transform:uppercase; letter-spacing:0.05em;">
+        Enlace para tus clientes
+      </p>
+      <p style="margin:0; font-size:0.875rem; color:#1e40af; word-break:break-all; font-family:monospace;">
+        {{ publicUrl }}
+      </p>
+    </div>
+    <button mat-stroked-button color="primary"
+            (click)="copyUrl()"
+            style="flex-shrink:0; font-size:0.8rem;">
+      <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">content_copy</mat-icon>
+      {{ copied ? '¡Copiado!' : 'Copiar' }}
+    </button>
+  </div>
+
+  <!-- Spinner -->
+  <div *ngIf="loading" style="text-align:center; padding:48px;">
+    <mat-progress-spinner mode="indeterminate" diameter="40" style="margin:auto;"></mat-progress-spinner>
+  </div>
+
+  <!-- Panel dividido -->
+  <div *ngIf="!loading" class="detail-grid">
+
+    <!-- IZQUIERDA: Productos del vendedor -->
+    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+      <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;">
+        <mat-icon style="color:#db0000;">inventory_2</mat-icon>
+        <h2 style="margin:0; font-size:1rem; font-weight:600; color:#111827;">Productos disponibles</h2>
+        <span style="margin-left:auto; background:#fef2f2; color:#db0000;
+                     padding:2px 8px; border-radius:12px; font-size:0.8rem;">
+          {{ products.length }}
+        </span>
+      </div>
+
+      <table mat-table [dataSource]="products" style="width:100%;">
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:12px 16px;">Producto</th>
+          <td mat-cell *matCellDef="let p" style="padding:12px 16px; font-weight:500;">{{ p.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Precio</th>
+          <td mat-cell *matCellDef="let p">
+            <span style="font-weight:600; color:#db0000;">Bs. {{ p.price | number:'1.2-2' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="stock">
+          <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Stock disp.</th>
+          <td mat-cell *matCellDef="let p">
+            <span *ngIf="getAvailableStock(p) === 0"
+                  style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:12px; font-size:0.8rem; font-weight:600;">
+              Agotado
+            </span>
+            <span *ngIf="getAvailableStock(p) > 0"
+                  [style.background]="getAvailableStock(p) > 10 ? '#dcfce7' : '#fef9c3'"
+                  [style.color]="getAvailableStock(p) > 10 ? '#166534' : '#854d0e'"
+                  style="padding:3px 8px; border-radius:12px; font-size:0.8rem; font-weight:600;">
+              {{ getAvailableStock(p) }} uds.
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="productColumns" style="background:#f9fafb;"></tr>
+        <tr mat-row *matRowDef="let row; columns: productColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
+      </table>
+
+      <div *ngIf="products.length === 0" style="padding:32px; text-align:center; color:#9ca3af;">
+        <mat-icon style="font-size:36px; width:36px; height:36px;">inventory_2</mat-icon>
+        <p style="margin-top:8px;">Sin productos cargados</p>
+      </div>
+    </div>
+
+    <!-- DERECHA: Reservas en tiempo real -->
+    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+      <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;">
+        <mat-icon style="color:#166534;">shopping_bag</mat-icon>
+        <h2 style="margin:0; font-size:1rem; font-weight:600; color:#111827;">Reservas</h2>
+        <span style="margin-left:auto; background:#dcfce7; color:#166534;
+                     padding:2px 8px; border-radius:12px; font-size:0.8rem;">
+          {{ reservations.length }}
+        </span>
+        <span *ngIf="session?.status === 'live'"
+              style="background:#fee2e2; color:#991b1b;
+                     padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600;">
+          ● LIVE
+        </span>
+      </div>
+
+      <div style="max-height:520px; overflow-y:auto;">
+        <table mat-table [dataSource]="reservations" style="width:100%;">
+
+          <ng-container matColumnDef="customer_name">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:12px 16px;">Cliente</th>
+            <td mat-cell *matCellDef="let r" style="padding:12px 16px; font-weight:500;">{{ r.customer_name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="product_name">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Producto</th>
+            <td mat-cell *matCellDef="let r">
+              {{ r.product_name ?? '–' }}
+              <br *ngIf="r.variant_detail">
+              <small *ngIf="r.variant_detail" style="color:#db0000; font-size:11px;">{{ r.variant_detail }}</small>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Cant.</th>
+            <td mat-cell *matCellDef="let r" style="text-align:center;">{{ r.quantity }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="total_price">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Total</th>
+            <td mat-cell *matCellDef="let r">
+              <span style="font-weight:600; color:#db0000;">Bs. {{ r.total_price | number:'1.2-2' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Estado</th>
+            <td mat-cell *matCellDef="let r">
+              <span style="font-size:0.8rem;">{{ getReservationStatusLabel(r.status) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Hora</th>
+            <td mat-cell *matCellDef="let r" style="color:#6b7280; font-size:0.8rem;">
+              {{ r.created_at | date:'HH:mm:ss' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="reservationColumns" style="background:#f9fafb;"></tr>
+          <tr mat-row *matRowDef="let row; columns: reservationColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
+        </table>
+
+        <div *ngIf="reservations.length === 0" style="padding:32px; text-align:center; color:#9ca3af;">
+          <mat-icon style="font-size:36px; width:36px; height:36px;">shopping_bag</mat-icon>
+          <p style="margin-top:8px;">
+            {{ session?.status === 'live' ? 'Esperando reservas...' : 'Sin reservas aún' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,535 @@
+<div class="dashboard-root">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       FILTER BAR
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div class="filter-bar">
+
+    <mat-button-toggle-group
+      [(ngModel)]="selectedPeriod"
+      class="period-toggle"
+      aria-label="Período">
+      <mat-button-toggle value="day">Hoy</mat-button-toggle>
+      <mat-button-toggle value="week">Esta semana</mat-button-toggle>
+      <mat-button-toggle value="month">Este mes</mat-button-toggle>
+      <mat-button-toggle value="year">Este año</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <!-- Date picker — solo cuando period='day' -->
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod === 'day'">
+      <mat-label>Fecha</mat-label>
+      <input matInput type="date" [(ngModel)]="selectedDate">
+    </mat-form-field>
+
+    <!-- Month selector (hidden when period = year or day) -->
+    <mat-form-field appearance="outline" class="filter-field"
+                    *ngIf="selectedPeriod !== 'year' && selectedPeriod !== 'day'">
+      <mat-label>Mes</mat-label>
+      <mat-select [(ngModel)]="selectedMonth">
+        <mat-option *ngFor="let m of months; let i = index" [value]="i + 1">
+          {{ m }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Year selector — hidden for 'day' -->
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod !== 'day'">
+      <mat-label>Año</mat-label>
+      <mat-select [(ngModel)]="selectedYear">
+        <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Category selector -->
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Categoría</mat-label>
+      <mat-select [(ngModel)]="selectedCategoryId">
+        <mat-option [value]="null">Todas las categorías</mat-option>
+        <mat-option *ngFor="let cat of categories" [value]="cat.id">
+          {{ cat.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="applyFilters()" [disabled]="loading">
+      <mat-icon>filter_alt</mat-icon>
+      Aplicar filtros
+    </button>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       LOADING / ERROR
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="52"></mat-spinner>
+    <p class="loading-text">Cargando datos...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p class="error-message">No se pudo cargar la información del dashboard.</p>
+    <button mat-raised-button color="primary" (click)="loadSalesDashboard()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="!loading && !error && salesData">
+
+    <p class="period-label">
+      <mat-icon class="period-label-icon">date_range</mat-icon>
+      Mostrando datos de: <strong>{{ salesData.period_label }}</strong>
+    </p>
+
+    <!-- ── METRIC CARDS ────────────────────────────────────────────────── -->
+    <div class="stats-grid">
+
+      <!-- Ventas Live (online) -->
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Pedidos Live (online)</p>
+            <h2 class="stat-value">{{ salesData.total_orders }}</h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#eff6ff;">
+            <mat-icon style="color:#3b82f6;">live_tv</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Bs.&nbsp;{{ salesData.total_revenue | number:'1.2-2' }}</p>
+      </div>
+
+      <!-- Ventas POS (tienda física) -->
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Ventas Tienda Física</p>
+            <h2 class="stat-value">{{ salesData.pos_total_orders || 0 }}</h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#f0fdf4;">
+            <mat-icon style="color:#16a34a;">storefront</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Bs.&nbsp;{{ (salesData.pos_total_revenue || '0') | number:'1.2-2' }}</p>
+      </div>
+
+      <!-- Ingresos totales combinados -->
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Ingresos totales</p>
+            <h2 class="stat-value">Bs.&nbsp;{{ (+salesData.total_revenue + +(salesData.pos_total_revenue || 0)) | number:'1.2-2' }}</h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#fefce8;">
+            <mat-icon style="color:#ca8a04;">payments</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Live + Tienda física</p>
+      </div>
+
+      <div class="stat-card" *ngIf="salesData.gross_margin !== null">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Utilidad bruta</p>
+            <h2 class="stat-value">Bs.&nbsp;{{ salesData.gross_margin | number:'1.2-2' }}</h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#fefce8;">
+            <mat-icon style="color:#ca8a04;">trending_up</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Ingresos − Costo de compra</p>
+      </div>
+
+      <!-- Gastos Operativos (solo cuando viene del backend) -->
+      <div class="stat-card" *ngIf="salesData.total_gastos_operativos !== null">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Gastos Operativos</p>
+            <h2 class="stat-value" style="color:#dc2626;">
+              Bs.&nbsp;{{ salesData.total_gastos_operativos | number:'1.2-2' }}
+            </h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#fef2f2;">
+            <mat-icon style="color:#dc2626;">receipt_long</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Gastos operativos del período</p>
+      </div>
+
+      <!-- Utilidad Neta -->
+      <div class="stat-card" *ngIf="salesData.utilidad_neta !== null">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Utilidad Neta</p>
+            <h2 class="stat-value"
+                [style.color]="utilidadNetaPositiva ? '#16a34a' : '#dc2626'">
+              Bs.&nbsp;{{ salesData.utilidad_neta | number:'1.2-2' }}
+            </h2>
+          </div>
+          <div class="stat-icon-bg"
+               [style.background]="utilidadNetaPositiva ? '#f0fdf4' : '#fef2f2'">
+            <mat-icon [style.color]="utilidadNetaPositiva ? '#16a34a' : '#dc2626'">
+              {{ utilidadNetaPositiva ? 'trending_up' : 'trending_down' }}
+            </mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Utilidad bruta − Gastos operativos</p>
+      </div>
+
+      <div
+        class="stat-card stat-card-clickable"
+        (click)="router.navigate(['/orders'], { queryParams: { status: 'paid' } })">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Pedidos por confirmar</p>
+            <h2 class="stat-value"
+                [style.color]="salesData.pending_payment_confirmation > 0 ? '#dc2626' : '#111827'">
+              {{ salesData.pending_payment_confirmation }}
+            </h2>
+            <p *ngIf="salesData.pending_payment_confirmation > 0" class="stat-alert">
+              ⚠&nbsp;Requieren atención
+            </p>
+          </div>
+          <div class="stat-icon-bg"
+               [style.background]="salesData.pending_payment_confirmation > 0 ? '#fef2f2' : '#f9fafb'">
+            <mat-icon
+              [style.color]="salesData.pending_payment_confirmation > 0 ? '#dc2626' : '#9ca3af'">
+              pending_actions
+            </mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Click para ver pedidos</p>
+      </div>
+
+    </div>
+
+    <!-- ── GASTOS POR CATEGORÍA ─────────────────────────────────────────── -->
+    <div class="section-card"
+         *ngIf="salesData.gastos_por_categoria && salesData.gastos_por_categoria.length > 0">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">receipt_long</mat-icon>
+        Gastos por categoría
+      </h3>
+      <div class="chart-container">
+        <div *ngFor="let g of salesData.gastos_por_categoria" class="bar-row">
+          <span class="bar-label">{{ g.categoria }}</span>
+          <div class="bar-track">
+            <div class="bar-fill gasto-bar"
+                 [style.width.%]="getGastoBarWidth(g.total)"
+                 [title]="'Bs. ' + g.total">
+            </div>
+          </div>
+          <div class="bar-meta">
+            <span class="bar-value">Bs.&nbsp;{{ g.total | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FLUJO DE CAJA ─────────────────────────────────────────────── -->
+    <div class="section-card flujo-caja-card"
+         *ngIf="(+salesData.total_ingresos_caja > 0) || (+salesData.total_retiros_caja > 0)">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
+        Flujo de Caja (Turnos POS)
+      </h3>
+      <div class="flujo-rows">
+        <div class="flujo-row ingreso">
+          <span class="flujo-label">
+            <mat-icon>add_circle_outline</mat-icon> Ingresos manuales de caja
+          </span>
+          <span class="flujo-value positive">
+            + Bs.&nbsp;{{ +salesData.total_ingresos_caja | number:'1.2-2' }}
+          </span>
+        </div>
+        <div class="flujo-row retiro">
+          <span class="flujo-label">
+            <mat-icon>remove_circle_outline</mat-icon> Retiros de caja
+          </span>
+          <span class="flujo-value negative">
+            - Bs.&nbsp;{{ +salesData.total_retiros_caja | number:'1.2-2' }}
+          </span>
+        </div>
+        <div class="flujo-row neto">
+          <span class="flujo-label"><strong>Neto movimientos de caja</strong></span>
+          <span class="flujo-value"
+                [class.positive]="+salesData.total_ingresos_caja - +salesData.total_retiros_caja >= 0"
+                [class.negative]="+salesData.total_ingresos_caja - +salesData.total_retiros_caja < 0">
+            <strong>Bs.&nbsp;{{ (+salesData.total_ingresos_caja - +salesData.total_retiros_caja) | number:'1.2-2' }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHART: Evolución de ingresos ───────────────────────────────── -->
+    <div class="section-card" *ngIf="salesData.sales_by_period.length > 0">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">bar_chart</mat-icon>
+        Evolución de ingresos
+      </h3>
+      <div class="chart-container">
+        <div *ngFor="let item of salesData.sales_by_period" class="bar-row">
+          <span class="bar-label">{{ item.label }}</span>
+          <div class="bar-track">
+            <div class="bar-fill"
+                 [style.width.%]="getBarWidth(item.revenue)"
+                 [title]="'Bs. ' + item.revenue + ' · ' + item.orders + ' pedidos'">
+            </div>
+          </div>
+          <div class="bar-meta">
+            <span class="bar-value">Bs.&nbsp;{{ item.revenue | number:'1.0-0' }}</span>
+            <span class="bar-orders">{{ item.orders }} pedidos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card no-data-chart" *ngIf="salesData.sales_by_period.length === 0">
+      <mat-icon>show_chart</mat-icon>
+      <p>No hay datos de ventas para este período.</p>
+    </div>
+
+    <!-- ── TABLE: Ventas por producto ─────────────────────────────────── -->
+    <div class="section-card">
+
+      <div class="table-header-row">
+        <h3 class="section-title" style="margin:0;">
+          <mat-icon class="section-title-icon">table_chart</mat-icon>
+          Ventas por producto —&nbsp;{{ salesData.period_label }}
+        </h3>
+        <mat-form-field appearance="outline" class="filter-field table-cat-filter">
+          <mat-label>Filtrar por categoría</mat-label>
+          <mat-select [(ngModel)]="tableFilterCategory" (ngModelChange)="applyTableFilter()">
+            <mat-option value="">Todas</mat-option>
+            <mat-option *ngFor="let cat of categories" [value]="cat.name">
+              {{ cat.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="table-wrapper">
+        <mat-table [dataSource]="tableDataSource" matSort multiTemplateDataRows class="products-table">
+
+          <!-- Expand button -->
+          <ng-container matColumnDef="expand">
+            <mat-header-cell *matHeaderCellDef style="max-width:48px;"></mat-header-cell>
+            <mat-cell *matCellDef="let row" style="max-width:48px;">
+              <button *ngIf="getVariantes(row).length > 0"
+                      mat-icon-button
+                      (click)="toggleVariants(row); $event.stopPropagation()"
+                      [matTooltip]="expandedProductId === row.product_id ? 'Ocultar variantes' : 'Ver variantes'"
+                      style="color:#6b7280;">
+                <mat-icon>{{ expandedProductId === row.product_id ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Producto -->
+          <ng-container matColumnDef="product_name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Producto</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.product_name }}</mat-cell>
+          </ng-container>
+
+          <!-- Categoría -->
+          <ng-container matColumnDef="category">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Categoría</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.category || '—' }}</mat-cell>
+          </ng-container>
+
+          <!-- Unidades -->
+          <ng-container matColumnDef="units_sold">
+            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Unidades</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="col-num">{{ row.units_sold }}</mat-cell>
+          </ng-container>
+
+          <!-- Ingresos -->
+          <ng-container matColumnDef="revenue">
+            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Ingresos (Bs.)</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="col-num">{{ row.revenue | number:'1.2-2' }}</mat-cell>
+          </ng-container>
+
+          <!-- Costo -->
+          <ng-container matColumnDef="cost">
+            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Costo (Bs.)</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="col-num">
+              <span *ngIf="row.cost != null">{{ row.cost | number:'1.2-2' }}</span>
+              <span *ngIf="row.cost == null" class="null-cell">—</span>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Margen -->
+          <ng-container matColumnDef="margin">
+            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Margen (Bs.)</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="col-num">
+              <span *ngIf="row.margin != null"
+                    [style.color]="+row.margin >= 0 ? '#16a34a' : '#dc2626'">
+                {{ row.margin | number:'1.2-2' }}
+              </span>
+              <span *ngIf="row.margin == null" class="null-cell">—</span>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Variante detail row -->
+          <ng-container matColumnDef="variantDetail">
+            <mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length" style="padding:0;">
+              <div *ngIf="expandedProductId === row.product_id && getVariantes(row).length > 0"
+                   class="variant-detail-panel">
+                <table class="variant-subtable-inner">
+                  <thead>
+                    <tr>
+                      <th>Variante</th>
+                      <th class="col-num">Unidades</th>
+                      <th class="col-num">Ingresos (Bs.)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let v of getVariantes(row)">
+                      <td>{{ v.variante }}</td>
+                      <td class="col-num">{{ v.units_sold }}</td>
+                      <td class="col-num">
+                        {{ (v.units_sold * +row.revenue / row.units_sold) | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+          <mat-row *matRowDef="let row; columns: ['variantDetail']" class="variant-row"></mat-row>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+              No hay datos de ventas para el período y filtros seleccionados.
+            </td>
+          </tr>
+
+        </mat-table>
+      </div>
+
+      <mat-paginator
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        showFirstLastButtons>
+      </mat-paginator>
+
+    </div>
+
+  </ng-container>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MOVIMIENTOS DE CAJA
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div class="section-card mov-caja-card">
+    <div class="mov-header">
+      <h3 class="section-title" style="margin:0;">
+        <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
+        Movimientos de Caja
+        <span class="mov-realtime">
+          <span class="realtime-dot"></span> En Tiempo real
+        </span>
+      </h3>
+      <div class="mov-period-btns">
+        <button *ngFor="let p of [{v:'today',l:'Hoy'},{v:'week',l:'Semana'},{v:'month',l:'Mes'},{v:'year',l:'Año'}]"
+                mat-stroked-button class="mov-period-btn"
+                [class.active]="movPeriod === p.v"
+                (click)="setMovPeriod(p.v)">{{ p.l }}</button>
+        <button mat-stroked-button class="mov-period-btn xlsx-btn" (click)="descargarXLSX()">
+          <mat-icon>download</mat-icon> Descargar XLSX
+        </button>
+      </div>
+    </div>
+
+    <div class="mov-loading" *ngIf="movLoading"><mat-spinner diameter="36"></mat-spinner></div>
+
+    <div class="table-wrapper" *ngIf="!movLoading">
+      <mat-table [dataSource]="movimientos" class="mov-table">
+
+        <ng-container matColumnDef="fecha">
+          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+          <mat-cell *matCellDef="let m">{{ m.fecha | date:'dd-MM-yyyy HH:mm:ss' }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="caja">
+          <mat-header-cell *matHeaderCellDef>Caja</mat-header-cell>
+          <mat-cell *matCellDef="let m">{{ m.caja }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="tipo">
+          <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+          <mat-cell *matCellDef="let m">
+            <span class="mov-badge" [ngClass]="movTipoBadgeClass(m.tipo)">{{ m.tipo }}</span>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="usuario">
+          <mat-header-cell *matHeaderCellDef>Usuario</mat-header-cell>
+          <mat-cell *matCellDef="let m">{{ m.usuario }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="detalle">
+          <mat-header-cell *matHeaderCellDef>Detalle</mat-header-cell>
+          <mat-cell *matCellDef="let m" class="detalle-cell">{{ m.detalle }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="monto">
+          <mat-header-cell *matHeaderCellDef class="col-num">Monto</mat-header-cell>
+          <mat-cell *matCellDef="let m" class="col-num">
+            <strong [class.mov-ingreso]="m.tipo !== 'EGRESO'"
+                    [class.mov-egreso]="m.tipo === 'EGRESO'">
+              Bs {{ m.monto | number:'1.2-2' }}
+            </strong>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="movCols"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: movCols;"></mat-row>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data-cell" [attr.colspan]="movCols.length">
+            Sin movimientos en este período.
+          </td>
+        </tr>
+      </mat-table>
+    </div>
+
+    <!-- Paginación manual -->
+    <div class="mov-pagination" *ngIf="movPages > 1">
+      <button mat-icon-button [disabled]="movPage === 1" (click)="loadMovimientos(movPage - 1)">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="mov-page-label">{{ movPage }} de {{ movPages }}</span>
+      <button mat-icon-button [disabled]="movPage === movPages" (click)="loadMovimientos(movPage + 1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       ACCIONES RÁPIDAS
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div class="section-card quick-actions">
+    <h3 class="section-title">
+      <mat-icon class="section-title-icon">bolt</mat-icon>
+      Acciones Rápidas
+    </h3>
+    <div class="quick-actions-row">
+      <button mat-raised-button color="primary" routerLink="/products">
+        <mat-icon>add</mat-icon> Agregar Producto
+      </button>
+      <button mat-raised-button color="accent" routerLink="/live-sessions">
+        <mat-icon>live_tv</mat-icon> Programar Live
+      </button>
+      <button mat-raised-button routerLink="/orders">
+        <mat-icon>shopping_cart</mat-icon> Ver Pedidos
+      </button>
+    </div>
+  </div>
+
+</div>

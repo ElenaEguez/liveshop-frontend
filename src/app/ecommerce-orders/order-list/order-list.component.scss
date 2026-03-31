@@ -1,0 +1,138 @@
+.page-wrapper {
+  padding: 24px;
+  max-width: 1100px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  color: #212121;
+}
+
+.order-count {
+  background: #f5f5f5;
+  color: #666;
+  font-size: 0.82rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* Tabs */
+.status-tabs {
+  margin-bottom: 16px;
+}
+
+/* Toolbar */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search-field {
+  flex: 1;
+  max-width: 400px;
+}
+
+/* Error */
+.error-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fdecea;
+  color: #c62828;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+}
+
+/* Loading */
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+
+.orders-table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.order-row {
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #fafafa; }
+}
+
+.order-id { color: #db0000; font-weight: 700; }
+
+.customer-name { font-weight: 500; font-size: 0.88rem; color: #212121; }
+.customer-phone { font-size: 0.76rem; color: #888; }
+
+.total-amount { font-weight: 600; color: #db0000; }
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-pending   { background: #fff8e1; color: #f57f17; }
+.status-confirmed { background: #e3f2fd; color: #1565c0; }
+.status-delivered { background: #e8f5e9; color: #2e7d32; }
+.status-cancelled { background: #fce4ec; color: #b71c1c; }
+
+/* Row actions */
+.row-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px;
+  color: #bdbdbd;
+
+  mat-icon { font-size: 48px; height: 48px; width: 48px; margin-bottom: 12px; }
+  p { font-size: 0.95rem; }
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.page-info { font-size: 0.88rem; color: #666; }

@@ -1,0 +1,140 @@
+<div class="dlg-header">
+  <div class="dlg-header-left">
+    <mat-icon class="dlg-icon">credit_score</mat-icon>
+    <div>
+      <div class="dlg-title">Cobrar Crédito</div>
+      <div class="dlg-subtitle">{{ venta.numero_ticket }} · {{ venta.cliente_nombre }}</div>
+    </div>
+  </div>
+  <button mat-icon-button (click)="close()" class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dlg-body">
+
+  <!-- Tarjeta de totales -->
+  <div class="totals-card">
+    <div class="total-col">
+      <span class="total-lbl">Total venta</span>
+      <span class="total-val">{{ moneda }} {{ total | number:'1.2-2' }}</span>
+    </div>
+    <div class="total-divider"></div>
+    <div class="total-col">
+      <span class="total-lbl">Pagado</span>
+      <span class="total-val paid">{{ moneda }} {{ montoPagado | number:'1.2-2' }}</span>
+    </div>
+    <div class="total-divider"></div>
+    <div class="total-col">
+      <span class="total-lbl">Saldo pendiente</span>
+      <span class="total-val" [class.debt]="saldoPendiente !== '0.00'" [class.zero]="saldoPendiente === '0.00'">
+        {{ moneda }} {{ saldoPendiente }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Barra de progreso -->
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="porcentajePagado">
+        <span class="progress-pct" *ngIf="porcentajePagado > 15">{{ porcentajePagado | number:'1.0-0' }}%</span>
+      </div>
+    </div>
+    <div class="progress-foot">
+      <span *ngIf="venta.fecha_vencimiento_credito" class="vence-tag">
+        <mat-icon>event</mat-icon> Vence {{ venta.fecha_vencimiento_credito | date:'dd/MM/yyyy' }}
+      </span>
+      <span class="pct-tag">{{ porcentajePagado | number:'1.0-0' }}% cobrado</span>
+    </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="section-header">
+    <mat-icon>receipt_long</mat-icon>
+    <span>Historial de pagos</span>
+    <span class="badge">{{ pagos.length }}</span>
+  </div>
+
+  <div *ngIf="loading" class="center-spin"><mat-spinner diameter="28"></mat-spinner></div>
+
+  <div *ngIf="!loading && pagos.length === 0" class="empty-pagos">
+    <mat-icon>payments</mat-icon>
+    <span>Sin pagos registrados</span>
+  </div>
+
+  <div *ngIf="!loading && pagos.length > 0" class="pagos-list">
+    <div class="pago-item" *ngFor="let p of pagos; let i = index">
+      <div class="pago-num">{{ i + 1 }}</div>
+      <div class="pago-body">
+        <div class="pago-top">
+          <span class="pago-monto">{{ moneda }} {{ p.monto | number:'1.2-2' }}</span>
+          <span class="pago-metodo" *ngIf="p.metodo_pago_nombre">{{ p.metodo_pago_nombre }}</span>
+        </div>
+        <div class="pago-meta">
+          <mat-icon class="meta-icon">schedule</mat-icon>
+          {{ p.created_at | date:'dd/MM/yyyy HH:mm' }}
+          <span *ngIf="p.usuario_nombre"> · {{ p.usuario_nombre }}</span>
+        </div>
+        <div class="pago-notas" *ngIf="p.notas">
+          <mat-icon class="meta-icon">notes</mat-icon> {{ p.notas }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario nuevo pago -->
+  <ng-container *ngIf="venta.status === 'credito'">
+    <div class="section-header mt">
+      <mat-icon>add_circle_outline</mat-icon>
+      <span>Registrar pago</span>
+    </div>
+
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="field-monto">
+        <mat-label>Monto ({{ moneda }})</mat-label>
+        <input matInput type="number" [(ngModel)]="montoNuevo" min="0.01" [max]="saldoPendiente">
+        <mat-hint>Saldo: {{ moneda }} {{ saldoPendiente }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-metodo">
+        <mat-label>Método de cobro</mat-label>
+        <mat-select [(ngModel)]="metodoSeleccionado">
+          <mat-option [value]="null">— Sin especificar —</mat-option>
+          <mat-option *ngFor="let m of metodosPago" [value]="m.id">{{ m.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-notas">
+        <mat-label>Nota (opcional)</mat-label>
+        <input matInput [(ngModel)]="notasNuevo" placeholder="Ej: Cuota 1 de 2">
+        <mat-icon matSuffix>sticky_note_2</mat-icon>
+      </mat-form-field>
+    </div>
+  </ng-container>
+
+  <!-- Ya completada -->
+  <div class="ya-cobrado" *ngIf="venta.status === 'completada'">
+    <mat-icon>task_alt</mat-icon>
+    <span>Crédito completamente cobrado</span>
+  </div>
+
+</mat-dialog-content>
+
+<div class="dlg-footer">
+  <button mat-stroked-button (click)="close()">Cerrar</button>
+
+  <ng-container *ngIf="venta.status === 'credito'">
+    <button mat-stroked-button color="primary"
+            [disabled]="saving"
+            (click)="montoNuevo = +saldoPendiente">
+      Cobrar todo
+    </button>
+    <button mat-raised-button color="primary"
+            [disabled]="!montoNuevo || montoNuevo <= 0 || saving"
+            (click)="registrarPago()" class="btn-registrar">
+      <mat-spinner *ngIf="saving" diameter="16"></mat-spinner>
+      <mat-icon *ngIf="!saving">payments</mat-icon>
+      {{ saving ? 'Guardando…' : 'Registrar Pago' }}
+    </button>
+  </ng-container>
+</div>

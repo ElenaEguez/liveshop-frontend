@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>
+  {{ data.tipo === 'ingreso' ? 'Ingresar Dinero' : 'Retirar Dinero' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="mov-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Concepto</mat-label>
+      <input matInput formControlName="concepto" placeholder="Ej: Compra de insumos">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Monto (Bs.)</mat-label>
+      <input matInput type="number" formControlName="monto" min="0.01">
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button
+          [color]="data.tipo === 'ingreso' ? 'primary' : 'warn'"
+          [disabled]="form.invalid"
+          (click)="confirmar()">
+    Confirmar
+  </button>
+</mat-dialog-actions>

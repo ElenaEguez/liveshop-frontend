@@ -1,0 +1,158 @@
+<div class="detail-dialog">
+
+  <!-- Header -->
+  <div class="detail-header">
+    <div>
+      <h2 class="detail-title">Pedido #{{ order.id }}</h2>
+      <span class="status-badge" [ngClass]="'status-' + order.status">
+        {{ order.status | titlecase }}
+      </span>
+    </div>
+    <button mat-icon-button (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="detail-content">
+
+    <!-- Error -->
+    <div *ngIf="error" class="error-bar">
+      <mat-icon>error_outline</mat-icon> {{ error }}
+    </div>
+
+    <!-- Customer info -->
+    <section class="detail-section">
+      <h3 class="section-title">
+        <mat-icon>person</mat-icon> Datos del cliente
+      </h3>
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">Nombre</span>
+          <span class="info-value">{{ order.customer_name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Teléfono</span>
+          <span class="info-value">
+            <a [href]="'https://wa.me/' + order.customer_phone.replace('+','')"
+               target="_blank" class="wa-link">
+              <mat-icon style="font-size:14px;height:14px;width:14px">chat</mat-icon>
+              {{ order.customer_phone }}
+            </a>
+          </span>
+        </div>
+        <div class="info-row" *ngIf="order.customer_email">
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ order.customer_email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Entrega</span>
+          <span class="info-value">{{ deliveryLabels[order.delivery_method] || order.delivery_method }}</span>
+        </div>
+        <div class="info-row" *ngIf="order.customer_address">
+          <span class="info-label">Dirección</span>
+          <span class="info-value">{{ order.customer_address }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Pago</span>
+          <span class="info-value">{{ paymentLabels[order.payment_method] || order.payment_method }}</span>
+        </div>
+        <div class="info-row" *ngIf="order.notes">
+          <span class="info-label">Notas</span>
+          <span class="info-value">{{ order.notes }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Fecha</span>
+          <span class="info-value">{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Items -->
+    <section class="detail-section">
+      <h3 class="section-title">
+        <mat-icon>inventory_2</mat-icon> Productos
+      </h3>
+      <div class="items-list">
+        <div class="order-item" *ngFor="let item of order.items">
+          <img *ngIf="item.product_image" [src]="item.product_image"
+               [alt]="item.product_name" class="item-img">
+          <div class="item-img item-img--placeholder" *ngIf="!item.product_image">
+            <mat-icon>image</mat-icon>
+          </div>
+          <div class="item-info">
+            <span class="item-name">{{ item.product_name }}</span>
+            <span class="item-variant" *ngIf="item.variant_detail">{{ item.variant_detail }}</span>
+          </div>
+          <div class="item-qty">× {{ item.quantity }}</div>
+          <div class="item-price">Bs {{ item.subtotal | number:'1.2-2' }}</div>
+        </div>
+      </div>
+      <div class="total-row">
+        <span>Total</span>
+        <strong>Bs {{ order.total | number:'1.2-2' }}</strong>
+      </div>
+    </section>
+
+    <!-- Receipt -->
+    <section class="detail-section" *ngIf="order.payment_receipt">
+      <h3 class="section-title">
+        <mat-icon>receipt</mat-icon> Comprobante de pago
+      </h3>
+      <a [href]="order.payment_receipt" target="_blank" class="receipt-link">
+        <img [src]="order.payment_receipt" alt="Comprobante" class="receipt-img"
+             onerror="this.style.display='none'">
+        <span>Ver comprobante completo</span>
+      </a>
+    </section>
+
+    <!-- Internal note -->
+    <section class="detail-section">
+      <h3 class="section-title">
+        <mat-icon>note</mat-icon> Nota interna
+      </h3>
+      <textarea class="note-textarea" rows="2" placeholder="Agregar nota interna..."
+        [(ngModel)]="internalNote"></textarea>
+    </section>
+
+  </mat-dialog-content>
+
+  <!-- Actions -->
+  <mat-dialog-actions class="detail-actions">
+    <button mat-stroked-button (click)="close()" [disabled]="loading">
+      Cerrar
+    </button>
+
+    <span class="actions-spacer"></span>
+
+    <ng-container [ngSwitch]="order.status">
+
+      <ng-container *ngSwitchCase="'pending'">
+        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button mat-raised-button class="btn-confirm" (click)="confirm()" [disabled]="loading">
+          <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
+          Confirmar pedido
+        </button>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'confirmed'">
+        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button mat-raised-button class="btn-deliver" (click)="markDelivered()" [disabled]="loading">
+          <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
+          Marcar entregado
+        </button>
+      </ng-container>
+
+      <ng-container *ngSwitchDefault>
+        <span class="status-final">
+          Pedido {{ order.status === 'delivered' ? 'entregado' : 'cancelado' }}
+        </span>
+      </ng-container>
+
+    </ng-container>
+  </mat-dialog-actions>
+
+</div>

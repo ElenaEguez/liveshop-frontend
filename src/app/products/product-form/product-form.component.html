@@ -1,0 +1,239 @@
+<div class="modal-wrapper">
+
+  <h2 class="modal-title">
+    <mat-icon>{{ isEdit ? 'edit' : 'add_circle' }}</mat-icon>
+    {{ isEdit ? 'Editar Producto' : (viewOnly ? 'Detalle del Producto' : 'Nuevo Producto') }}
+  </h2>
+
+  <form [formGroup]="productForm" class="modal-form">
+
+    <!-- SECCIÓN: Información básica -->
+    <div class="form-section">
+      <h3 class="section-title">Información básica</h3>
+
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre del Producto</mat-label>
+          <input matInput formControlName="name" placeholder="Ej: Sudadera deportiva">
+          <mat-error *ngIf="productForm.get('name')?.hasError('required')">
+            El nombre es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="category" [compareWith]="compareById">
+            <mat-option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" rows="3"
+                  placeholder="Descripción del producto..."></textarea>
+      </mat-form-field>
+
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Stock Total</mat-label>
+          <input matInput type="number" formControlName="stock">
+        </mat-form-field>
+
+        <div class="toggle-row">
+          <mat-slide-toggle formControlName="is_active" color="primary">
+            Producto Activo
+          </mat-slide-toggle>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Precios -->
+    <div class="form-section">
+      <h3 class="section-title">Precios</h3>
+      <div class="price-hint">Los tres campos se sincronizan automáticamente.</div>
+
+      <div class="form-grid-3">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Costo de compra (Bs.)</mat-label>
+          <input matInput type="number" formControlName="purchase_cost"
+                 placeholder="0.00" min="0" step="0.01">
+          <span matPrefix>Bs.&nbsp;</span>
+          <mat-error *ngIf="productForm.get('purchase_cost')?.hasError('min')">
+            No puede ser negativo
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>% de Ganancia</mat-label>
+          <input matInput type="number" formControlName="profit_margin_percent"
+                 placeholder="0.00" min="0" step="0.01">
+          <span matSuffix>&nbsp;%</span>
+          <mat-error *ngIf="productForm.get('profit_margin_percent')?.hasError('min')">
+            No puede ser negativo
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Precio de venta (Bs.)</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="0.00">
+          <span matPrefix>Bs.&nbsp;</span>
+          <mat-error *ngIf="productForm.get('price')?.hasError('required')">
+            El precio es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Códigos -->
+    <div class="form-section">
+      <h3 class="section-title">Códigos</h3>
+
+      <div class="code-row">
+        <mat-form-field appearance="outline" class="code-field">
+          <mat-label>Código de barras</mat-label>
+          <input matInput formControlName="barcode" placeholder="EAN-13">
+        </mat-form-field>
+        <button *ngIf="!viewOnly" type="button" mat-stroked-button (click)="generateBarcode()"
+                matTooltip="Generar EAN-13 aleatorio" class="code-btn">
+          <mat-icon>refresh</mat-icon> Generar
+        </button>
+        <button *ngIf="!viewOnly" type="button" mat-icon-button color="primary"
+                (click)="printBarcodeLabel()" matTooltip="Imprimir etiqueta">
+          <mat-icon>print</mat-icon>
+        </button>
+      </div>
+
+      <div class="code-row" style="margin-top:12px;">
+        <mat-form-field appearance="outline" class="code-field">
+          <mat-label>Código interno</mat-label>
+          <input matInput formControlName="internal_code" placeholder="Ej: INT-ABC123">
+        </mat-form-field>
+        <button *ngIf="!viewOnly" type="button" mat-stroked-button (click)="generateInternalCode()"
+                matTooltip="Generar código alfanumérico" class="code-btn">
+          <mat-icon>refresh</mat-icon> Generar
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Se vende por -->
+    <div class="form-section" formGroupName="sell_by">
+      <h3 class="section-title">Se vende por</h3>
+      <div class="sell-by-grid">
+        <mat-checkbox *ngFor="let opt of sellByOptions"
+                      [formControlName]="opt.value"
+                      color="primary">
+          {{ opt.label }}
+        </mat-checkbox>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Variantes -->
+    <div class="form-section" formArrayName="variants">
+      <div class="section-header">
+        <h3 class="section-title">Variantes</h3>
+        <button *ngIf="!viewOnly" type="button" mat-stroked-button color="primary"
+                (click)="addVariant()" class="add-btn">
+          <mat-icon>add</mat-icon> Agregar Variante
+        </button>
+      </div>
+
+      <div *ngFor="let variant of variants.controls; let i = index"
+           [formGroupName]="i" class="variant-card">
+        <div class="variant-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Talla</mat-label>
+            <input matInput formControlName="size" placeholder="M, L, XL...">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Color</mat-label>
+            <input matInput formControlName="color" placeholder="Rojo, Azul...">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Stock</mat-label>
+            <input matInput type="number" formControlName="stock">
+          </mat-form-field>
+        </div>
+        <button *ngIf="!viewOnly" type="button" mat-icon-button color="warn"
+                (click)="removeVariant(i)" class="remove-btn"
+                matTooltip="Eliminar variante">
+          <mat-icon>remove_circle_outline</mat-icon>
+        </button>
+      </div>
+
+      <p *ngIf="variants.length === 0" class="empty-variants">
+        Sin variantes. El stock total aplica a todo el producto.
+      </p>
+
+      <div *ngIf="variants.length > 0"
+           style="display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;
+                  border-radius:8px;padding:10px 12px;margin-top:8px;font-size:0.82rem;color:#92400e;">
+        <mat-icon style="font-size:16px;width:16px;height:16px;flex-shrink:0;margin-top:1px;">info</mat-icon>
+        <span>Cada variante tiene su propio stock. La suma de variantes debe igualar el stock total.</span>
+      </div>
+
+      <div *ngIf="stockVariantesInvalido"
+           style="display:flex;align-items:center;gap:4px;color:#e53935;font-size:13px;margin-top:8px;">
+        <mat-icon style="font-size:16px;width:16px;height:16px;">warning</mat-icon>
+        La suma del stock de variantes ({{ sumaStockVariantes }}) supera el Stock Total ({{ productForm.get('stock')?.value }}).
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Imágenes -->
+    <div *ngIf="!viewOnly" class="form-section">
+      <h3 class="section-title">Imágenes</h3>
+
+      <div *ngIf="existingImages.length" class="images-grid">
+        <div *ngFor="let img of existingImages; let i = index" class="image-thumb">
+          <img [src]="img" [alt]="'Imagen ' + (i+1)">
+          <button type="button" mat-icon-button class="remove-image-btn"
+                  (click)="removeExistingImage(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="upload-area" (click)="fileInput.click()">
+        <mat-icon>cloud_upload</mat-icon>
+        <span>Seleccionar imágenes</span>
+        <small>PNG, JPG hasta 5MB</small>
+        <input #fileInput type="file" multiple accept="image/*"
+               (change)="onFileSelected($event)" style="display:none">
+      </div>
+
+      <div *ngIf="selectedFilePreviews.length" class="images-grid">
+        <div *ngFor="let preview of selectedFilePreviews; let i = index" class="image-thumb">
+          <img [src]="preview" alt="Preview">
+          <button type="button" mat-icon-button class="remove-image-btn"
+                  (click)="removeFile(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imágenes en modo solo lectura -->
+    <div *ngIf="viewOnly && existingImages.length" class="form-section">
+      <h3 class="section-title">Imágenes</h3>
+      <div class="images-grid">
+        <div *ngFor="let img of existingImages; let i = index" class="image-thumb">
+          <img [src]="img" [alt]="'Imagen ' + (i+1)">
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- ACCIONES -->
+  <div class="modal-actions">
+    <button mat-button (click)="onCancel()">{{ viewOnly ? 'Cerrar' : 'Cancelar' }}</button>
+    <button *ngIf="!viewOnly" mat-raised-button color="primary"
+            [disabled]="productForm.invalid || stockVariantesInvalido"
+            (click)="onSubmit()">
+      {{ isEdit ? 'Guardar Cambios' : 'Crear Producto' }}
+    </button>
+  </div>
+
+</div>

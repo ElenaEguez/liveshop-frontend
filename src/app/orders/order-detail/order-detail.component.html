@@ -1,0 +1,150 @@
+<h2 mat-dialog-title style="display:flex; align-items:center; gap:12px;">
+  <mat-icon style="color:#db0000;">receipt_long</mat-icon>
+  Pedido #{{ order.id }}
+  <span [style.background]="getStatusBg(order.status)"
+        [style.color]="getStatusColor(order.status)"
+        style="margin-left:auto; padding:4px 12px; border-radius:20px; font-size:0.82rem; font-weight:600;">
+    {{ getStatusLabel(order.status) }}
+  </span>
+</h2>
+
+<mat-dialog-content style="min-width:480px; padding-top:8px;">
+
+  <!-- Info del live y fecha -->
+  <div style="background:#f9fafb; border-radius:8px; padding:12px 16px; margin-bottom:16px;
+              display:flex; gap:24px; flex-wrap:wrap;">
+    <div>
+      <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em;">Live</div>
+      <div style="font-weight:600; color:#111827;">{{ order.session_title }}</div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em;">Fecha</div>
+      <div style="font-weight:500;">{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+    </div>
+  </div>
+
+  <!-- Cliente -->
+  <div style="border:1px solid #e5e7eb; border-radius:8px; padding:12px 16px; margin-bottom:12px;">
+    <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">
+      Cliente
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <mat-icon style="color:#6b7280;">person</mat-icon>
+      <div style="flex:1;">
+        <div style="font-weight:600;">{{ order.customer_name }}</div>
+        <div style="font-size:0.875rem; color:#6b7280;">
+          <mat-icon style="font-size:14px; width:14px; height:14px; vertical-align:middle;">phone</mat-icon>
+          {{ order.customer_phone }}
+        </div>
+      </div>
+      <!-- WhatsApp button -->
+      <button *ngIf="order.customer_phone"
+              mat-stroked-button
+              (click)="openWhatsApp()"
+              style="color:#25d366; border-color:#25d366; font-size:0.82rem; display:flex; align-items:center; gap:6px;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- Producto y totales -->
+  <div style="border:1px solid #e5e7eb; border-radius:8px; padding:12px 16px; margin-bottom:12px;">
+    <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">
+      Pedido
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div>
+        <div style="font-weight:600;">{{ order.product_name }}</div>
+        <div *ngIf="order.variant_detail"
+             style="font-size:0.8rem; color:#db0000; margin-top:2px;">
+          {{ order.variant_detail }}
+        </div>
+        <div style="font-size:0.875rem; color:#6b7280;">
+          {{ order.quantity }} × Bs. {{ order.product_price | number:'1.2-2' }}
+        </div>
+      </div>
+      <div style="font-size:1.25rem; font-weight:700; color:#db0000;">
+        Bs. {{ order.total_price | number:'1.2-2' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Notas -->
+  <div *ngIf="order.notes"
+       style="border:1px solid #e5e7eb; border-radius:8px; padding:12px 16px; margin-bottom:12px;">
+    <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;">
+      Notas
+    </div>
+    <div style="color:#374151;">{{ order.notes }}</div>
+  </div>
+
+  <!-- Comprobante de pago -->
+  <div *ngIf="order.payment_receipt_image"
+       style="border:1px solid #e5e7eb; border-radius:8px; padding:12px 16px; margin-bottom:12px;">
+    <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">
+      Comprobante de pago
+    </div>
+    <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+      <a [href]="order.payment_receipt_image" target="_blank"
+         style="flex-shrink:0; display:block;">
+        <img [src]="order.payment_receipt_image"
+             alt="Comprobante"
+             style="width:96px; height:96px; object-fit:cover; border-radius:6px;
+                    border:1px solid #e5e7eb; cursor:pointer;">
+      </a>
+      <div style="font-size:0.875rem; color:#374151; display:flex; flex-direction:column; gap:4px;">
+        <div *ngIf="order.payment_method">
+          <span style="color:#6b7280;">Método:</span>
+          <span style="font-weight:600; margin-left:4px; text-transform:capitalize;">
+            {{ order.payment_method }}
+          </span>
+        </div>
+        <div *ngIf="order.payment_reference">
+          <span style="color:#6b7280;">Referencia:</span>
+          <span style="font-weight:600; margin-left:4px;">{{ order.payment_reference }}</span>
+        </div>
+        <div *ngIf="order.payment_status">
+          <span style="color:#6b7280;">Estado pago:</span>
+          <span style="margin-left:4px; font-weight:600;"
+                [style.color]="order.payment_status === 'confirmed' ? '#166534' : '#854d0e'">
+            {{ order.payment_status === 'submitted' ? 'Enviado' :
+               order.payment_status === 'confirmed' ? 'Confirmado' : order.payment_status }}
+          </span>
+        </div>
+        <a [href]="order.payment_receipt_image" target="_blank"
+           style="color:#db0000; font-size:0.8rem; margin-top:4px;">
+          Ver imagen completa ↗
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones de estado -->
+  <div *ngIf="actions.length > 0" style="margin-top:4px;">
+    <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">
+      Cambiar estado
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button *ngFor="let action of actions"
+              mat-raised-button
+              [color]="action.color"
+              [disabled]="saving"
+              (click)="changeStatus(action.next)">
+        {{ action.label }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="actions.length === 0 && order.status !== 'cancelled'"
+       style="margin-top:4px; color:#6b7280; font-size:0.875rem; font-style:italic;">
+    Pedido en estado final — sin más acciones disponibles.
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cerrar</button>
+</mat-dialog-actions>

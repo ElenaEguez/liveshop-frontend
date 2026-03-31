@@ -1,0 +1,57 @@
+.ventas-page {
+  padding: 16px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  h1 { margin: 0; font-size: 22px; }
+}
+
+.filter-card {
+  margin-bottom: 16px;
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    mat-form-field { flex: 1; min-width: 150px; }
+  }
+}
+
+.table-card {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.loading-shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.ventas-table {
+  width: 100%;
+}
+
+.no-data {
+  text-align: center;
+  padding: 32px;
+  color: #888;
+}
+
+.status-chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  &.status-completada { background: #e8f5e9; color: #2e7d32; }
+  &.status-anulada    { background: #ffebee; color: #c62828; }
+  &.status-credito    { background: #fff3e0; color: #e65100; }
+}

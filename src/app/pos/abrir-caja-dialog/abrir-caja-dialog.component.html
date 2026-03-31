@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>Abrir Caja</h2>
+
+<mat-dialog-content>
+  <p class="dialog-subtitle">Selecciona la caja para comenzar a vender.</p>
+
+  <form [formGroup]="form" class="abrir-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Sucursal</mat-label>
+      <mat-select formControlName="sucursal_id">
+        <mat-option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Caja</mat-label>
+      <mat-select formControlName="caja_id" [disabled]="!cajas.length">
+        <mat-option *ngFor="let c of cajas" [value]="c.id">{{ c.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Monto de apertura (Bs.)</mat-label>
+      <input matInput type="number" formControlName="monto_apertura" min="0">
+    </mat-form-field>
+
+    <mat-error *ngIf="error">{{ error }}</mat-error>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button color="primary"
+          [disabled]="form.invalid || loading"
+          (click)="abrir()">
+    <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block"></mat-spinner>
+    <span *ngIf="!loading">Abrir Caja y Comenzar</span>
+  </button>
+</mat-dialog-actions>

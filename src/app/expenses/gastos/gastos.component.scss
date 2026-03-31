@@ -1,0 +1,83 @@
+.gastos-page { padding: 16px; }
+
+.page-toolbar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 22px; }
+}
+
+.filter-card {
+  margin-bottom: 16px;
+  .periodo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .periodo-chip { font-size: 12px; height: 30px;
+    &.active { background: #1565c0; color: #fff; border-color: #1565c0; } }
+  .clear-chip { font-size: 12px; height: 30px; color: #888; }
+  .date-row { margin-top: 10px; }
+}
+
+.table-card { position: relative; padding: 0; overflow: hidden; }
+
+.loading-shade {
+  position: absolute; inset: 0; background: rgba(255,255,255,.7);
+  display: flex; align-items: center; justify-content: center; z-index: 5;
+}
+
+mat-cell { gap: 8px; }
+
+.cat-icon { color: #1565c0; font-size: 20px; }
+
+.count-badge {
+  background: #e3f2fd; color: #1565c0; border-radius: 10px;
+  padding: 1px 7px; font-size: 12px; font-weight: 600;
+}
+
+.total-amount { font-size: 16px; color: #c62828; }
+
+.action-btn { font-size: 12px; height: 28px; line-height: 28px; }
+
+.no-data { text-align: center; padding: 32px; color: #888; }
+
+.turnos-card {
+  margin-bottom: 16px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  mat-icon { color: #1565c0; font-size: 20px; }
+}
+
+.caja-icon { color: #1565c0; font-size: 18px; }
+
+.turno-date {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.positive-val { color: #2e7d32; font-weight: 500; }
+.negative-val { color: #c62828; font-weight: 500; }
+
+.turno-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  &.abierto { background: #e8f5e9; color: #2e7d32; }
+  &.cerrado  { background: #f3f4f6; color: #6b7280; }
+}
+
+// historial dialog
+.loading-center { display: flex; justify-content: center; padding: 32px; }
+.status-chip {
+  padding: 2px 8px; border-radius: 10px; font-size: 11px;
+  &.status-aprobado  { background: #e8f5e9; color: #2e7d32; }
+  &.status-pendiente { background: #fff3e0; color: #e65100; }
+  &.status-anulado   { background: #eeeeee; color: #888; }
+}

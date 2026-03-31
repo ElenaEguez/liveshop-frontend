@@ -1,1 +1,258 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+// ── PALETA ROJA PERSONALIZADA ─────────────────────────────
+$liveshop-red: (
+  50:  #fce8e8,
+  100: #f8c6c6,
+  200: #f29898,
+  300: #eb6b6b,
+  400: #e33d3d,
+  500: #db0000,
+  600: #c50000,
+  700: #a80000,
+  800: #8c0000,
+  900: #6b0000,
+  contrast: (
+    50:  #000,
+    100: #000,
+    200: #000,
+    300: #fff,
+    400: #fff,
+    500: #fff,
+    600: #fff,
+    700: #fff,
+    800: #fff,
+    900: #fff,
+  )
+);
+
+$liveshop-theme: mat.define-light-theme((
+  color: (
+    primary: mat.define-palette($liveshop-red, 500, 300, 700),
+    accent:  mat.define-palette(mat.$orange-palette, 700),
+    warn:    mat.define-palette(mat.$red-palette),
+  )
+));
+
+@include mat.all-component-themes($liveshop-theme);
+
+// ── TAILWIND ──────────────────────────────────────────────
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// ── RESET GLOBAL ──────────────────────────────────────────
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+
+// ── LAYOUT MATERIAL OVERRIDES ─────────────────────────────
+mat-sidenav-container.app-container {
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+mat-sidenav-content {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+}
+
+// ── MODALES GLOBALES ──────────────────────────────────────
+.mat-dialog-container,
+.mat-mdc-dialog-container {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: rgba(0,0,0,0.5);
+}
+
+// ── VARIANT SELECTOR (shared component) ────────────────────
+.variant-selector { margin: 8px 0; }
+
+.vs-step { margin-bottom: 12px; }
+
+.vs-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}
+
+.vs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.vs-chip {
+  padding: 4px 14px;
+  border: 2px solid #d1d5db;
+  border-radius: 20px;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  &:hover { border-color: #db0000; color: #db0000; }
+  &.vs-chip--active { border-color: #db0000; background: #db0000; color: white; }
+}
+
+.vs-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.vs-swatch {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  &:hover { transform: scale(1.15); }
+  &.vs-swatch--active { border-color: #db0000; }
+  &.vs-swatch--agotado { opacity: .35; cursor: not-allowed; filter: grayscale(1); }
+
+  .check-icon {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; width: 16px; height: 16px;
+    margin: auto;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+}
+
+.vs-clear {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: -4px;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; vertical-align: middle; }
+}
+
+// ── SNACKBAR ERRORS ────────────────────────────────────────
+.snack-error .mdc-snackbar__surface {
+  background: #c62828 !important;
+}
+
+// ── TICKET PRINT STYLES ────────────────────────────────────
+@media print {
+  body * { visibility: hidden; }
+  #ticket-print, #ticket-print * { visibility: visible; }
+  #ticket-print {
+    position: fixed;
+    top: 0; left: 0;
+  }
+}
+
+.ticket-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.ticket {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  width: 300px;
+  background: #fff;
+  padding: 12px;
+  border: 1px dashed #ccc;
+
+  .ticket-header {
+    text-align: center;
+    margin-bottom: 6px;
+    .store-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+    .ticket-meta { font-size: 12px; }
+  }
+
+  .ticket-divider { color: #999; font-size: 12px; margin: 4px 0; }
+
+  .ticket-client { font-size: 12px; margin: 4px 0; }
+
+  .ticket-items {
+    margin: 4px 0;
+    .ticket-item-header {
+      display: grid;
+      grid-template-columns: 1fr 2rem 4rem 4rem;
+      font-size: 11px;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 2px;
+    }
+    .ticket-item {
+      display: grid;
+      grid-template-columns: 1fr 2rem 4rem 4rem;
+      font-size: 12px;
+      padding: 2px 0;
+      .item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
+  }
+
+  .ticket-totals {
+    margin: 4px 0;
+    .ticket-total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      &.total-final { font-weight: bold; font-size: 15px; }
+      &.credito { color: #e65100; }
+    }
+  }
+
+  .ticket-footer {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px;
+  }
+}
+
+// ── CERRAR CAJA DIALOG ─────────────────────────────────────
+.resumen-grid {
+  margin-bottom: 12px;
+  .resumen-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+    &.sub { padding-left: 12px; font-size: 13px; color: #666; }
+  }
+  mat-divider { margin: 6px 0; }
+}
+
+.diferencia {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  &.sobrante { background: #e8f5e9; color: #2e7d32; }
+  &.faltante  { background: #ffebee; color: #c62828; }
+}
+
+.abrir-form, .cierre-form, .mov-form {
+  .full-width { width: 100%; }
+}
+
+.center-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}

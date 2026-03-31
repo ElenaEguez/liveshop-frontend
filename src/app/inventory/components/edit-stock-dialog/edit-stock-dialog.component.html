@@ -1,0 +1,63 @@
+<div style="padding:0;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between;
+              padding:20px 24px 16px; border-bottom:1px solid #f3f4f6;">
+    <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:#111827;">Editar Stock</h2>
+    <button mat-icon-button (click)="cancel()" style="color:#6b7280;">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div style="padding:24px; display:flex; flex-direction:column; gap:16px;">
+
+    <!-- Producto (solo lectura) -->
+    <div style="background:#f9fafb; border-radius:8px; padding:12px;">
+      <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Producto</div>
+      <div style="font-weight:600; color:#111827;">{{ data.inventory.product_name }}</div>
+    </div>
+
+    <!-- Vendido (informativo) -->
+    <div style="background:#fef9c3; border-radius:8px; padding:12px;">
+      <div style="font-size:0.75rem; color:#854d0e; margin-bottom:4px;">Cantidad vendida (no editable)</div>
+      <div style="font-weight:600; color:#854d0e;">{{ data.inventory.reserved_quantity }} uds.</div>
+      <div style="font-size:0.75rem; color:#6b7280; margin-top:4px;">
+        El stock total no puede ser menor a este valor.
+      </div>
+    </div>
+
+    <!-- Campos editables -->
+    <form [formGroup]="form" style="display:flex; flex-direction:column; gap:12px;">
+      <mat-form-field appearance="outline" style="width:100%;">
+        <mat-label>Stock total *</mat-label>
+        <input matInput type="number" formControlName="quantity"
+               [min]="data.inventory.reserved_quantity">
+        <mat-hint>Mínimo: {{ data.inventory.reserved_quantity }} (cantidad vendida)</mat-hint>
+        <mat-error *ngIf="form.get('quantity')?.hasError('required')">Campo requerido</mat-error>
+        <mat-error *ngIf="form.get('quantity')?.hasError('min')">
+          No puede ser menor a {{ data.inventory.reserved_quantity }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%;">
+        <mat-label>Costo de compra (Bs.)</mat-label>
+        <input matInput type="number" formControlName="purchase_cost"
+               placeholder="0.00" min="0" step="0.01">
+        <mat-hint>Costo por unidad para calcular margen</mat-hint>
+        <mat-error *ngIf="form.get('purchase_cost')?.hasError('min')">
+          No puede ser negativo
+        </mat-error>
+      </mat-form-field>
+    </form>
+
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; gap:12px;
+              padding:16px 24px; border-top:1px solid #f3f4f6;">
+    <button mat-stroked-button (click)="cancel()" [disabled]="saving">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="save()"
+            [disabled]="form.invalid || saving">
+      {{ saving ? 'Guardando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+</div>

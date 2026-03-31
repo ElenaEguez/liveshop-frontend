@@ -1,0 +1,499 @@
+/* ── Root ──────────────────────────────────────────────────────────────────── */
+.dashboard-root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Filter bar ────────────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.period-toggle {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.period-toggle .mat-button-toggle {
+  font-size: 0.85rem;
+}
+
+.filter-field {
+  min-width: 140px;
+  max-width: 200px;
+  /* reduce vertical height of outline fields */
+  --mat-form-field-container-height: 44px;
+}
+
+/* mat-form-field in Angular Material 12 needs this to reduce space */
+.filter-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+/* ── Loading overlay ────────────────────────────────────────────────────────── */
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 16px;
+}
+
+.loading-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ── Error container ─────────────────────────────────────────────────────────── */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.error-icon {
+  font-size: 52px !important;
+  width: 52px !important;
+  height: 52px !important;
+  color: #dc2626;
+}
+
+.error-message {
+  margin: 0;
+  color: #374151;
+  font-size: 1rem;
+}
+
+/* ── Period label ────────────────────────────────────────────────────────────── */
+.period-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.period-label-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* ── Stats grid ─────────────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Stat card ──────────────────────────────────────────────────────────────── */
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-clickable {
+  cursor: pointer;
+}
+
+.stat-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.stat-icon-bg {
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-bg mat-icon {
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.stat-footer {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.stat-alert {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ── Section card (chart + table) ───────────────────────────────────────────── */
+.section-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.section-title-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  color: #db0000;
+}
+
+/* ── Chart ──────────────────────────────────────────────────────────────────── */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar-label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  color: #374151;
+  font-weight: 500;
+  text-align: right;
+}
+
+.bar-track {
+  flex: 1;
+  background: #f3f4f6;
+  border-radius: 6px;
+  height: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #db0000;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+
+.bar-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  width: 110px;
+}
+
+.bar-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.bar-orders {
+  font-size: 0.73rem;
+  color: #9ca3af;
+}
+
+/* ── Chart empty state ──────────────────────────────────────────────────────── */
+.no-data-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: #9ca3af;
+}
+
+.no-data-chart mat-icon {
+  font-size: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+/* ── Table ──────────────────────────────────────────────────────────────────── */
+.table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table-cat-filter {
+  min-width: 180px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.products-table {
+  width: 100%;
+}
+
+.products-table .mat-header-cell {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb;
+  white-space: nowrap;
+}
+
+.products-table .mat-cell {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.col-num {
+  text-align: right !important;
+  justify-content: flex-end;
+}
+
+.null-cell {
+  color: #d1d5db;
+}
+
+.no-data-cell {
+  text-align: center;
+  padding: 32px 16px !important;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* ── Quick actions ───────────────────────────────────────────────────────────── */
+.quick-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── Flujo de Caja ──────────────────────────────────────────────────────────── */
+.flujo-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flujo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.flujo-row.neto {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 4px;
+  background: #fff;
+}
+
+.flujo-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 14px;
+}
+
+.flujo-label mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.flujo-value {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.flujo-value.positive { color: #2e7d32; }
+.flujo-value.negative { color: #c62828; }
+
+/* ── Movimientos de Caja ─────────────────────────────────────────────────── */
+.mov-caja-card { padding: 20px; }
+
+.mov-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mov-realtime {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 10px;
+}
+
+.realtime-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.mov-period-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mov-period-btn {
+  font-size: 12px;
+  height: 30px;
+  line-height: 30px;
+}
+
+.mov-period-btn.active {
+  background: #1565c0;
+  color: #fff;
+  border-color: #1565c0;
+}
+
+.xlsx-btn { color: #16a34a; border-color: #16a34a; }
+
+.mov-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.mov-table { width: 100%; }
+
+.mov-table .mat-header-cell {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb;
+  white-space: nowrap;
+}
+
+.detalle-cell { font-size: 0.82rem; color: #374151; max-width: 300px; }
+
+.mov-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-apertura   { background: #dbeafe; color: #1d4ed8; }
+.badge-cierre     { background: #e0e7ff; color: #4338ca; }
+.badge-venta      { background: #dcfce7; color: #15803d; }
+.badge-ingreso    { background: #d1fae5; color: #065f46; }
+.badge-egreso     { background: #fee2e2; color: #b91c1c; }
+
+.mov-ingreso { color: #15803d; }
+.mov-egreso  { color: #b91c1c; }
+
+.mov-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0 0;
+}
+
+.mov-page-label {
+  font-size: 0.85rem;
+  color: #374151;
+  min-width: 60px;
+  text-align: center;
+}

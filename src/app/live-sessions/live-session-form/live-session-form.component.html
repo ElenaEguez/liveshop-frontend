@@ -1,0 +1,114 @@
+<div class="modal-wrapper">
+
+  <h2 class="modal-title">
+    <mat-icon>live_tv</mat-icon>
+    {{ isEdit ? 'Editar Sesión' : 'Nueva Sesión Live' }}
+  </h2>
+
+  <form [formGroup]="form" class="modal-form">
+
+    <!-- SECCIÓN: Información básica -->
+    <div class="form-section">
+      <h3 class="section-title">Información</h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título de la sesión</mat-label>
+        <input matInput formControlName="title" placeholder="Ej: Venta de temporada – Ropa de verano">
+        <mat-error *ngIf="form.get('title')?.invalid && form.get('title')?.touched">
+          El título es obligatorio
+        </mat-error>
+      </mat-form-field>
+
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Plataforma</mat-label>
+          <mat-select formControlName="platform">
+            <mat-option *ngFor="let p of platforms" [value]="p.value">{{ p.label }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('platform')?.invalid && form.get('platform')?.touched">
+            Selecciona una plataforma
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha y hora programada</mat-label>
+          <input matInput type="datetime-local" formControlName="scheduled_at">
+          <mat-error *ngIf="form.get('scheduled_at')?.invalid && form.get('scheduled_at')?.touched">
+            La fecha es obligatoria
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (opcional)</mat-label>
+        <textarea matInput formControlName="description" rows="3"
+                  placeholder="Describe los productos y ofertas del live..."></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>URL del stream (opcional)</mat-label>
+        <input matInput formControlName="stream_url" placeholder="https://...">
+      </mat-form-field>
+    </div>
+
+    <!-- SECCIÓN: Carrito -->
+    <div class="form-section">
+      <h3 class="section-title">Modo de compra</h3>
+      <div style="display:flex; align-items:flex-start; gap:16px; padding:12px;
+                  background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb;">
+        <mat-slide-toggle formControlName="allow_multiple_cart" color="primary"></mat-slide-toggle>
+        <div>
+          <div style="font-weight:600; color:#111827; font-size:0.95rem;">
+            Permitir que los clientes agreguen varios productos al carrito
+          </div>
+          <div style="font-size:0.82rem; color:#6b7280; margin-top:2px;">
+            Desactívalo si querés vender producto por producto durante el live
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: Pago -->
+    <div class="form-section">
+      <h3 class="section-title">Pago</h3>
+
+      <div class="qr-section">
+        <p class="qr-label">QR de pago (se elimina automáticamente al finalizar el live)</p>
+
+        <div *ngIf="currentQrUrl && !qrPreview" class="qr-preview">
+          <img [src]="currentQrUrl" alt="QR actual">
+          <span class="qr-caption">QR actual</span>
+        </div>
+
+        <div *ngIf="qrPreview" class="qr-preview">
+          <img [src]="qrPreview" alt="Nuevo QR">
+          <span class="qr-caption" style="color:#db0000;">Nuevo QR</span>
+        </div>
+
+        <input type="file" accept="image/*" #qrInput
+               (change)="onQrSelected($event)" style="display:none;">
+        <button type="button" mat-stroked-button (click)="qrInput.click()" class="full-width">
+          {{ selectedQrFile ? selectedQrFile.name : (currentQrUrl ? 'Cambiar QR' : 'Subir imagen QR') }}
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width" style="margin-top:12px;">
+        <mat-label>Instrucciones de pago (opcional)</mat-label>
+        <textarea matInput formControlName="payment_instructions" rows="2"
+                  placeholder="Ej: Escanea el QR con Tigo Money y envía el comprobante."></textarea>
+      </mat-form-field>
+    </div>
+
+  </form>
+
+  <!-- ACCIONES -->
+  <div class="modal-actions">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button mat-raised-button color="primary"
+            (click)="onSubmit()"
+            [disabled]="form.invalid || saving">
+      {{ saving ? 'Guardando...' : (isEdit ? 'Guardar Cambios' : 'Crear Sesión') }}
+    </button>
+  </div>
+
+</div>

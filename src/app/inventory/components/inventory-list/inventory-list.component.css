@@ -1,0 +1,91 @@
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-field {
+  min-width: 160px;
+}
+
+/* Detail row */
+.detail-row {
+  height: 0 !important;
+}
+
+.detail-row td {
+  border-bottom: none !important;
+  padding: 0 !important;
+}
+
+.variant-detail-row {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+/* Variant sub-table */
+.variant-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.variant-subtable thead tr {
+  background: #f1f5f9;
+}
+
+.variant-subtable th {
+  padding: 8px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.variant-subtable td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #374151;
+}
+
+.variant-subtable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.variant-subtable tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Talla chip */
+.talla-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Color swatch in table */
+.color-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}

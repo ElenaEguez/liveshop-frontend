@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="sucursal-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej: Sucursal Centro" autofocus>
+      <mat-error *ngIf="form.get('nombre')?.hasError('required')">Nombre es requerido</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Dirección</mat-label>
+      <input matInput formControlName="direccion" placeholder="Ej: Av. Principal 123">
+    </mat-form-field>
+
+    <p class="dialog-hint">
+      <mat-icon>info</mat-icon>
+      Después de crear la sucursal podrás agregar cajas y almacenes.
+    </p>
+
+    <p class="error-msg" *ngIf="error">{{ error }}</p>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button color="primary"
+          [disabled]="form.invalid || loading"
+          (click)="guardar()">
+    <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
+    {{ isEdit ? 'Guardar' : 'Crear Sucursal' }}
+  </button>
+</mat-dialog-actions>

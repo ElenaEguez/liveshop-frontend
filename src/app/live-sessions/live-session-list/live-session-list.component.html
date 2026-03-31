@@ -1,0 +1,81 @@
+<div style="width: 100%;">
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Lives</h1>
+    <button mat-raised-button color="primary" (click)="openNewSessionForm()"
+            style="display:flex; align-items:center; gap:8px; padding:0 20px; height:42px;">
+      <mat-icon>add</mat-icon>
+      Nueva Sesión
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <table mat-table [dataSource]="sessions" style="width:100%;">
+
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:16px;">Título</th>
+        <td mat-cell *matCellDef="let s" style="padding:16px; font-weight:500;">{{ s.title }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="platform">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Plataforma</th>
+        <td mat-cell *matCellDef="let s">
+          <span style="font-size:0.875rem;">{{ getPlatformLabel(s.platform) }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="scheduled_at">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Fecha Programada</th>
+        <td mat-cell *matCellDef="let s" style="color:#374151;">
+          {{ s.scheduled_at | date:'dd/MM/yyyy HH:mm' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Estado</th>
+        <td mat-cell *matCellDef="let s">
+          <span [style.background]="getStatusBg(s.status)"
+                [style.color]="getStatusColor(s.status)"
+                style="padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ getStatusLabel(s.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Acciones</th>
+        <td mat-cell *matCellDef="let s" style="display:flex; align-items:center; gap:8px; padding:12px 0;">
+          <button mat-stroked-button
+                  [color]="s.status === 'scheduled' ? 'primary' : ''"
+                  (click)="goToDetail(s)"
+                  [matTooltip]="getActionLabel(s.status)"
+                  style="display:inline-flex; align-items:center; gap:4px; min-width:90px;">
+            <mat-icon>{{ getActionIcon(s.status) }}</mat-icon>
+            {{ getActionLabel(s.status) }}
+          </button>
+          <button mat-icon-button
+                  (click)="editSession(s)"
+                  matTooltip="Editar sesión"
+                  style="color:#6b7280;">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" style="background:#f9fafb;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
+    </table>
+
+    <div *ngIf="sessions.length === 0"
+         style="text-align:center; padding:48px; color:#9ca3af;">
+      <mat-icon style="font-size:48px; width:48px; height:48px;">live_tv</mat-icon>
+      <p style="margin-top:12px; font-size:1rem;">No hay sesiones programadas</p>
+      <button mat-raised-button color="primary" (click)="openNewSessionForm()" style="margin-top:8px;">
+        Crear primera sesión
+      </button>
+    </div>
+  </div>
+
+</div>

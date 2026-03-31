@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>Gastos — {{ data.categoria.nombre }}</h2>
+
+<mat-dialog-content style="min-width:680px">
+  <div class="loading-center" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+  <mat-table [dataSource]="gastos" *ngIf="!loading">
+
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef>T.ID</mat-header-cell>
+      <mat-cell *matCellDef="let g">#{{ g.id }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+      <mat-cell *matCellDef="let g">{{ g.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="concepto">
+      <mat-header-cell *matHeaderCellDef>Concepto</mat-header-cell>
+      <mat-cell *matCellDef="let g">{{ g.concepto }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="monto">
+      <mat-header-cell *matHeaderCellDef>Monto</mat-header-cell>
+      <mat-cell *matCellDef="let g"><strong>Bs. {{ g.monto }}</strong></mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="usuario">
+      <mat-header-cell *matHeaderCellDef>Usuario</mat-header-cell>
+      <mat-cell *matCellDef="let g">{{ g.usuario || '—' }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="notas">
+      <mat-header-cell *matHeaderCellDef>Notas</mat-header-cell>
+      <mat-cell *matCellDef="let g">{{ g.notas || '—' }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let g">
+        <span class="status-chip" [class]="'status-' + g.status">{{ g.status }}</span>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let g">
+        <button mat-icon-button color="warn" matTooltip="Anular"
+                [disabled]="g.status === 'anulado'"
+                (click)="anular(g)">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">Sin gastos registrados.</td>
+    </tr>
+  </mat-table>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
