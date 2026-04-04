@@ -110,15 +110,23 @@ export class OrderListComponent implements OnInit {
   }
 
   openDetail(order: EcomOrder): void {
-    const ref = this.dialog.open(OrderDetailComponent, {
-      width: '660px',
-      maxWidth: '98vw',
-      data: { order },
-      panelClass: 'detail-panel'
-    });
+    this.service.getOrder(order.id).subscribe({
+      next: (freshOrder) => {
+        const ref = this.dialog.open(OrderDetailComponent, {
+          width: '760px',
+          maxWidth: '98vw',
+          maxHeight: '90vh',
+          data: { order: freshOrder },
+          panelClass: 'detail-panel'
+        });
 
-    ref.afterClosed().subscribe(changed => {
-      if (changed) this.load();
+        ref.afterClosed().subscribe(changed => {
+          if (changed) this.load();
+        });
+      },
+      error: () => {
+        this.error = 'No se pudo cargar el detalle del pedido.';
+      }
     });
   }
 
