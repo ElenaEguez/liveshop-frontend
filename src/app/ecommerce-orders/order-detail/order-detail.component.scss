@@ -209,10 +209,11 @@
   font-weight: 600;
 }
 
-.status-pending   { background: #fff8e1; color: #f57f17; }
-.status-confirmed { background: #e3f2fd; color: #1565c0; }
-.status-delivered { background: #e8f5e9; color: #2e7d32; }
-.status-cancelled { background: #fce4ec; color: #b71c1c; }
+.status-pending              { background: #fff8e1; color: #f57f17; }
+.status-pending_confirmation { background: #fff3e0; color: #e65100; }
+.status-confirmed            { background: #e3f2fd; color: #1565c0; }
+.status-delivered            { background: #e8f5e9; color: #2e7d32; }
+.status-cancelled            { background: #fce4ec; color: #b71c1c; }
 
 /* Actions */
 .detail-actions {

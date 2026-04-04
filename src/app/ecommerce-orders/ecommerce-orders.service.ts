@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type EcomOrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+export type EcomOrderStatus = 'pending' | 'pending_confirmation' | 'confirmed' | 'delivered' | 'cancelled';
 
 export interface EcomOrderItem {
   id: number;
@@ -28,7 +28,7 @@ export interface EcomOrder {
   payment_receipt_url?: string;
   status: EcomOrderStatus;
   notes?: string;
-  total: number;
+  total_amount: number;
   items: EcomOrderItem[];
   created_at: string;
   updated_at: string;

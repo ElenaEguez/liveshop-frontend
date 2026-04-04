@@ -5,7 +5,7 @@
     <div>
       <h2 class="detail-title">Pedido #{{ order.id }}</h2>
       <span class="status-badge" [ngClass]="'status-' + order.status">
-        {{ order.status | titlecase }}
+        {{ statusLabels[order.status] || order.status }}
       </span>
     </div>
     <button mat-icon-button (click)="close()" class="close-btn">
@@ -89,7 +89,7 @@
       </div>
       <div class="total-row">
         <span>Total</span>
-        <strong>Bs {{ order.total | number:'1.2-2' }}</strong>
+        <strong>Bs {{ order.total_amount | number:'1.2-2' }}</strong>
       </div>
     </section>
 
@@ -142,29 +142,37 @@
 
     <ng-container [ngSwitch]="order.status">
 
+      <!-- Pendiente de pago -->
       <ng-container *ngSwitchCase="'pending'">
-        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">
-          Cancelar
-        </button>
+        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">Cancelar</button>
         <button mat-raised-button class="btn-confirm" (click)="confirm()" [disabled]="loading">
           <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
           Confirmar pedido
         </button>
       </ng-container>
 
-      <ng-container *ngSwitchCase="'confirmed'">
-        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">
-          Cancelar
+      <!-- Comprobante enviado — requiere verificar pago -->
+      <ng-container *ngSwitchCase="'pending_confirmation'">
+        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">Cancelar</button>
+        <button mat-raised-button class="btn-confirm" (click)="confirm()" [disabled]="loading">
+          <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
+          Verificar y confirmar
         </button>
+      </ng-container>
+
+      <!-- Confirmado — solo marcar entregado -->
+      <ng-container *ngSwitchCase="'confirmed'">
+        <button mat-stroked-button color="warn" (click)="cancel()" [disabled]="loading">Cancelar</button>
         <button mat-raised-button class="btn-deliver" (click)="markDelivered()" [disabled]="loading">
           <mat-spinner *ngIf="loading" diameter="18" style="display:inline-block;margin-right:6px"></mat-spinner>
           Marcar entregado
         </button>
       </ng-container>
 
+      <!-- Estados finales -->
       <ng-container *ngSwitchDefault>
         <span class="status-final">
-          Pedido {{ order.status === 'delivered' ? 'entregado' : 'cancelado' }}
+          Pedido {{ statusLabels[order.status] || order.status }}
         </span>
       </ng-container>
 

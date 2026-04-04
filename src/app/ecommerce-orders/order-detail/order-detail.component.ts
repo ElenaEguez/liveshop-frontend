@@ -22,6 +22,14 @@ export class OrderDetailComponent implements OnInit {
     delivery: 'Envío a domicilio'
   };
 
+  readonly statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    pending_confirmation: 'Comprobante enviado',
+    confirmed: 'Confirmado',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
+  };
+
   readonly paymentLabels: Record<string, string> = {
     tigo_money: 'Tigo Money',
     banco_union: 'Banco Unión',
