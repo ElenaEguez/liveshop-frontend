@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProductVariant } from '../../products/products.service';
+import { environment } from '../../../environments/environment';
 
 export interface KardexMovimiento {
   id: number;
@@ -49,8 +50,8 @@ export interface InventoryFilters {
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
-  private apiUrl = 'http://localhost:8000/api/v1/products/inventories/';
-  private productsUrl = 'http://localhost:8000/api/v1/products';
+  private apiUrl = `${environment.apiUrl}/products/inventories/`;
+  private productsUrl = `${environment.apiUrl}/products`;
 
   constructor(private http: HttpClient) {}
 
@@ -88,16 +89,16 @@ export class InventoryService {
     if (filters.fecha_hasta) params = params.set('fecha_hasta', filters.fecha_hasta);
     if (filters.page)        params = params.set('page',        String(filters.page));
     if (filters.page_size)   params = params.set('page_size',   String(filters.page_size));
-    return this.http.get<PaginatedKardex>('http://localhost:8000/api/v1/inventory/kardex/', { params });
+    return this.http.get<PaginatedKardex>(`${environment.apiUrl}/inventory/kardex/`, { params });
   }
 
   getSucursales(): Observable<any[]> {
-    return this.http.get<any[]>('http://localhost:8000/api/v1/branches/');
+    return this.http.get<any[]>(`${environment.apiUrl}/branches/`);
   }
 
   getAlmacenes(sucursalId?: number): Observable<any[]> {
     let params = new HttpParams();
     if (sucursalId) params = params.set('sucursal', sucursalId.toString());
-    return this.http.get<any[]>('http://localhost:8000/api/v1/branches/almacenes/', { params });
+    return this.http.get<any[]>(`${environment.apiUrl}/branches/almacenes/`, { params });
   }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LiveSession, Reservation, LiveSessionService } from '../services/live-session.service';
 import { Product, ProductService } from '../../products/products.service';
+import { environment } from '../../../environments/environment';
 
 interface WsReservationData {
   reservation_id: number;
@@ -116,7 +117,7 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
   }
 
   connectWebSocket(): void {
-    this.ws = new WebSocket(`ws://localhost:8000/ws/session/${this.sessionId}/`);
+    this.ws = new WebSocket(`${environment.wsUrl}/session/${this.sessionId}/`);
 
     this.ws.onmessage = (event: MessageEvent) => {
       const msg = JSON.parse(event.data);

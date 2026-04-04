@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // ── Legacy vendor summary (still used by WebSocket reconnect) ───────────────
 export interface DashboardData {
@@ -82,8 +83,8 @@ export interface SalesDashboardParams {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private vendorDashboardUrl = 'http://localhost:8000/api/v1/vendors/dashboard';
-  private salesDashboardUrl  = 'http://localhost:8000/api/v1/orders/dashboard/';
+  private vendorDashboardUrl = `${environment.apiUrl}/vendors/dashboard`;
+  private salesDashboardUrl  = `${environment.apiUrl}/orders/dashboard/`;
 
   constructor(private http: HttpClient) {}
 
@@ -96,7 +97,7 @@ export class DashboardService {
       .set('period', period)
       .set('page', String(page))
       .set('page_size', String(pageSize));
-    return this.http.get<MovimientosCajaResponse>('http://localhost:8000/api/v1/pos/movimientos/', { params });
+    return this.http.get<MovimientosCajaResponse>(`${environment.apiUrl}/pos/movimientos/`, { params });
   }
 
   getSalesDashboard(params: SalesDashboardParams = {}): Observable<SalesDashboardData> {

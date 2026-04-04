@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type SessionStatus = 'scheduled' | 'live' | 'ended';
 export type SessionPlatform = 'tiktok' | 'facebook' | 'instagram';
@@ -43,8 +44,8 @@ export interface Reservation {
   providedIn: 'root'
 })
 export class LiveSessionService {
-  private sessionsUrl = 'http://localhost:8000/api/v1/livestreams/live-sessions';
-  private reservationsUrl = 'http://localhost:8000/api/v1/orders/reservations';
+  private sessionsUrl = `${environment.apiUrl}/livestreams/live-sessions`;
+  private reservationsUrl = `${environment.apiUrl}/orders/reservations`;
 
   constructor(private http: HttpClient) {}
 

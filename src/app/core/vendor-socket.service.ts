@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface VendorEvent {
   type: 'payment_submitted' | 'payment_confirmed' | 'payment_rejected' | 'new_order';
@@ -28,7 +29,7 @@ export class VendorSocketService implements OnDestroy {
     if (this.ws && this.currentVendorId === vendorId) return;
     this.disconnect();
     this.currentVendorId = vendorId;
-    this.ws = new WebSocket(`ws://localhost:8000/ws/vendor/${vendorId}/`);
+    this.ws = new WebSocket(`${environment.wsUrl}/vendor/${vendorId}/`);
 
     this.ws.onopen  = () => this.connected$.next(true);
     this.ws.onclose = () => this.connected$.next(false);

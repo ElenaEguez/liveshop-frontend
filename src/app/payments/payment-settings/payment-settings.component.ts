@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-payment-settings',
@@ -16,7 +17,7 @@ export class PaymentSettingsComponent implements OnInit {
   currentQrUrl: string | null = null;
   qrPreview: string | null = null;
 
-  private profileUrl = 'http://localhost:8000/api/v1/vendors/profile/';
+  private profileUrl = `${environment.apiUrl}/vendors/profile/`;
 
   constructor(
     private fb: FormBuilder,

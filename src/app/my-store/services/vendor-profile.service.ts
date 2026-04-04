@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface VendorProfile {
   id: number;
@@ -22,8 +23,8 @@ export interface VendorProfile {
 
 @Injectable({ providedIn: 'root' })
 export class VendorProfileService {
-  private apiUrl = 'http://localhost:8000/api/v1/vendors/profile/';
-  readonly mediaBase = 'http://localhost:8000';
+  private apiUrl = `${environment.apiUrl}/vendors/profile/`;
+  readonly mediaBase = environment.apiUrl.replace('/api/v1', '');
 
   constructor(private http: HttpClient) {}
 

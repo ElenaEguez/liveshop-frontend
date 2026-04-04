@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type PaymentStatus = 'pending' | 'submitted' | 'confirmed' | 'rejected';
 export type PaymentMethod = 'tigo_money' | 'banco_union' | 'qr' | 'cash' | 'other';
@@ -27,8 +28,8 @@ export interface Payment {
   providedIn: 'root'
 })
 export class PaymentService {
-  private apiUrl = 'http://localhost:8000/api/v1/payments/payments';
-  readonly mediaBase = 'http://localhost:8000';
+  private apiUrl = `${environment.apiUrl}/payments/payments`;
+  readonly mediaBase = environment.apiUrl.replace('/api/v1', '');
 
   constructor(private http: HttpClient) {}
 
