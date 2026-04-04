@@ -44,12 +44,25 @@
 
     <!-- Búsqueda de producto -->
     <div class="search-section">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field"
+        [class.scanner-focused]="scannerFocused">
         <mat-label>Buscar producto (nombre o código de barras)</mat-label>
-        <input matInput [formControl]="searchCtrl" placeholder="Escribe o escanea...">
-        <mat-icon matSuffix>qr_code_scanner</mat-icon>
+        <input matInput #searchInput [formControl]="searchCtrl"
+               placeholder="Escribe o escanea..."
+               (keydown.enter)="onSearchEnter()"
+               (focus)="onSearchFocus()"
+               (blur)="onSearchBlur()"
+               autocomplete="off">
         <mat-spinner matSuffix *ngIf="searching" diameter="18"></mat-spinner>
+        <button matSuffix mat-icon-button matTooltip="Escáner de cámara / configuración"
+                (click)="openScannerConfig()">
+          <mat-icon>qr_code_scanner</mat-icon>
+        </button>
       </mat-form-field>
+      <div class="scanner-status" [class.active]="scannerFocused">
+        <mat-icon>{{ scannerFocused ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        {{ scannerStatusMessage }}
+      </div>
 
       <!-- Resultados -->
       <div class="search-results" *ngIf="searchResults.length > 0">

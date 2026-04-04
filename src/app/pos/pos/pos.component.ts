@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -7,7 +7,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 import {
   PosService, Sucursal, Caja, TurnoCaja, MetodoPago,
-  ProductoPOS, ProductVariantPOS, CartItem, VentaPOS,
+  ProductoPOS, ProductVariantPOS, CartItem, VentaPOS, ScanResult,
 } from '../pos.service';
 import { AbrirCajaDialogComponent } from '../abrir-caja-dialog/abrir-caja-dialog.component';
 import { CerrarCajaDialogComponent } from '../cerrar-caja-dialog/cerrar-caja-dialog.component';
@@ -15,13 +15,14 @@ import { MovimientoCajaDialogComponent } from '../movimiento-caja-dialog/movimie
 import { TicketPreviewDialogComponent } from '../ticket-preview/ticket-preview-dialog.component';
 import { SettingsService, TicketConfig } from '../../settings/settings.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
+import { ScannerConfigDialogComponent } from '../scanner-config-dialog/scanner-config-dialog.component';
 
 @Component({
   selector: 'app-pos',
   templateUrl: './pos.component.html',
   styleUrls: ['./pos.component.scss'],
 })
-export class PosComponent implements OnInit, OnDestroy {
+export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Estado de caja ─────────────────────────────────────────────────────────
   sucursales: Sucursal[] = [];
   cajas: Caja[] = [];
@@ -34,9 +35,14 @@ export class PosComponent implements OnInit, OnDestroy {
   selectedMetodo: MetodoPago | null = null;
 
   // ── Búsqueda ───────────────────────────────────────────────────────────────
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
   searchCtrl = new FormControl('');
   searchResults: ProductoPOS[] = [];
+  scanResult: ScanResult | null = null;
   searching = false;
+  scannerFocused = false;
+  scannerStatusMessage = '';
+  scannerStatusTimeout: any;
 
   // ── Carrito ────────────────────────────────────────────────────────────────
   carrito: CartItem[] = [];
@@ -112,27 +118,52 @@ export class PosComponent implements OnInit, OnDestroy {
       this.metodosPago = m;
     });
 
-    // Búsqueda con debounce
+    // Búsqueda solo on enter (para escáner)
+    // El debounce se mantiene por si acaso, pero no muestra resultados automáticamente
     this.searchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       takeUntil(this.destroy$),
     ).subscribe(q => {
-      if (q && q.trim().length >= 1) {
-        this.searching = true;
-        this.posService.buscarProducto(q.trim()).subscribe({
-          next: r => { this.searchResults = r; this.searching = false; },
-          error: () => { this.searching = false; },
-        });
-      } else {
-        this.searchResults = [];
-      }
+      // No hacer búsqueda automática, solo on enter
     });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.searchInput?.nativeElement.focus(), 200);
+    this.updateScannerStatus();
+  }
+
+  updateScannerStatus(): void {
+    if (this.scannerStatusTimeout) {
+      clearTimeout(this.scannerStatusTimeout);
+    }
+    if (this.scannerFocused) {
+      this.scannerStatusMessage = '✅ Listo para escanear';
+      this.scannerStatusTimeout = setTimeout(() => {
+        this.scannerStatusMessage = '';
+      }, 3000);
+    } else {
+      this.scannerStatusMessage = '⚠️ Haz clic aquí para escanear';
+    }
+  }
+
+  onSearchFocus(): void {
+    this.scannerFocused = true;
+    this.updateScannerStatus();
+  }
+
+  onSearchBlur(): void {
+    this.scannerFocused = false;
+    this.updateScannerStatus();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.scannerStatusTimeout) {
+      clearTimeout(this.scannerStatusTimeout);
+    }
   }
 
   // ── Sucursal / Caja ─────────────────────────────────────────────────────────
@@ -210,6 +241,46 @@ export class PosComponent implements OnInit, OnDestroy {
 
   // ── Carrito ─────────────────────────────────────────────────────────────────
 
+  onSearchEnter(): void {
+    const q = this.searchCtrl.value?.trim();
+    if (!q) return;
+    this.searching = true;
+    this.posService.buscarProducto(q).subscribe({
+      next: result => {
+        this.searching = false;
+        this.scanResult = result;
+        if (result.match === 'exact' && result.product) {
+          this.agregarProducto(result.product);
+        } else if (result.match === 'partial' && result.products) {
+          this.searchResults = result.products;
+        } else if (result.match === 'none') {
+          this.searchResults = [];
+          this.snack.open('Producto no encontrado', 'OK', { duration: 2000 });
+          this.searchCtrl.setValue('', { emitEvent: false });
+          setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
+        }
+      },
+      error: () => { 
+        this.searching = false;
+        this.snack.open('Error al buscar producto', 'OK', { duration: 2000 });
+      },
+    });
+  }
+
+  openScannerConfig(): void {
+    const ref = this.dialog.open(ScannerConfigDialogComponent, {
+      width: '520px',
+      panelClass: 'scanner-dialog',
+    });
+    ref.afterClosed().subscribe((barcode: string | undefined) => {
+      if (barcode) {
+        this.searchCtrl.setValue(barcode, { emitEvent: false });
+        this.onSearchEnter();
+      }
+      setTimeout(() => this.searchInput?.nativeElement.focus(), 100);
+    });
+  }
+
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
     const existing = this.carrito.find(
       c => c.product.id === product.id && c.variant?.id === (variant?.id ?? null),
@@ -231,7 +302,9 @@ export class PosComponent implements OnInit, OnDestroy {
       this.carrito = [...this.carrito, { product, variant, cantidad: 1, precio_unitario: Number(product.price) }];
     }
     this.searchResults = [];
+    this.scanResult = null;
     this.searchCtrl.setValue('', { emitEvent: false });
+    setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
   }
 
   incrementar(item: CartItem): void {

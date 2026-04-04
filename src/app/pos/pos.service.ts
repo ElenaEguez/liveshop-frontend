@@ -71,6 +71,12 @@ export interface ProductoPOS {
   imagen_thumbnail: string | null;
 }
 
+export interface ScanResult {
+  match: 'exact' | 'partial' | 'none';
+  product?: ProductoPOS;
+  products?: ProductoPOS[];
+}
+
 export interface CartItem {
   product: ProductoPOS;
   variant: ProductVariantPOS | null;
@@ -188,9 +194,9 @@ export class PosService {
 
   // ── Productos ────────────────────────────────────────────────────────────
 
-  buscarProducto(q: string): Observable<ProductoPOS[]> {
-    const params = new HttpParams().set('q', q);
-    return this.http.get<ProductoPOS[]>(`${API}/pos/buscar-producto/`, { params });
+  buscarProducto(q: string): Observable<ScanResult> {
+    const params = new HttpParams().set('code', q);
+    return this.http.get<ScanResult>(`${API}/pos/scan/`, { params });
   }
 
   // ── Ventas ───────────────────────────────────────────────────────────────

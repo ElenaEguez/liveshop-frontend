@@ -15,6 +15,7 @@ import { MatSelectModule }          from '@angular/material/select';
 import { MatSlideToggleModule }     from '@angular/material/slide-toggle';
 import { MatSnackBarModule }        from '@angular/material/snack-bar';
 import { MatTableModule }           from '@angular/material/table';
+import { MatTabsModule }            from '@angular/material/tabs';
 import { MatTooltipModule }         from '@angular/material/tooltip';
 
 import { PosRoutingModule }                    from './pos-routing.module';
@@ -26,6 +27,7 @@ import { MovimientoCajaDialogComponent }       from './movimiento-caja-dialog/mo
 import { TicketPreviewDialogComponent }        from './ticket-preview/ticket-preview-dialog.component';
 import { CobrarCreditoDialogComponent }        from './cobrar-credito-dialog/cobrar-credito-dialog.component';
 import { ArqueosListComponent }                from './arqueos-list/arqueos-list.component';
+import { ScannerConfigDialogComponent }        from './scanner-config-dialog/scanner-config-dialog.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +39,7 @@ import { ArqueosListComponent }                from './arqueos-list/arqueos-list
     TicketPreviewDialogComponent,
     CobrarCreditoDialogComponent,
     ArqueosListComponent,
+    ScannerConfigDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -56,6 +59,7 @@ import { ArqueosListComponent }                from './arqueos-list/arqueos-list
     MatSlideToggleModule,
     MatSnackBarModule,
     MatTableModule,
+    MatTabsModule,
     MatTooltipModule,
   ],
 })

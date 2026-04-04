@@ -1,0 +1,202 @@
+<div class="scanner-dialog-wrap">
+
+  <div class="scanner-dialog-header">
+    <mat-icon>qr_code_scanner</mat-icon>
+    <span>Configuración del escáner</span>
+    <button mat-icon-button class="close-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-tab-group animationDuration="150ms" (selectedIndexChange)="onTabChange($event)">
+
+    <!-- ── TAB 1: Cámara ──────────────────────────────────────────── -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">camera_alt</mat-icon> Cámara
+      </ng-template>
+
+      <div class="tab-content">
+        <p class="tab-desc">
+          Usa la cámara del dispositivo para escanear códigos QR o de barras.
+          Apunta la cámara al código y se detectará automáticamente.
+        </p>
+
+        <div class="camera-wrap" [class.active]="cameraActive">
+          <video #videoEl class="camera-video" playsinline muted></video>
+          <div class="camera-overlay" *ngIf="!cameraActive && !cameraError">
+            <mat-icon>videocam_off</mat-icon>
+            <span>Cámara inactiva</span>
+          </div>
+          <div class="scan-line" *ngIf="cameraActive"></div>
+        </div>
+
+        <div class="camera-error" *ngIf="cameraError">
+          <mat-icon>error_outline</mat-icon> {{ cameraError }}
+        </div>
+
+        <div class="camera-actions">
+          <button mat-raised-button color="primary" *ngIf="!cameraActive" (click)="startCamera()">
+            <mat-icon>play_arrow</mat-icon> Iniciar cámara
+          </button>
+          <button mat-stroked-button color="warn" *ngIf="cameraActive" (click)="stopCamera()">
+            <mat-icon>stop</mat-icon> Detener
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ── TAB 2: USB / Bluetooth ─────────────────────────────────── -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">usb</mat-icon> USB / Bluetooth
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="info-card">
+          <h4><mat-icon>info_outline</mat-icon> ¿Cómo usar un escáner físico?</h4>
+          <p>
+            Los escáneres USB y Bluetooth funcionan como teclados HID: envían el código
+            como pulsaciones de teclas y presionan <kbd>Enter</kbd> automáticamente.
+          </p>
+        </div>
+
+        <div class="steps-list">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Conecta tu escáner USB al computador</strong><br>
+              <small>O vincula el escáner Bluetooth con este dispositivo.</small>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Haz clic en el campo de búsqueda del POS</strong><br>
+              <small>El indicador verde confirma que está listo para escanear.</small>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Apunta el escáner al código de barras del producto</strong><br>
+              <small>El código se llenará automáticamente y buscará el producto.</small>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Si hay 1 resultado exacto, se agrega solo al carrito</strong><br>
+              <small>Si hay múltiples resultados, elige manualmente de la lista.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="recommended-scanners">
+          <h4>Escáneres recomendados</h4>
+          <div class="scanner-cards">
+            <div class="scanner-card">
+              <mat-icon>usb</mat-icon>
+              <div>
+                <strong>Escáner USB genérico 1D/2D</strong>
+                <p>Plug & Play, sin drivers necesarios</p>
+              </div>
+            </div>
+            <div class="scanner-card">
+              <mat-icon>bluetooth</mat-icon>
+              <div>
+                <strong>Escáner Bluetooth</strong>
+                <p>Compatible con tablets y celulares</p>
+              </div>
+            </div>
+            <div class="scanner-card">
+              <mat-icon>flash_on</mat-icon>
+              <div>
+                <strong>Pistola lectora industrial</strong>
+                <p>Alta velocidad para volumen alto</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <mat-icon>lightbulb_outline</mat-icon>
+          <span>
+            Los escáneres USB funcionan automáticamente. Los Bluetooth deben estar
+            vinculados al dispositivo antes de usar.
+          </span>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ── TAB 3: Impresora térmica ───────────────────────────────── -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">print</mat-icon> Impresora
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="info-card">
+          <h4><mat-icon>info_outline</mat-icon> Impresoras térmicas compatibles</h4>
+          <p>
+            LiveShop genera tickets de venta para impresoras térmicas USB o Bluetooth.
+            Estas son las impresoras más comunes en Bolivia con sus precios referenciales.
+          </p>
+        </div>
+
+        <div class="printer-list">
+          <div class="printer-item">
+            <mat-icon>print</mat-icon>
+            <div>
+              <strong>PT-210 (58mm, Bluetooth/USB)</strong>
+              <p>Impresora compacta para tickets pequeños</p>
+              <span class="price">Bs. 680</span>
+            </div>
+          </div>
+          <div class="printer-item">
+            <mat-icon>print</mat-icon>
+            <div>
+              <strong>MTP-3 (80mm, Bluetooth/USB)</strong>
+              <p>Ideal para tickets estándar de POS</p>
+              <span class="price">Bs. 950</span>
+            </div>
+          </div>
+          <div class="printer-item">
+            <mat-icon>print</mat-icon>
+            <div>
+              <strong>MTP-4 (80mm, Bluetooth/USB)</strong>
+              <p>Alta velocidad, corte automático</p>
+              <span class="price">Bs. 930</span>
+            </div>
+          </div>
+          <div class="printer-item">
+            <mat-icon>print</mat-icon>
+            <div>
+              <strong>RPP04 (110mm, Bluetooth/USB)</strong>
+              <p>Para tickets anchos con logo</p>
+              <span class="price">Bs. 1950</span>
+            </div>
+          </div>
+          <div class="printer-item">
+            <mat-icon>print</mat-icon>
+            <div>
+              <strong>RP328 Estacionaria (80mm, USB/Ethernet)</strong>
+              <p>Para uso continuo en mostrador</p>
+              <span class="price">Bs. 1750</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <mat-icon>settings</mat-icon>
+          <span>
+            Para configurar la impresión de tickets, ve a <strong>Configuración → Impresora</strong>.
+            Asegúrate de seleccionar la impresora correcta en el navegador.
+          </span>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

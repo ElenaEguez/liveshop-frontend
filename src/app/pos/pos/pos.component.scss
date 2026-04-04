@@ -68,6 +68,30 @@
 
   .search-field { width: 100%; margin: 0; }
 
+  .search-field.scanner-focused ::ng-deep .mat-form-field-outline {
+    color: #2e7d32 !important;
+  }
+  .search-field.scanner-focused ::ng-deep .mat-form-field-outline-thick {
+    color: #2e7d32 !important;
+  }
+
+  .scanner-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: #aaa;
+    margin: 2px 0 6px 4px;
+    transition: color 0.2s;
+
+    mat-icon { font-size: 14px; height: 14px; width: 14px; }
+
+    &.active {
+      color: #2e7d32;
+      font-weight: 500;
+    }
+  }
+
   .search-results {
     max-height: 260px;
     overflow-y: auto;
