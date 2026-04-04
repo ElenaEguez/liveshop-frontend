@@ -45,6 +45,8 @@ export interface SalesDashboardData {
   total_revenue: string;
   pos_total_orders: number;
   pos_total_revenue: string;
+  web_total_orders: number;
+  web_total_revenue: string;
   total_cost: string | null;
   gross_margin: string | null;
   total_gastos_operativos: string | null;

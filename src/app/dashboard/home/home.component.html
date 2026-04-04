@@ -116,18 +116,32 @@
         <p class="stat-footer">Bs.&nbsp;{{ (salesData.pos_total_revenue || '0') | number:'1.2-2' }}</p>
       </div>
 
+      <!-- Ventas Web (ecommerce) -->
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Ventas Web</p>
+            <h2 class="stat-value">{{ salesData.web_total_orders || 0 }}</h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#f0f4ff;">
+            <mat-icon style="color:#4f46e5;">shopping_bag</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">Bs.&nbsp;{{ (salesData.web_total_revenue || '0') | number:'1.2-2' }}</p>
+      </div>
+
       <!-- Ingresos totales combinados -->
       <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Ingresos totales</p>
-            <h2 class="stat-value">Bs.&nbsp;{{ (+salesData.total_revenue + +(salesData.pos_total_revenue || 0)) | number:'1.2-2' }}</h2>
+            <h2 class="stat-value">Bs.&nbsp;{{ (+salesData.total_revenue + +(salesData.pos_total_revenue || 0) + +(salesData.web_total_revenue || 0)) | number:'1.2-2' }}</h2>
           </div>
           <div class="stat-icon-bg" style="background:#fefce8;">
             <mat-icon style="color:#ca8a04;">payments</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Live + Tienda física</p>
+        <p class="stat-footer">Live + Tienda física + Web</p>
       </div>
 
       <div class="stat-card" *ngIf="salesData.gross_margin !== null">

@@ -86,6 +86,12 @@ export class OrderDetailComponent implements OnInit {
     });
   }
 
+  openReceipt(): void {
+    if (this.order.payment_receipt_url) {
+      window.open(this.order.payment_receipt_url, '_blank');
+    }
+  }
+
   close(): void {
     this.dialogRef.close(false);
   }

@@ -94,15 +94,31 @@
     </section>
 
     <!-- Receipt -->
-    <section class="detail-section" *ngIf="order.payment_receipt_url">
+    <section class="detail-section">
       <h3 class="section-title">
-        <mat-icon>receipt</mat-icon> Comprobante de pago
+        <mat-icon>receipt_long</mat-icon> Comprobante de pago
       </h3>
-      <a [href]="order.payment_receipt_url" target="_blank" class="receipt-link">
-        <img [src]="order.payment_receipt_url" alt="Comprobante" class="receipt-img"
-             onerror="this.style.display='none'">
-        <span>Ver comprobante completo</span>
-      </a>
+
+      <ng-container *ngIf="order.payment_receipt_url; else noReceipt">
+        <div class="receipt-link">
+          <img [src]="order.payment_receipt_url"
+               alt="Comprobante de pago"
+               class="receipt-img"
+               (click)="openReceipt()"
+               onerror="this.style.display='none'">
+          <a [href]="order.payment_receipt_url" target="_blank" class="receipt-open-link">
+            <mat-icon>open_in_new</mat-icon>
+            Abrir imagen completa
+          </a>
+        </div>
+      </ng-container>
+
+      <ng-template #noReceipt>
+        <div class="receipt-empty">
+          <mat-icon>image_not_supported</mat-icon>
+          El cliente no adjuntó comprobante.
+        </div>
+      </ng-template>
     </section>
 
     <!-- Internal note -->

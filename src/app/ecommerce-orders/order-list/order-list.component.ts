@@ -113,9 +113,10 @@ export class OrderListComponent implements OnInit {
     this.service.getOrder(order.id).subscribe({
       next: (freshOrder) => {
         const ref = this.dialog.open(OrderDetailComponent, {
-          width: '760px',
+          width: '860px',
           maxWidth: '98vw',
-          maxHeight: '90vh',
+          height: 'auto',
+          maxHeight: '95vh',
           data: { order: freshOrder },
           panelClass: 'detail-panel'
         });
