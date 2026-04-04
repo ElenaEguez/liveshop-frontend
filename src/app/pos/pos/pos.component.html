@@ -54,7 +54,7 @@
                (blur)="onSearchBlur()"
                autocomplete="off">
         <mat-spinner matSuffix *ngIf="searching" diameter="18"></mat-spinner>
-        <button matSuffix mat-icon-button matTooltip="Escáner de cámara / configuración"
+        <button type="button" matSuffix mat-icon-button matTooltip="Escáner de cámara / configuración"
                 (click)="openScannerConfig()">
           <mat-icon>qr_code_scanner</mat-icon>
         </button>

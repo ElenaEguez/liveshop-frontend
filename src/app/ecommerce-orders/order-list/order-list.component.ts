@@ -50,6 +50,14 @@ export class OrderListComponent implements OnInit {
     delivery: 'Domicilio'
   };
 
+  readonly statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    pending_confirmation: 'Comprobante enviado',
+    confirmed: 'Confirmado',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
+  };
+
   constructor(
     private service: EcommerceOrdersService,
     private dialog: MatDialog
@@ -57,6 +65,25 @@ export class OrderListComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  normalizeStatus(value: string): string {
+    return (value || '').toString().trim().toLowerCase();
+  }
+
+  getStatusLabel(status: string): string {
+    const normalized = this.normalizeStatus(status);
+    return this.statusLabels[normalized] || normalized;
+  }
+
+  isPendingState(status: string): boolean {
+    const normalized = this.normalizeStatus(status);
+    return normalized === 'pending' || normalized === 'pending_confirmation';
+  }
+
+  isCancelableState(status: string): boolean {
+    const normalized = this.normalizeStatus(status);
+    return normalized === 'pending' || normalized === 'pending_confirmation' || normalized === 'confirmed';
   }
 
   load(): void {

@@ -4,8 +4,8 @@
   <div class="detail-header">
     <div>
       <h2 class="detail-title">Pedido #{{ order.id }}</h2>
-      <span class="status-badge" [ngClass]="'status-' + order.status">
-        {{ statusLabels[order.status] || order.status }}
+      <span class="status-badge" [ngClass]="'status-' + normalizeStatus(order.status)">
+        {{ statusLabels[normalizeStatus(order.status)] || normalizeStatus(order.status) }}
       </span>
     </div>
     <button mat-icon-button (click)="close()" class="close-btn">
@@ -140,7 +140,7 @@
 
     <span class="actions-spacer"></span>
 
-    <ng-container [ngSwitch]="order.status">
+    <ng-container [ngSwitch]="normalizeStatus(order.status)">
 
       <!-- Pendiente de pago -->
       <ng-container *ngSwitchCase="'pending'">

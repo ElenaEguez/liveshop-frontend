@@ -44,7 +44,21 @@ export class OrderDetailComponent implements OnInit {
     this.order = data.order;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.order?.status) {
+      this.order.status = this.normalizeStatus(this.order.status);
+    }
+    if (this.order?.delivery_method) {
+      this.order.delivery_method = this.normalizeStatus(this.order.delivery_method) as 'pickup' | 'delivery';
+    }
+    if (this.order?.payment_method) {
+      this.order.payment_method = this.normalizeStatus(this.order.payment_method) as 'tigo_money' | 'banco_union' | 'efectivo';
+    }
+  }
+
+  normalizeStatus(value: string): string {
+    return (value || '').toString().trim().toLowerCase();
+  }
 
   confirm(): void {
     this.loading = true;
