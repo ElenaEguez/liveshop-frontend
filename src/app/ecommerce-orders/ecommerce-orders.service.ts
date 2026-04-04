@@ -25,6 +25,7 @@ export interface EcomOrder {
   delivery_method: 'pickup' | 'delivery';
   payment_method: 'tigo_money' | 'banco_union' | 'efectivo';
   payment_receipt?: string;
+  payment_receipt_url?: string;
   status: EcomOrderStatus;
   notes?: string;
   total: number;
@@ -49,7 +50,7 @@ export interface EcomOrderFilters {
 
 @Injectable({ providedIn: 'root' })
 export class EcommerceOrdersService {
-  private apiUrl = 'http://localhost:8000/api/website-builder/orders';
+  private apiUrl = '/api/website-builder/orders';
 
   constructor(private http: HttpClient) {}
 
