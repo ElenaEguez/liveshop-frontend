@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { EcomOrder, EcommerceOrdersService } from '../ecommerce-orders.service';
+import { EcomOrder, EcommerceOrdersService, EcomOrderStatus } from '../ecommerce-orders.service';
 
 export interface OrderDetailData {
   order: EcomOrder;
