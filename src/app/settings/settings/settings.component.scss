@@ -52,6 +52,20 @@
   .tp-footer { text-align: center; font-size: 11px; color: #666; margin-top: 6px; }
 }
 
+// ── Logo preview (ticket tab)
+.logo-preview-row {
+  background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 14px;
+}
+.logo-current {
+  display: flex; align-items: center; gap: 12px;
+  .logo-label { font-size: 13px; color: #666; }
+  .logo-thumb { height: 48px; max-width: 140px; object-fit: contain; border-radius: 4px; border: 1px solid #ddd; }
+}
+.logo-missing {
+  display: flex; align-items: center; gap: 8px; font-size: 13px; color: #666;
+  mat-icon { font-size: 20px; }
+}
+
 // ── Sucursales tab
 .add-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px;
   mat-form-field { flex: 1; max-width: 320px; margin: 0; }

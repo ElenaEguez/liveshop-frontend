@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export type SessionStatus = 'scheduled' | 'live' | 'ended';
@@ -29,15 +30,15 @@ export interface Reservation {
   id: number;
   session: number;
   product: number;
+  product_name?: string;
   customer_name: string;
   customer_phone: string;
   quantity: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'paid';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'paid' | 'shipped' | 'recibido' | 'delivered';
   notes?: string;
+  variant_detail?: string;
   total_price: number;
   created_at: string;
-  // Campos enriquecidos del WebSocket
-  product_name?: string;
 }
 
 @Injectable({
@@ -74,7 +75,11 @@ export class LiveSessionService {
   }
 
   getSessionReservations(sessionId: number): Observable<Reservation[]> {
-    const params = new HttpParams().set('session', sessionId.toString());
-    return this.http.get<Reservation[]>(`${this.reservationsUrl}/`, { params });
+    const params = new HttpParams()
+      .set('session', sessionId.toString())
+      .set('page_size', '200');
+    return this.http.get<any>(`${this.reservationsUrl}/`, { params }).pipe(
+      map(res => Array.isArray(res) ? res : (res.results ?? []))
+    );
   }
 }

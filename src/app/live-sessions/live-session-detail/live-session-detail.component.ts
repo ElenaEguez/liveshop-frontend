@@ -206,12 +206,41 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
 
   getReservationStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      pending: 'Pendiente',
+      pending:   'Pendiente',
       confirmed: 'Confirmada',
+      shipped:   'Enviada',
+      recibido:  'Recibido',
+      delivered: 'Entregado',
       cancelled: 'Cancelada',
-      paid: 'Pagada'
+      paid:      'Pagada',
     };
     return map[status] ?? status;
+  }
+
+  getReservationStatusColor(status: string): string {
+    const map: Record<string, string> = {
+      pending:   '#fef9c3',
+      confirmed: '#dcfce7',
+      shipped:   '#dbeafe',
+      recibido:  '#e0e7ff',
+      delivered: '#d1fae5',
+      cancelled: '#fee2e2',
+      paid:      '#dcfce7',
+    };
+    return map[status] ?? '#f3f4f6';
+  }
+
+  getReservationStatusText(status: string): string {
+    const map: Record<string, string> = {
+      pending:   '#854d0e',
+      confirmed: '#166534',
+      shipped:   '#1e40af',
+      recibido:  '#3730a3',
+      delivered: '#065f46',
+      cancelled: '#991b1b',
+      paid:      '#166534',
+    };
+    return map[status] ?? '#374151';
   }
 
   private disconnectWebSocket(): void {

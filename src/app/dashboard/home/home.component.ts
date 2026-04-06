@@ -259,7 +259,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.socketSub = this.vendorSocket.events
       .pipe(
         filter(e =>
-          ['payment_submitted', 'payment_confirmed', 'payment_rejected', 'new_order'].includes(e.type)
+          [
+            'payment_submitted', 'payment_confirmed', 'payment_rejected',
+            'new_order', 'order_status_changed', 'venta_pos',
+          ].includes(e.type)
         ),
         debounceTime(400)
       )

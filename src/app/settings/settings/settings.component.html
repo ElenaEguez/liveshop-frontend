@@ -60,6 +60,22 @@
               <mat-slide-toggle formControlName="mostrar_qr">Mostrar QR</mat-slide-toggle>
             </div>
 
+            <!-- Logo del vendor -->
+            <div class="logo-preview-row" *ngIf="ticketForm.get('mostrar_logo')?.value">
+              <div *ngIf="vendorLogo; else noLogo" class="logo-current">
+                <span class="logo-label">Logo actual:</span>
+                <img [src]="vendorLogo" alt="Logo tienda" class="logo-thumb">
+              </div>
+              <ng-template #noLogo>
+                <div class="logo-missing">
+                  <mat-icon color="warn">image_not_supported</mat-icon>
+                  <span>Sin logo configurado. Sube el logo de tu tienda en la sección
+                    <strong>Mi Tienda → Editar perfil</strong>.
+                  </span>
+                </div>
+              </ng-template>
+            </div>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nombre de empresa</mat-label>
               <input matInput formControlName="nombre_empresa">

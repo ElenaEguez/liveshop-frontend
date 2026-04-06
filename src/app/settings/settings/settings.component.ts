@@ -10,6 +10,7 @@ import { MetodoPagoDialogComponent } from '../metodo-pago-dialog/metodo-pago-dia
 import { CuponDialogComponent } from '../cupon-dialog/cupon-dialog.component';
 import { SucursalDialogComponent } from '../sucursal-dialog/sucursal-dialog.component';
 import { ExpensesService, CategoriaGasto } from '../../expenses/expenses.service';
+import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 
 @Component({
   selector: 'app-settings',
@@ -52,10 +53,14 @@ export class SettingsComponent implements OnInit {
   newCategoriaNombre = '';
   now = new Date();
 
+  // ── Vendor logo (para preview ticket) ────────────────────────────────────
+  vendorLogo: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private svc: SettingsService,
     private expensesSvc: ExpensesService,
+    private vendorProfileSvc: VendorProfileService,
     private dialog: MatDialog,
     private snack: MatSnackBar,
   ) {}
@@ -67,6 +72,10 @@ export class SettingsComponent implements OnInit {
 
   private loadAll(): void {
     this.expensesSvc.getCategorias().subscribe(c => this.categoriasGasto = c);
+    this.vendorProfileSvc.getProfile().subscribe({
+      next: p => { this.vendorLogo = p.logo ?? null; },
+      error: () => {},
+    });
     this.svc.getMetodosPago().subscribe(m => this.metodosPago = m);
     this.svc.getSucursales().subscribe(s => {
       this.sucursales = s;
@@ -270,7 +279,7 @@ export class SettingsComponent implements OnInit {
     if (!nombre) return;
     this.expensesSvc.createCategoria(nombre).subscribe({
       next: cat => {
-        this.categoriasGasto.push(cat);
+        this.categoriasGasto = [...this.categoriasGasto, cat];
         this.newCategoriaNombre = '';
         this.snack.open('Categoría agregada.', 'OK', { duration: 2000 });
       },

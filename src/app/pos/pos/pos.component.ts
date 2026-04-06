@@ -251,9 +251,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         this.scanResult = result;
         if (result.match === 'exact' && result.product) {
           this.agregarProducto(result.product);
-        } else if (result.match === 'partial' && result.products) {
+        } else if (result.match === 'partial' && result.products?.length) {
           this.searchResults = result.products;
-        } else if (result.match === 'none') {
+        } else {
+          // 'none' o 'partial' con 0 resultados
           this.searchResults = [];
           this.snack.open('Producto no encontrado', 'OK', { duration: 2000 });
           this.searchCtrl.setValue('', { emitEvent: false });
