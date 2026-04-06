@@ -92,8 +92,9 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
 
   loadReservations(): void {
     this.liveSessionService.getSessionReservations(this.sessionId).subscribe(
-      reservations => {
-        this.reservations = reservations;
+      (res: any) => {
+        // El endpoint puede devolver array directo o {count, results:[]}
+        this.reservations = Array.isArray(res) ? res : (res?.results ?? []);
         this.recalculateAvailableStock();
       },
       (error: any) => console.error('Error loading reservations:', error)
