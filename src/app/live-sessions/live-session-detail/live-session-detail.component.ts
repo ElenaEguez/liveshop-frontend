@@ -104,8 +104,9 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
 
   recalculateAvailableStock(): void {
     this.productAvailableStock.clear();
+    const reservations = Array.isArray(this.reservations) ? this.reservations : [];
     for (const product of this.products) {
-      const reserved = this.reservations
+      const reserved = reservations
         .filter(r => r.product === product.id && this.ACTIVE_RESERVATION_STATUSES.has(r.status))
         .reduce((sum, r) => sum + r.quantity, 0);
       this.productAvailableStock.set(product.id!, Math.max(0, (product.stock ?? 0) - reserved));
