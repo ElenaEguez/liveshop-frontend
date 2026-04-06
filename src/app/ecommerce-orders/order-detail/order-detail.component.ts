@@ -46,7 +46,7 @@ export class OrderDetailComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.order?.status) {
-      this.order.status = this.normalizeStatus(this.order.status);
+      this.order.status = this.normalizeStatus(this.order.status) as EcomOrderStatus;
     }
     if (this.order?.delivery_method) {
       this.order.delivery_method = this.normalizeStatus(this.order.delivery_method) as 'pickup' | 'delivery';
