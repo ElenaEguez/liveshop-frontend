@@ -59,6 +59,13 @@
       <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">content_copy</mat-icon>
       {{ copied ? '¡Copiado!' : 'Copiar' }}
     </button>
+    <button mat-stroked-button color="accent"
+            [routerLink]="['/orders']"
+            [queryParams]="{ session: sessionId }"
+            style="flex-shrink:0; font-size:0.8rem;">
+      <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">receipt_long</mat-icon>
+      Ver pedidos de este live
+    </button>
   </div>
 
   <!-- Spinner -->

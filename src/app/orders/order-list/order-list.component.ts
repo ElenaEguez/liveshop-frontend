@@ -26,8 +26,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   // ── Data ──────────────────────────────────────────────────────────────────
   orders: Order[] = [];
-  loading = false;
-
+  loading = false;  sessionId?: number;
+  sessionTitle = '';
   // ── Pagination ────────────────────────────────────────────────────────────
   totalCount = 0;
   pageSize   = 20;
@@ -87,6 +87,14 @@ export class OrderListComponent implements OnInit, OnDestroy {
       this.selectedStatus  = 'paid';
     }
 
+    const querySession = this.route.snapshot.queryParamMap.get('session');
+    if (querySession) {
+      const sessionNumber = Number(querySession);
+      if (!Number.isNaN(sessionNumber) && sessionNumber > 0) {
+        this.sessionId = sessionNumber;
+      }
+    }
+
     this.loadOrders();
     this.loadPendingCount();
     this.connectSocket();
@@ -114,12 +122,16 @@ export class OrderListComponent implements OnInit, OnDestroy {
     this.orderService.getOrders({
       status:    this.selectedStatus  || undefined,
       search:    this.searchControl.value || undefined,
+      session:   this.sessionId,
       page:      this.currentPage + 1,   // API is 1-indexed
       page_size: this.pageSize
     }).subscribe({
       next: res => {
         this.orders     = res.results;
         this.totalCount = res.count;
+        if (this.sessionId && !this.sessionTitle && this.orders.length > 0) {
+          this.sessionTitle = this.orders[0].session_title || '';
+        }
         this.loading    = false;
       },
       error: () => { this.loading = false; }

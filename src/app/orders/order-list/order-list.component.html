@@ -20,11 +20,10 @@
       <input matInput [formControl]="searchControl" placeholder="Nombre del cliente...">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════════
-       TABS
-  ══════════════════════════════════════════════════════════════════ -->
+      <div *ngIf="sessionId" class="session-filter">
+        <strong>Live:</strong>
+        <span>{{ sessionTitle || ('ID ' + sessionId) }}</span>
+      </div>
   <mat-tab-group
     [selectedIndex]="activeTabIndex"
     (selectedIndexChange)="onTabChange($event)"

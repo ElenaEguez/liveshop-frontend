@@ -39,6 +39,7 @@ export interface PaginatedResponse<T> {
 export interface OrderFilters {
   status?: OrderStatus | '';
   search?: string;
+  session?: number;
   page?: number;
   page_size?: number;
 }
@@ -53,6 +54,7 @@ export class OrderService {
     let params = new HttpParams();
     if (filters?.status)    params = params.set('status',    filters.status);
     if (filters?.search)    params = params.set('search',    filters.search);
+    if (filters?.session)   params = params.set('session',   String(filters.session));
     if (filters?.page)      params = params.set('page',      String(filters.page));
     if (filters?.page_size) params = params.set('page_size', String(filters.page_size));
     return this.http.get<PaginatedResponse<Order>>(`${this.apiUrl}/`, { params });
