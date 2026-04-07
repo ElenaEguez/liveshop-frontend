@@ -242,7 +242,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Carrito ─────────────────────────────────────────────────────────────────
 
   onSearchEnter(): void {
-    const q = this.searchCtrl.value?.trim();
+    // keyup.enter garantiza que el FormControl ya tiene el valor del scanner.
+    // El fallback al nativeElement cubre edge cases de sincronización.
+    const q = (this.searchCtrl.value?.trim() || this.searchInput?.nativeElement.value?.trim());
     if (!q) return;
     this.searching = true;
     this.posService.buscarProducto(q).subscribe({

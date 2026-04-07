@@ -49,7 +49,7 @@
         <mat-label>Buscar producto (nombre o código de barras)</mat-label>
         <input matInput #searchInput [formControl]="searchCtrl"
                placeholder="Escribe o escanea..."
-               (keydown.enter)="onSearchEnter()"
+               (keyup.enter)="onSearchEnter()"
                (focus)="onSearchFocus()"
                (blur)="onSearchBlur()"
                autocomplete="off">
