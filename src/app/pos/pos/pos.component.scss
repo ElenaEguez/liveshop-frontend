@@ -148,6 +148,7 @@
 .cart-table {
   flex: 1;
   min-height: 0;
+  max-height: 260px;
   overflow-y: auto;
 
   .cart-prod-name { font-size: 14px; font-weight: 500; }
@@ -173,17 +174,17 @@
 }
 
 .cart-footer {
-  padding: 10px 14px;
+  padding: 6px 12px;
   border-top: 1px solid #eee;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 
   .footer-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .discount-input-wrap {
@@ -191,31 +192,34 @@
     align-items: center;
     gap: 4px;
     .discount-input {
-      width: 80px;
+      width: 70px;
       border: 1px solid #ddd;
       border-radius: 4px;
-      padding: 3px 6px;
+      padding: 2px 5px;
       text-align: right;
+      font-size: 13px;
     }
   }
 
   .cupon-applied {
     display: flex;
     align-items: center;
-    .remove-cupon { width: 24px; height: 24px; line-height: 24px; mat-icon { font-size: 16px; } }
+    .remove-cupon { width: 22px; height: 22px; line-height: 22px; mat-icon { font-size: 14px; } }
   }
 
   .total-row {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
-    .total-amount { color: #1565c0; font-size: 20px; }
+    .total-amount { color: #1565c0; font-size: 17px; }
   }
 
   .cupon-section {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     .cupon-field { flex: 1; margin: 0; }
+    ::ng-deep .mat-form-field-wrapper { padding-bottom: 0; }
+    ::ng-deep .mat-form-field-infix { padding: 4px 0; }
   }
 }
 

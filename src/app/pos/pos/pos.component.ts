@@ -102,7 +102,13 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Carga QR de la tienda
     this.vendorProfileService.getProfile().subscribe({
-      next: p => { this.vendorQrImage = p.payment_qr_image ?? null; },
+      next: p => {
+        if (!p.payment_qr_image) { this.vendorQrImage = null; return; }
+        // La API puede devolver URL relativa (/media/...) o absoluta
+        this.vendorQrImage = p.payment_qr_image.startsWith('http')
+          ? p.payment_qr_image
+          : this.vendorProfileService.mediaBase + p.payment_qr_image;
+      },
       error: () => {},
     });
 
@@ -242,10 +248,15 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Carrito ─────────────────────────────────────────────────────────────────
 
   onSearchEnter(): void {
-    // keyup.enter garantiza que el FormControl ya tiene el valor del scanner.
-    // El fallback al nativeElement cubre edge cases de sincronización.
-    const q = (this.searchCtrl.value?.trim() || this.searchInput?.nativeElement.value?.trim());
-    if (!q) return;
+    const ctrlVal = this.searchCtrl.value?.trim();
+    const nativeVal = this.searchInput?.nativeElement.value?.trim();
+    console.log('[POS] onSearchEnter → ctrl="' + ctrlVal + '" native="' + nativeVal + '"');
+    const q = ctrlVal || nativeVal;
+    if (!q) {
+      console.warn('[POS] onSearchEnter: q vacío, return anticipado');
+      return;
+    }
+    console.log('[POS] buscarProducto("' + q + '")');
     this.searching = true;
     this.posService.buscarProducto(q).subscribe({
       next: result => {
@@ -286,7 +297,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
     const existing = this.carrito.find(
-      c => c.product.id === product.id && c.variant?.id === (variant?.id ?? null),
+      c => c.product.id === product.id && (c.variant?.id ?? null) === (variant?.id ?? null),
     );
     const stockDisp = product.stock_disponible;
     const cantActual = existing ? existing.cantidad : 0;
