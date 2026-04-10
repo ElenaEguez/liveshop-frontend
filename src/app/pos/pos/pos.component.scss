@@ -148,7 +148,7 @@
 .cart-table {
   flex: 1;
   min-height: 0;
-  max-height: 260px;
+  max-height: calc(100vh - 340px);
   overflow-y: auto;
 
   .cart-prod-name { font-size: 14px; font-weight: 500; }
