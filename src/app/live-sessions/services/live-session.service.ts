@@ -18,12 +18,21 @@ export interface LiveSession {
   ended_at?: string;
   stream_url?: string;
   slug?: string;
+  slot?: number;
   payment_qr_image?: string;
   payment_instructions?: string;
   is_active?: boolean;
   is_live?: boolean;
   allow_multiple_cart?: boolean;
   created_at?: string;
+}
+
+export interface LiveSessionFilters {
+  fecha?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  slot?: number | string;
+  estado?: string;
 }
 
 export interface Reservation {
@@ -50,8 +59,16 @@ export class LiveSessionService {
 
   constructor(private http: HttpClient) {}
 
-  getSessions(): Observable<LiveSession[]> {
-    return this.http.get<LiveSession[]>(`${this.sessionsUrl}/`);
+  getSessions(filters?: LiveSessionFilters): Observable<LiveSession[]> {
+    let params = new HttpParams();
+    if (filters) {
+      if (filters.fecha)        params = params.set('fecha', filters.fecha);
+      if (filters.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+      if (filters.fecha_fin)    params = params.set('fecha_fin', filters.fecha_fin);
+      if (filters.slot != null) params = params.set('slot', String(filters.slot));
+      if (filters.estado)       params = params.set('estado', filters.estado);
+    }
+    return this.http.get<LiveSession[]>(`${this.sessionsUrl}/`, { params });
   }
 
   getSession(id: number): Observable<LiveSession> {

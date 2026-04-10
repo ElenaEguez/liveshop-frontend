@@ -31,13 +31,28 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Fecha y hora programada</mat-label>
-          <input matInput type="datetime-local" formControlName="scheduled_at">
-          <mat-error *ngIf="form.get('scheduled_at')?.invalid && form.get('scheduled_at')?.touched">
-            La fecha es obligatoria
+          <mat-label>Slot / Canal</mat-label>
+          <mat-select formControlName="slot">
+            <mat-option [value]="1">Canal 1</mat-option>
+            <mat-option [value]="2">Canal 2</mat-option>
+            <mat-option [value]="3">Canal 3</mat-option>
+            <mat-option [value]="4">Canal 4</mat-option>
+            <mat-option [value]="5">Canal 5</mat-option>
+          </mat-select>
+          <mat-hint>Para transmitir en simultáneo usa canales distintos</mat-hint>
+          <mat-error *ngIf="form.get('slot')?.invalid && form.get('slot')?.touched">
+            Selecciona un canal
           </mat-error>
         </mat-form-field>
       </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha y hora programada</mat-label>
+        <input matInput type="datetime-local" formControlName="scheduled_at">
+        <mat-error *ngIf="form.get('scheduled_at')?.invalid && form.get('scheduled_at')?.touched">
+          La fecha es obligatoria
+        </mat-error>
+      </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Descripción (opcional)</mat-label>

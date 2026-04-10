@@ -40,6 +40,7 @@ export class LiveSessionFormComponent {
       title: [s?.title ?? '', Validators.required],
       platform: [s?.platform ?? '', Validators.required],
       scheduled_at: [scheduledAt, Validators.required],
+      slot: [s?.slot ?? 1, [Validators.required, Validators.min(1), Validators.max(5)]],
       description: [s?.description ?? ''],
       stream_url: [s?.stream_url ?? ''],
       payment_instructions: [s?.payment_instructions ?? ''],

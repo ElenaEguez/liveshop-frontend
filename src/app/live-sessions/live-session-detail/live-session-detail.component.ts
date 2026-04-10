@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LiveSession, Reservation, LiveSessionService } from '../services/live-session.service';
 import { Product, ProductService } from '../../products/products.service';
+import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 import { environment } from '../../../environments/environment';
 
 interface WsReservationData {
@@ -33,15 +34,29 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
   sessionId!: number;
   loading = true;
   copied = false;
+  copiedPermanent = false;
+  vendorSlug = '';
 
   get publicUrl(): string {
     return `${window.location.origin}/public/live/${this.session?.slug}`;
+  }
+
+  get permanentUrl(): string {
+    const slot = this.session?.slot ?? 1;
+    return `${window.location.origin}/tienda/${this.vendorSlug}/live-ahora/${slot}`;
   }
 
   copyUrl(): void {
     navigator.clipboard.writeText(this.publicUrl).then(() => {
       this.copied = true;
       setTimeout(() => this.copied = false, 2000);
+    });
+  }
+
+  copyPermanentUrl(): void {
+    navigator.clipboard.writeText(this.permanentUrl).then(() => {
+      this.copiedPermanent = true;
+      setTimeout(() => this.copiedPermanent = false, 2000);
     });
   }
 
@@ -54,7 +69,8 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private liveSessionService: LiveSessionService,
-    private productService: ProductService
+    private productService: ProductService,
+    private vendorProfileService: VendorProfileService
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +78,10 @@ export class LiveSessionDetailComponent implements OnInit, OnDestroy {
     this.loadSession();
     this.loadProducts();
     this.loadReservations();
+    this.vendorProfileService.getProfile().subscribe(
+      profile => this.vendorSlug = profile.slug,
+      () => {}
+    );
   }
 
   loadSession(): void {

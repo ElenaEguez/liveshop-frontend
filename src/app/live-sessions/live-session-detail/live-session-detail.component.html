@@ -68,6 +68,30 @@
     </button>
   </div>
 
+  <!-- Enlace permanente (no cambia entre sesiones) -->
+  <div *ngIf="vendorSlug"
+       style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;
+              padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <mat-icon style="color:#15803d; flex-shrink:0;">link</mat-icon>
+    <div style="flex:1; min-width:0;">
+      <p style="margin:0 0 2px; font-size:0.75rem; font-weight:600; color:#15803d; text-transform:uppercase; letter-spacing:0.05em;">
+        Enlace permanente · Canal {{ session?.slot ?? 1 }}
+      </p>
+      <p style="margin:0; font-size:0.875rem; color:#166534; word-break:break-all; font-family:monospace;">
+        {{ permanentUrl }}
+      </p>
+      <p style="margin:2px 0 0; font-size:0.75rem; color:#6b7280;">
+        Este enlace siempre redirige al live activo de este canal
+      </p>
+    </div>
+    <button mat-stroked-button
+            (click)="copyPermanentUrl()"
+            style="flex-shrink:0; font-size:0.8rem; border-color:#15803d; color:#15803d;">
+      <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">content_copy</mat-icon>
+      {{ copiedPermanent ? '¡Copiado!' : 'Copiar' }}
+    </button>
+  </div>
+
   <!-- Spinner -->
   <div *ngIf="loading" style="text-align:center; padding:48px;">
     <mat-progress-spinner mode="indeterminate" diameter="40" style="margin:auto;"></mat-progress-spinner>

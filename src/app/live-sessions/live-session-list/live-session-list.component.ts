@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { LiveSession, LiveSessionService } from '../services/live-session.service';
+import { LiveSession, LiveSessionService, LiveSessionFilters } from '../services/live-session.service';
 import { LiveSessionFormComponent } from '../live-session-form/live-session-form.component';
 
 @Component({
@@ -11,7 +11,13 @@ import { LiveSessionFormComponent } from '../live-session-form/live-session-form
 })
 export class LiveSessionListComponent implements OnInit {
   sessions: LiveSession[] = [];
-  displayedColumns = ['title', 'platform', 'scheduled_at', 'status', 'actions'];
+  displayedColumns = ['slot', 'title', 'platform', 'scheduled_at', 'status', 'actions'];
+
+  // Filtros
+  filterFechaInicio = '';
+  filterFechaFin = '';
+  filterSlot: number | '' = '';
+  filterEstado = '';
 
   constructor(
     private liveSessionService: LiveSessionService,
@@ -23,11 +29,28 @@ export class LiveSessionListComponent implements OnInit {
     this.loadSessions();
   }
 
-  loadSessions(): void {
-    this.liveSessionService.getSessions().subscribe(
+  loadSessions(filters?: LiveSessionFilters): void {
+    this.liveSessionService.getSessions(filters).subscribe(
       sessions => this.sessions = sessions,
       error => console.error('Error loading sessions:', error)
     );
+  }
+
+  applyFilters(): void {
+    const filters: LiveSessionFilters = {};
+    if (this.filterFechaInicio) filters.fecha_inicio = this.filterFechaInicio;
+    if (this.filterFechaFin)    filters.fecha_fin    = this.filterFechaFin;
+    if (this.filterSlot !== '') filters.slot         = this.filterSlot;
+    if (this.filterEstado)      filters.estado       = this.filterEstado;
+    this.loadSessions(filters);
+  }
+
+  clearFilters(): void {
+    this.filterFechaInicio = '';
+    this.filterFechaFin    = '';
+    this.filterSlot        = '';
+    this.filterEstado      = '';
+    this.loadSessions();
   }
 
   openNewSessionForm(): void {
