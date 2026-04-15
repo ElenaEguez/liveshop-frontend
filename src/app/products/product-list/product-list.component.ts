@@ -64,7 +64,8 @@ loadProducts(): void {
   openProductForm(product?: Product): void {
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: '700px',
-      data: { product }
+      data: { product },
+      disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -77,7 +78,8 @@ loadProducts(): void {
   viewProduct(product: Product): void {
     this.dialog.open(ProductFormComponent, {
       width: '700px',
-      data: { product, viewOnly: true }
+      data: { product, viewOnly: true },
+      disableClose: false,
     });
   }
 

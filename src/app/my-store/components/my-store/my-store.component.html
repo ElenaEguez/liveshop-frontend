@@ -72,6 +72,59 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Logo de la tienda -->
+    <mat-card style="margin-bottom:24px; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+      <mat-card-header>
+        <mat-card-title style="font-size:1rem; font-weight:600; color:#111827;">
+          Logo de la tienda
+        </mat-card-title>
+        <mat-card-subtitle style="color:#6b7280; font-size:0.8rem;">
+          Tu logo aparecerá en el live, la tienda web y los tickets de venta.
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content style="padding:16px;">
+
+        <!-- Preview del logo actual o nuevo -->
+        <div *ngIf="currentLogoUrl"
+             style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+          <img [src]="currentLogoUrl"
+               alt="Logo de la tienda"
+               style="width:96px; height:96px; border-radius:12px;
+                      border:2px solid #e5e7eb; object-fit:contain; background:#f9fafb;">
+          <div>
+            <p style="margin:0 0 4px; font-size:0.875rem; font-weight:500; color:#111827;">
+              Logo actual
+            </p>
+            <p *ngIf="logoPreviewUrl"
+               style="margin:0; font-size:0.75rem; color:#f59e0b;">
+              Vista previa — guarda para confirmar
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="!currentLogoUrl"
+             style="display:flex; align-items:center; justify-content:center;
+                    padding:32px; background:#f9fafb; border-radius:8px;
+                    margin-bottom:16px;">
+          <div style="text-align:center;">
+            <mat-icon style="font-size:48px; width:48px; height:48px; color:#9ca3af;">store</mat-icon>
+            <p style="margin:8px 0 0; color:#9ca3af; font-size:0.875rem;">Sin logo cargado aún</p>
+          </div>
+        </div>
+
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+                      background:#f3f4f6; padding:8px 16px; border-radius:8px;
+                      border:1px dashed #d1d5db; font-size:0.875rem; color:#374151;">
+          <mat-icon style="font-size:18px; width:18px; height:18px;">upload</mat-icon>
+          {{ currentLogoUrl ? 'Cambiar logo' : 'Subir logo' }}
+          <input type="file" accept="image/*" (change)="onLogoFileChange($event)"
+                 style="display:none;">
+        </label>
+
+      </mat-card-content>
+    </mat-card>
+
     <!-- QR de pago -->
     <mat-card style="margin-bottom:24px; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
       <mat-card-header>

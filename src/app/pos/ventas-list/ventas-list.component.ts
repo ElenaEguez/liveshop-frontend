@@ -96,12 +96,16 @@ export class VentasListComponent implements OnInit {
     const ref = this.dialog.open(CobrarCreditoDialogComponent, {
       width: '500px',
       data: { venta, moneda: 'Bs.' },
+      disableClose: true,
     });
     ref.afterClosed().subscribe(result => {
       if (result?.ventaActualizada) {
-        // Refresh the row in place
         const idx = this.ventas.findIndex(v => v.id === venta.id);
-        if (idx >= 0) this.ventas[idx] = result.ventaActualizada;
+        if (idx >= 0) {
+          this.ventas[idx] = result.ventaActualizada;
+          // Crear nuevo array para que Angular detecte el cambio en la tabla
+          this.ventas = [...this.ventas];
+        }
       }
     });
   }

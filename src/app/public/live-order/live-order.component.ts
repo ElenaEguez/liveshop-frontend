@@ -75,6 +75,17 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   carouselIndex = 0;
   private carouselTimer?: any;
 
+  // ── Payment methods ───────────────────────────────────────────────────────
+  paymentMethods = [
+    { value: 'qr',           label: 'Pago QR' },
+    { value: 'transferencia', label: 'Transferencia bancaria' }
+  ];
+
+  bolivianDepartments = [
+    'Beni', 'Chuquisaca', 'Cochabamba', 'La Paz', 'Oruro',
+    'Pando', 'Potosí', 'Santa Cruz', 'Tarija'
+  ];
+
   // ── Cupón ─────────────────────────────────────────────────────────────────
   cuponCodigo = '';
   cuponChecking = false;
@@ -128,14 +139,22 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar
   ) {
     this.orderForm = this.fb.group({
-      customer_name:  ['', [Validators.required, Validators.minLength(2)]],
-      customer_phone: ['', [Validators.required, Validators.minLength(7)]],
+      customer_name:       ['', [Validators.required, Validators.minLength(2)]],
+      customer_phone:      ['', [Validators.required, Validators.minLength(7)]],
+      customer_city:       ['', Validators.required],
+      shipping_department: ['', Validators.required],
+      shipping_description:[''],
+      payment_method:      ['qr', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
       notes: ['']
     });
     this.cartCustomerForm = this.fb.group({
-      customer_name:  ['', [Validators.required, Validators.minLength(2)]],
-      customer_phone: ['', [Validators.required, Validators.minLength(7)]],
+      customer_name:       ['', [Validators.required, Validators.minLength(2)]],
+      customer_phone:      ['', [Validators.required, Validators.minLength(7)]],
+      customer_city:       ['', Validators.required],
+      shipping_department: ['', Validators.required],
+      shipping_description:[''],
+      payment_method:      ['qr', Validators.required],
       notes: ['']
     });
   }
@@ -271,14 +290,17 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
 
     const body: any = {
-      customer_name:  this.orderForm.get('customer_name')?.value,
-      customer_phone: this.orderForm.get('customer_phone')?.value,
-      quantity:       this.orderForm.get('quantity')?.value,
-      notes:          this.orderForm.get('notes')?.value,
-      product:        this.selectedProduct.id,
-      variant_detail: this.variantDetail,
-      variant_id:     this.selectedVariant?.id || null,
-      cupon_codigo:   this.cuponValido === true ? this.cuponCodigo.trim() : '',
+      customer_name:        this.orderForm.get('customer_name')?.value,
+      customer_phone:       this.orderForm.get('customer_phone')?.value,
+      customer_city:        this.orderForm.get('customer_city')?.value,
+      shipping_department:  this.orderForm.get('shipping_department')?.value,
+      shipping_description: this.orderForm.get('shipping_description')?.value,
+      quantity:             this.orderForm.get('quantity')?.value,
+      notes:                this.orderForm.get('notes')?.value,
+      product:              this.selectedProduct.id,
+      variant_detail:       this.variantDetail,
+      variant_id:           this.selectedVariant?.id || null,
+      cupon_codigo:         this.cuponValido === true ? this.cuponCodigo.trim() : '',
     };
 
     this.http.post<any>(`/api/v1/orders/public/live/${this.slug}/reserve/`, body).subscribe({
@@ -317,7 +339,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
     const formData = new FormData();
     formData.append('reservation_id', this.reservationId.toString());
-    formData.append('payment_method', 'qr');
+    formData.append('payment_method', this.orderForm.get('payment_method')?.value || 'qr');
     formData.append('receipt_image', this.receiptFile);
 
     this.http.post('/api/v1/payments/public/submit/', formData).subscribe({
@@ -402,9 +424,12 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.isSubmittingCart = true;
     this.cartFailedItems = [];
 
-    const name  = this.cartCustomerForm.get('customer_name')?.value;
-    const phone = this.cartCustomerForm.get('customer_phone')?.value;
-    const notes = this.cartCustomerForm.get('notes')?.value;
+    const name               = this.cartCustomerForm.get('customer_name')?.value;
+    const phone              = this.cartCustomerForm.get('customer_phone')?.value;
+    const city               = this.cartCustomerForm.get('customer_city')?.value;
+    const shippingDept       = this.cartCustomerForm.get('shipping_department')?.value;
+    const shippingDesc       = this.cartCustomerForm.get('shipping_description')?.value;
+    const notes              = this.cartCustomerForm.get('notes')?.value;
 
     const snapshot = [...this.cart];
     const results: (number | null)[] = new Array(snapshot.length).fill(null);
@@ -438,14 +463,17 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
     snapshot.forEach((item, i) => {
       this.http.post<any>(`/api/v1/orders/public/live/${this.slug}/reserve/`, {
-        customer_name: name,
-        customer_phone: phone,
-        quantity: item.quantity,
-        notes: notes,
-        product: item.product.id,
-        variant_detail: item.variantLabel,
-        variant_id: item.variant?.id || null,
-        cupon_codigo: this.cuponValido === true && i === 0 ? this.cuponCodigo.trim() : '',
+        customer_name:        name,
+        customer_phone:       phone,
+        customer_city:        city,
+        shipping_department:  shippingDept,
+        shipping_description: shippingDesc,
+        quantity:             item.quantity,
+        notes:                notes,
+        product:              item.product.id,
+        variant_detail:       item.variantLabel,
+        variant_id:           item.variant?.id || null,
+        cupon_codigo:         this.cuponValido === true && i === 0 ? this.cuponCodigo.trim() : '',
       }).subscribe({
         next: (res) => {
           results[i] = res.id;
@@ -469,7 +497,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     const uploads = this.cartReservationIds.map(id => {
       const fd = new FormData();
       fd.append('reservation_id', String(id));
-      fd.append('payment_method', 'qr');
+      fd.append('payment_method', this.cartCustomerForm.get('payment_method')?.value || 'qr');
       fd.append('receipt_image', this.receiptFile!);
       return this.http.post('/api/v1/payments/public/submit/', fd);
     });

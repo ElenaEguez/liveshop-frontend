@@ -81,6 +81,7 @@ export interface SalesDashboardParams {
   month?: number;
   year?: number;
   category_id?: number | null;
+  canal?: 'todos' | 'live' | 'tienda' | 'web';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -115,6 +116,9 @@ export class DashboardService {
     }
     if (params.category_id != null) {
       httpParams = httpParams.set('category_id', String(params.category_id));
+    }
+    if (params.canal && params.canal !== 'todos') {
+      httpParams = httpParams.set('canal', params.canal);
     }
     return this.http.get<SalesDashboardData>(this.salesDashboardUrl, { params: httpParams });
   }

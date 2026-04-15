@@ -15,6 +15,8 @@ export class MyStoreComponent implements OnInit {
   saving = false;
   selectedQrFile: File | null = null;
   qrPreviewUrl: string | null = null;
+  selectedLogoFile: File | null = null;
+  logoPreviewUrl: string | null = null;
 
   private originalSlug = '';
   private slugManualEdit = false;
@@ -88,6 +90,16 @@ export class MyStoreComponent implements OnInit {
     });
   }
 
+  onLogoFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedLogoFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => { this.logoPreviewUrl = e.target?.result as string; };
+      reader.readAsDataURL(this.selectedLogoFile);
+    }
+  }
+
   onQrFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -109,6 +121,9 @@ export class MyStoreComponent implements OnInit {
     formData.append('slug',          this.form.value.slug);
     formData.append('whatsapp',      this.form.value.phone       || '');
     formData.append('descripcion',   this.form.value.description || '');
+    if (this.selectedLogoFile) {
+      formData.append('logo', this.selectedLogoFile);
+    }
     if (this.selectedQrFile) {
       formData.append('payment_qr_image', this.selectedQrFile);
     }
@@ -118,8 +133,10 @@ export class MyStoreComponent implements OnInit {
         const slugChanged = updated.slug !== this.originalSlug;
         this.profile = updated;
         this.originalSlug = updated.slug;
-        this.selectedQrFile = null;
-        this.qrPreviewUrl   = null;
+        this.selectedLogoFile = null;
+        this.logoPreviewUrl   = null;
+        this.selectedQrFile   = null;
+        this.qrPreviewUrl     = null;
 
         if (slugChanged) {
           this.snackBar.open(
@@ -141,6 +158,11 @@ export class MyStoreComponent implements OnInit {
         this.saving = false;
       }
     });
+  }
+
+  /** URL del logo a mostrar: preview local > imagen guardada */
+  get currentLogoUrl(): string | null {
+    return this.logoPreviewUrl ?? this.profile?.logo ?? null;
   }
 
   /** Devuelve la URL de la imagen QR a mostrar: preview local > imagen guardada */

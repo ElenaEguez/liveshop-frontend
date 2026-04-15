@@ -43,6 +43,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedYear:  number = new Date().getFullYear();
   selectedDate:  string = new Date().toISOString().slice(0, 10);  // YYYY-MM-DD
   selectedCategoryId: number | null = null;
+  selectedCanal: 'todos' | 'live' | 'tienda' | 'web' = 'todos';
 
   readonly months = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -61,6 +62,32 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   tableDataSource = new MatTableDataSource<SalesByProduct>([]);
   displayedColumns = ['expand', 'product_name', 'category', 'units_sold', 'revenue', 'cost', 'margin'];
   tableFilterCategory = '';
+  tableFilterTalla = '';
+  tableFilterColor = '';
+
+  get tallaOptions(): string[] {
+    if (!this.salesData) return [];
+    const set = new Set<string>();
+    this.salesData.sales_by_product.forEach(p =>
+      (p.variantes ?? []).forEach(v => {
+        const m = v.variante?.match(/Talla\s+([^/]+)/i);
+        if (m) set.add(m[1].trim());
+      })
+    );
+    return Array.from(set).sort();
+  }
+
+  get colorOptions(): string[] {
+    if (!this.salesData) return [];
+    const set = new Set<string>();
+    this.salesData.sales_by_product.forEach(p =>
+      (p.variantes ?? []).forEach(v => {
+        const m = v.variante?.match(/Color\s+([^/]+)/i);
+        if (m) set.add(m[1].trim());
+      })
+    );
+    return Array.from(set).sort();
+  }
 
   // ── Variant expansion ─────────────────────────────────────────────────────
   expandedProductId: number | null = null;
@@ -122,7 +149,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const params: SalesDashboardParams = {
       period: this.selectedPeriod,
-      ...(this.selectedCategoryId != null && { category_id: this.selectedCategoryId })
+      ...(this.selectedCategoryId != null && { category_id: this.selectedCategoryId }),
+      canal: this.selectedCanal,
     };
 
     if (this.selectedPeriod === 'day') {
@@ -138,6 +166,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: data => {
         this.salesData = data;
         this.tableFilterCategory = '';
+        this.tableFilterTalla = '';
+        this.tableFilterColor = '';
         this.tableDataSource.data = [...data.sales_by_product];
         this.loading = false;
       },
@@ -210,9 +240,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applyTableFilter(): void {
     if (!this.salesData) return;
-    this.tableDataSource.data = this.tableFilterCategory
-      ? this.salesData.sales_by_product.filter(p => p.category === this.tableFilterCategory)
-      : [...this.salesData.sales_by_product];
+    let data = [...this.salesData.sales_by_product];
+
+    if (this.tableFilterCategory) {
+      data = data.filter(p => p.category === this.tableFilterCategory);
+    }
+
+    if (this.tableFilterTalla) {
+      data = data.filter(p =>
+        (p.variantes ?? []).some(v =>
+          v.variante?.match(new RegExp(`Talla\\s+${this.tableFilterTalla}`, 'i'))
+        )
+      );
+    }
+
+    if (this.tableFilterColor) {
+      data = data.filter(p =>
+        (p.variantes ?? []).some(v =>
+          v.variante?.match(new RegExp(`Color\\s+${this.tableFilterColor}`, 'i'))
+        )
+      );
+    }
+
+    this.tableDataSource.data = data;
   }
 
   // ── Variant expansion ─────────────────────────────────────────────────────

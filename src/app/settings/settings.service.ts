@@ -8,6 +8,7 @@ const API = environment.apiUrl;
 export interface TicketConfig {
   id?: number;
   mostrar_logo: boolean;
+  logo_url?: string | null;
   nombre_empresa: string;
   ruc_nit: string;
   direccion: string;

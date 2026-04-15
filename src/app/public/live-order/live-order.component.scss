@@ -1005,3 +1005,35 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
     li { margin-top: 2px; }
   }
 }
+
+// ── PAYMENT METHOD SELECTOR ──────────────────────────────
+.payment-method-section {
+  margin: 8px 0 16px;
+}
+
+.payment-method-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+}
+
+.payment-method-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-method-option {
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: border-color 0.2s, background 0.2s;
+
+  &.mat-radio-checked {
+    border-color: $red;
+    background: $red-light;
+  }
+}

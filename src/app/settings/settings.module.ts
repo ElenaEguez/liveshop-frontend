@@ -9,6 +9,7 @@ import { MatFormFieldModule }       from '@angular/material/form-field';
 import { MatIconModule }            from '@angular/material/icon';
 import { MatInputModule }           from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatRadioModule }           from '@angular/material/radio';
 import { MatSelectModule }          from '@angular/material/select';
 import { MatSlideToggleModule }     from '@angular/material/slide-toggle';
 import { MatSnackBarModule }        from '@angular/material/snack-bar';
@@ -28,7 +29,7 @@ import { SucursalDialogComponent }      from './sucursal-dialog/sucursal-dialog.
     CommonModule, FormsModule, ReactiveFormsModule,
     SettingsRoutingModule,
     MatButtonModule, MatCardModule, MatDialogModule, MatFormFieldModule,
-    MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule,
+    MatIconModule, MatInputModule, MatProgressSpinnerModule, MatRadioModule, MatSelectModule,
     MatSlideToggleModule, MatSnackBarModule, MatTableModule, MatTabsModule, MatTooltipModule,
   ],
 })

@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
 
 @NgModule({
   declarations: [LiveOrderComponent],
@@ -29,6 +30,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    MatRadioModule,
   ]
 })
 export class PublicModule {}

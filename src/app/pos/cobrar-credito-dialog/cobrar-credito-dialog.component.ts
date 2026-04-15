@@ -73,7 +73,7 @@ export class CobrarCreditoDialogComponent implements OnInit {
         this.saving = false;
         this.venta = res.venta;
         this.snack.open(`Pago de ${this.moneda} ${this.montoNuevo} registrado.`, 'OK', { duration: 3000 });
-        this.pagos.push(res.pago);
+        this.pagos = [...this.pagos, res.pago];
         this.notasNuevo = '';
         this.montoNuevo = parseFloat(this.saldoPendiente) || null;
         if (res.venta.status === 'completada') {

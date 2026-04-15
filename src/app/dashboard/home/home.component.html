@@ -51,6 +51,29 @@
       </mat-select>
     </mat-form-field>
 
+    <!-- Filtro por canal de venta -->
+    <mat-button-toggle-group
+      [(ngModel)]="selectedCanal"
+      class="canal-toggle"
+      aria-label="Canal de venta">
+      <mat-button-toggle value="todos">
+        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">bar_chart</mat-icon>
+        Todos
+      </mat-button-toggle>
+      <mat-button-toggle value="live">
+        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">live_tv</mat-icon>
+        Live
+      </mat-button-toggle>
+      <mat-button-toggle value="tienda">
+        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">storefront</mat-icon>
+        Tienda
+      </mat-button-toggle>
+      <mat-button-toggle value="web">
+        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">shopping_bag</mat-icon>
+        Web
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
     <button mat-raised-button color="primary" (click)="applyFilters()" [disabled]="loading">
       <mat-icon>filter_alt</mat-icon>
       Aplicar filtros
@@ -314,15 +337,35 @@
           <mat-icon class="section-title-icon">table_chart</mat-icon>
           Ventas por producto —&nbsp;{{ salesData.period_label }}
         </h3>
-        <mat-form-field appearance="outline" class="filter-field table-cat-filter">
-          <mat-label>Filtrar por categoría</mat-label>
-          <mat-select [(ngModel)]="tableFilterCategory" (ngModelChange)="applyTableFilter()">
-            <mat-option value="">Todas</mat-option>
-            <mat-option *ngFor="let cat of categories" [value]="cat.name">
-              {{ cat.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="table-filters">
+          <mat-form-field appearance="outline" class="filter-field table-cat-filter">
+            <mat-label>Filtrar por categoría</mat-label>
+            <mat-select [(ngModel)]="tableFilterCategory" (ngModelChange)="applyTableFilter()">
+              <mat-option value="">Todas</mat-option>
+              <mat-option *ngFor="let cat of categories" [value]="cat.name">
+                {{ cat.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field table-cat-filter"
+                          *ngIf="tallaOptions.length > 0">
+            <mat-label>Talla</mat-label>
+            <mat-select [(ngModel)]="tableFilterTalla" (ngModelChange)="applyTableFilter()">
+              <mat-option value="">Todas</mat-option>
+              <mat-option *ngFor="let t of tallaOptions" [value]="t">{{ t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field table-cat-filter"
+                          *ngIf="colorOptions.length > 0">
+            <mat-label>Color</mat-label>
+            <mat-select [(ngModel)]="tableFilterColor" (ngModelChange)="applyTableFilter()">
+              <mat-option value="">Todos</mat-option>
+              <mat-option *ngFor="let c of colorOptions" [value]="c">{{ c }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="table-wrapper">

@@ -54,7 +54,7 @@ export class LiveSessionListComponent implements OnInit {
   }
 
   openNewSessionForm(): void {
-    const dialogRef = this.dialog.open(LiveSessionFormComponent, { width: '520px' });
+    const dialogRef = this.dialog.open(LiveSessionFormComponent, { width: '520px', disableClose: true });
     dialogRef.afterClosed().subscribe(result => {
       if (result) this.loadSessions();
     });
@@ -63,7 +63,8 @@ export class LiveSessionListComponent implements OnInit {
   editSession(session: LiveSession): void {
     const dialogRef = this.dialog.open(LiveSessionFormComponent, {
       width: '520px',
-      data: { session }
+      data: { session },
+      disableClose: true,
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) this.loadSessions();

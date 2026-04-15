@@ -14,6 +14,7 @@ export interface Product {
   is_active: boolean;
   variants: Variant[];
   purchase_cost?: number | null;
+  shipping_cost?: number | null;
   profit_margin_percent?: number | null;
   barcode?: string | null;
   internal_code?: string;

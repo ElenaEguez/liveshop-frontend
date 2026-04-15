@@ -56,6 +56,15 @@ export class SettingsComponent implements OnInit {
   // ── Vendor logo (para preview ticket) ────────────────────────────────────
   vendorLogo: string | null = null;
 
+  // ── Método de inventario ──────────────────────────────────────────────────
+  inventoryMethod: 'peps' | 'ueps' | 'promedio' = 'peps';
+  inventoryMethodSaving = false;
+  readonly inventoryMethodOptions = [
+    { value: 'peps',     label: 'PEPS — Primeros en entrar, primeros en salir' },
+    { value: 'ueps',     label: 'UEPS — Últimos en entrar, primeros en salir' },
+    { value: 'promedio', label: 'Costo Promedio' },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private svc: SettingsService,
@@ -73,7 +82,10 @@ export class SettingsComponent implements OnInit {
   private loadAll(): void {
     this.expensesSvc.getCategorias().subscribe(c => this.categoriasGasto = c);
     this.vendorProfileSvc.getProfile().subscribe({
-      next: p => { this.vendorLogo = p.logo ?? null; },
+      next: p => {
+        this.vendorLogo = p.logo ?? null;
+        this.inventoryMethod = p.inventory_method ?? 'peps';
+      },
       error: () => {},
     });
     this.svc.getMetodosPago().subscribe(m => this.metodosPago = m);
@@ -109,6 +121,22 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  saveInventoryMethod(): void {
+    this.inventoryMethodSaving = true;
+    const fd = new FormData();
+    fd.append('inventory_method', this.inventoryMethod);
+    this.vendorProfileSvc.updateProfile(fd).subscribe({
+      next: () => {
+        this.inventoryMethodSaving = false;
+        this.snack.open('Método de inventario guardado.', 'OK', { duration: 2500 });
+      },
+      error: () => {
+        this.inventoryMethodSaving = false;
+        this.snack.open('Error al guardar método de inventario.', 'OK', { duration: 3000 });
+      },
+    });
+  }
+
   saveTicket(): void {
     if (this.ticketForm.invalid) return;
     this.ticketSaving = true;
@@ -121,7 +149,7 @@ export class SettingsComponent implements OnInit {
   // ── Métodos de pago ───────────────────────────────────────────────────────
 
   abrirMetodoDialog(m?: MetodoPago): void {
-    const ref = this.dialog.open(MetodoPagoDialogComponent, { width: '420px', data: { metodo: m } });
+    const ref = this.dialog.open(MetodoPagoDialogComponent, { width: '420px', data: { metodo: m }, disableClose: true });
     ref.afterClosed().subscribe(r => { if (r) { this.snack.open('Guardado.', 'OK', { duration: 2000 }); this.svc.getMetodosPago().subscribe(l => this.metodosPago = l); } });
   }
 
@@ -169,6 +197,7 @@ export class SettingsComponent implements OnInit {
     const ref = this.dialog.open(SucursalDialogComponent, {
       width: '440px',
       data: { sucursal: suc },
+      disableClose: true,
     });
     ref.afterClosed().subscribe(result => {
       if (!result) return;
@@ -255,7 +284,7 @@ export class SettingsComponent implements OnInit {
   // ── Cupones ───────────────────────────────────────────────────────────────
 
   abrirCuponDialog(c?: Cupon): void {
-    const ref = this.dialog.open(CuponDialogComponent, { width: '480px', data: c || null });
+    const ref = this.dialog.open(CuponDialogComponent, { width: '480px', data: c || null, disableClose: true });
     ref.afterClosed().subscribe(r => { if (r) { this.snack.open('Guardado.', 'OK', { duration: 2000 }); this.svc.getCupones().subscribe(l => this.cupones = l); } });
   }
 

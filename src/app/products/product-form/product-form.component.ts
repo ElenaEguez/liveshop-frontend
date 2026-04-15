@@ -48,9 +48,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
-      description:          [data.product?.description ?? '', Validators.required],
+      description:          [data.product?.description ?? ''],
       price:                [data.product?.price ?? '', [Validators.required, Validators.min(0)]],
       purchase_cost:        [data.product?.purchase_cost ?? null, [Validators.min(0)]],
+      shipping_cost:        [data.product?.shipping_cost ?? null, [Validators.min(0)]],
       profit_margin_percent:[data.product?.profit_margin_percent ?? null, [Validators.min(0), Validators.max(9999)]],
       stock:                [data.product?.stock ?? '', [Validators.required, Validators.min(0)]],
       category:             [data.product?.category ?? '', Validators.required],
@@ -74,33 +75,39 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   private setupPriceSync(): void {
-    const costCtrl   = this.productForm.get('purchase_cost')!;
-    const marginCtrl = this.productForm.get('profit_margin_percent')!;
-    const priceCtrl  = this.productForm.get('price')!;
+    const costCtrl     = this.productForm.get('purchase_cost')!;
+    const shippingCtrl = this.productForm.get('shipping_cost')!;
+    const marginCtrl   = this.productForm.get('profit_margin_percent')!;
+    const priceCtrl    = this.productForm.get('price')!;
 
-    // cost or margin → recalculate price
+    // cost, shipping or margin → recalculate price
     const recalcPrice = () => {
       if (this.syncingPrices) return;
-      const c = parseFloat(costCtrl.value);
+      const c = parseFloat(costCtrl.value) || 0;
+      const s = parseFloat(shippingCtrl.value) || 0;
       const m = parseFloat(marginCtrl.value);
-      if (isFinite(c) && isFinite(m) && c >= 0 && m >= 0) {
+      const totalCost = c + s;
+      if (isFinite(totalCost) && isFinite(m) && totalCost >= 0 && m >= 0) {
         this.syncingPrices = true;
-        priceCtrl.setValue(+(c * (1 + m / 100)).toFixed(2), { emitEvent: false });
+        priceCtrl.setValue(+(totalCost * (1 + m / 100)).toFixed(2), { emitEvent: false });
         this.syncingPrices = false;
       }
     };
 
     costCtrl.valueChanges.subscribe(recalcPrice);
+    shippingCtrl.valueChanges.subscribe(recalcPrice);
     marginCtrl.valueChanges.subscribe(recalcPrice);
 
-    // price → recalculate margin (if cost is set)
+    // price → recalculate margin (if total cost is set)
     priceCtrl.valueChanges.subscribe(() => {
       if (this.syncingPrices) return;
       const p = parseFloat(priceCtrl.value);
-      const c = parseFloat(costCtrl.value);
-      if (isFinite(p) && isFinite(c) && c > 0 && p >= 0) {
+      const c = parseFloat(costCtrl.value) || 0;
+      const s = parseFloat(shippingCtrl.value) || 0;
+      const totalCost = c + s;
+      if (isFinite(p) && totalCost > 0 && p >= 0) {
         this.syncingPrices = true;
-        marginCtrl.setValue(+((p / c - 1) * 100).toFixed(2), { emitEvent: false });
+        marginCtrl.setValue(+((p / totalCost - 1) * 100).toFixed(2), { emitEvent: false });
         this.syncingPrices = false;
       }
     });
@@ -262,7 +269,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       } else if (key === 'sell_by') {
         const sellByArr = Object.keys(val[key]).filter(k => val[key][k]);
         formData.append(key, JSON.stringify(sellByArr));
-      } else if (key === 'purchase_cost' || key === 'profit_margin_percent') {
+      } else if (key === 'purchase_cost' || key === 'shipping_cost' || key === 'profit_margin_percent') {
         const v = val[key];
         formData.append(key, v !== null && v !== undefined ? String(v) : '');
       } else if (key === 'barcode') {
@@ -285,6 +292,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
+    if (this.productForm.dirty && !this.viewOnly) {
+      if (!confirm('¿Descartar los cambios? Los datos ingresados se perderán.')) return;
+    }
     this.dialogRef.close();
   }
 }

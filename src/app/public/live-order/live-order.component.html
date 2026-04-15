@@ -173,11 +173,44 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Ciudad</mat-label>
+            <input matInput formControlName="customer_city" placeholder="Ej: Santa Cruz de la Sierra">
+            <mat-icon matPrefix>location_city</mat-icon>
+            <mat-error>La ciudad es requerida</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Departamento</mat-label>
+            <mat-select formControlName="shipping_department">
+              <mat-option *ngFor="let dept of bolivianDepartments" [value]="dept">{{ dept }}</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>map</mat-icon>
+            <mat-error>El departamento es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Descripción de envío (opcional)</mat-label>
+            <textarea matInput formControlName="shipping_description" rows="2"
+                      placeholder="Ej: Barrio Las Palmas, calle 3 #15, portón azul"></textarea>
+            <mat-icon matPrefix>local_shipping</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
             <mat-label>Notas (opcional)</mat-label>
             <textarea matInput formControlName="notes" rows="2"
-                      placeholder="Dirección de entrega, instrucciones..."></textarea>
+                      placeholder="Instrucciones adicionales..."></textarea>
             <mat-icon matPrefix>notes</mat-icon>
           </mat-form-field>
+
+          <!-- Forma de pago -->
+          <div class="payment-method-section">
+            <h3 class="payment-method-title">Forma de pago</h3>
+            <mat-radio-group formControlName="payment_method" class="payment-method-group">
+              <mat-radio-button *ngFor="let pm of paymentMethods" [value]="pm.value" class="payment-method-option">
+                {{ pm.label }}
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
 
           <!-- Cupón -->
           <div class="cupon-section">
@@ -584,11 +617,44 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Ciudad</mat-label>
+            <input matInput formControlName="customer_city" placeholder="Ej: Santa Cruz de la Sierra">
+            <mat-icon matPrefix>location_city</mat-icon>
+            <mat-error>La ciudad es requerida</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Departamento</mat-label>
+            <mat-select formControlName="shipping_department">
+              <mat-option *ngFor="let dept of bolivianDepartments" [value]="dept">{{ dept }}</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>map</mat-icon>
+            <mat-error>El departamento es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
+            <mat-label>Descripción de envío (opcional)</mat-label>
+            <textarea matInput formControlName="shipping_description" rows="2"
+                      placeholder="Ej: Barrio Las Palmas, calle 3 #15, portón azul"></textarea>
+            <mat-icon matPrefix>local_shipping</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-field">
             <mat-label>Notas (opcional)</mat-label>
             <textarea matInput formControlName="notes" rows="2"
-                      placeholder="Dirección de entrega..."></textarea>
+                      placeholder="Instrucciones adicionales..."></textarea>
             <mat-icon matPrefix>notes</mat-icon>
           </mat-form-field>
+
+          <!-- Forma de pago -->
+          <div class="payment-method-section">
+            <h3 class="payment-method-title">Forma de pago</h3>
+            <mat-radio-group formControlName="payment_method" class="payment-method-group">
+              <mat-radio-button *ngFor="let pm of paymentMethods" [value]="pm.value" class="payment-method-option">
+                {{ pm.label }}
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
 
           <!-- Cupón -->
           <div class="cupon-section">

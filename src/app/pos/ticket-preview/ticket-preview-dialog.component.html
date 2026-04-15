@@ -5,6 +5,10 @@
   <div class="ticket-wrapper" id="ticket-print" [style.max-width.px]="ticketWidthPx">
     <div class="ticket">
       <div class="ticket-header">
+        <!-- Logo de la empresa -->
+        <div class="ticket-logo" *ngIf="config?.mostrar_logo && (config?.logo_url || data.ticketConfig?.logo_url)">
+          <img [src]="config?.logo_url || data.ticketConfig?.logo_url" alt="Logo" class="ticket-logo-img">
+        </div>
         <div class="store-name">{{ config?.nombre_empresa || data.vendorName }}</div>
         <div class="ticket-meta" *ngIf="config?.ruc_nit">NIT/RUC: {{ config!.ruc_nit }}</div>
         <div class="ticket-meta" *ngIf="config?.direccion">{{ config!.direccion }}</div>
@@ -76,6 +80,12 @@
 
       <div class="ticket-divider">--------------------------------</div>
       <div class="ticket-footer">{{ config?.texto_pie || '¡Gracias por su compra!' }}</div>
+
+      <!-- QR de pago -->
+      <div class="ticket-qr" *ngIf="config?.mostrar_qr && data.vendorQrImage">
+        <div class="ticket-qr-label">Escanea para pagar:</div>
+        <img [src]="data.vendorQrImage" alt="QR de pago" class="ticket-qr-img">
+      </div>
     </div>
   </div>
 </mat-dialog-content>

@@ -160,7 +160,49 @@
       </div>
     </mat-tab>
 
-    <!-- ══ TAB 3: Sucursales & Cajas ════════════════════════════════════════ -->
+    <!-- ══ TAB 3: Método de Inventario ══════════════════════════════════════ -->
+    <mat-tab label="Inventario">
+      <div class="tab-content">
+        <h2>Método de valoración de inventario</h2>
+        <p class="tab-description">
+          Determina en qué orden se consumen los lotes de compra cuando se realiza una venta.
+          Si un producto tiene distintos precios de compra, el sistema usará este método
+          para calcular el costo unitario y la utilidad de cada venta.
+        </p>
+
+        <div class="inv-method-options">
+          <mat-radio-group [(ngModel)]="inventoryMethod" class="inv-method-group">
+            <mat-radio-button *ngFor="let opt of inventoryMethodOptions"
+                              [value]="opt.value" class="inv-method-radio">
+              <div class="inv-method-label">
+                <strong>{{ opt.value.toUpperCase() }}</strong>
+                <span>{{ opt.label }}</span>
+              </div>
+            </mat-radio-button>
+          </mat-radio-group>
+
+          <div class="inv-method-example">
+            <mat-icon>info_outline</mat-icon>
+            <span>
+              Ejemplo: producto con lote A (100 Bs, 20 und.) y lote B (120 Bs, 30 und.).<br>
+              <strong>PEPS:</strong> vende primero el lote A hasta agotar, luego el B.<br>
+              <strong>UEPS:</strong> vende primero el lote B hasta agotar, luego el A.
+            </span>
+          </div>
+        </div>
+
+        <button mat-raised-button color="primary"
+                [disabled]="inventoryMethodSaving" (click)="saveInventoryMethod()"
+                style="margin-top:16px;">
+          <mat-spinner *ngIf="inventoryMethodSaving" diameter="18" style="display:inline-block"></mat-spinner>
+          <span *ngIf="!inventoryMethodSaving">
+            <mat-icon>save</mat-icon> Guardar método
+          </span>
+        </button>
+      </div>
+    </mat-tab>
+
+    <!-- ══ TAB 4: Sucursales & Cajas ════════════════════════════════════════ -->
     <mat-tab label="Sucursales y Cajas">
       <div class="tab-content">
         <div class="tab-header">

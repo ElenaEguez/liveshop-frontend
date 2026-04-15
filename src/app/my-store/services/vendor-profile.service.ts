@@ -16,6 +16,7 @@ export interface VendorProfile {
   payment_qr_image: string | null;
   payment_instructions: string | null;
   accepted_payment_methods: string | null;
+  inventory_method: 'peps' | 'ueps' | 'promedio';
   is_verified: boolean;
   created_at: string;
   updated_at: string;

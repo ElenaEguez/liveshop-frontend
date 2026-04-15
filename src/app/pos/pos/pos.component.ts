@@ -23,6 +23,8 @@ import { ScannerConfigDialogComponent } from '../scanner-config-dialog/scanner-c
   styleUrls: ['./pos.component.scss'],
 })
 export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
+  readonly Math = Math;
+
   // ── Estado de caja ─────────────────────────────────────────────────────────
   sucursales: Sucursal[] = [];
   cajas: Caja[] = [];
@@ -313,7 +315,13 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       existing.cantidad++;
       this.carrito = [...this.carrito];
     } else {
-      this.carrito = [...this.carrito, { product, variant, cantidad: 1, precio_unitario: Number(product.price) }];
+      const defaultUnidad = product.sell_by?.length ? product.sell_by[0] : 'unidad';
+      this.carrito = [...this.carrito, {
+        product, variant, cantidad: 1,
+        precio_unitario: Number(product.price),
+        descuento_unitario: 0,
+        unidad: defaultUnidad,
+      }];
     }
     this.searchResults = [];
     this.scanResult = null;
@@ -395,7 +403,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Cálculos ────────────────────────────────────────────────────────────────
 
   get subtotal(): number {
-    return this.carrito.reduce((s, c) => s + c.precio_unitario * c.cantidad, 0);
+    return this.carrito.reduce((s, c) => {
+      const precioEfectivo = Math.max(0, c.precio_unitario - (c.descuento_unitario || 0));
+      return s + precioEfectivo * c.cantidad;
+    }, 0);
   }
 
   get descuentoCupon(): number {
@@ -433,7 +444,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         product_id: c.product.id,
         variant_id: c.variant?.id ?? null,
         cantidad: c.cantidad,
-        precio_unitario: c.precio_unitario,
+        precio_unitario: Math.max(0, c.precio_unitario - (c.descuento_unitario || 0)),
       })),
       descuento: this.descuento,
       cupon_codigo: this.cuponAplicado?.codigo ?? null,
@@ -448,7 +459,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cobrando = false;
         const ref = this.dialog.open(TicketPreviewDialogComponent, {
           width: '420px',
-          data: { venta, vendorName: this.vendorName, moneda: this.moneda, ticketConfig: this.ticketConfig, showNuevaVenta: true },
+          data: { venta, vendorName: this.vendorName, moneda: this.moneda, ticketConfig: this.ticketConfig, vendorQrImage: this.vendorQrImage, showNuevaVenta: true },
           disableClose: true,
         });
         ref.afterClosed().subscribe(() => this.limpiarCarrito());

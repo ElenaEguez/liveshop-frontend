@@ -67,6 +67,7 @@ export interface ProductoPOS {
   price: number;
   purchase_cost: number | null;
   stock_disponible: number;
+  sell_by: string[];
   variantes: ProductVariantPOS[];
   imagen_thumbnail: string | null;
 }
@@ -82,6 +83,8 @@ export interface CartItem {
   variant: ProductVariantPOS | null;
   cantidad: number;
   precio_unitario: number;
+  descuento_unitario: number;  // descuento por unidad en Bs.
+  unidad: string;              // unidad de venta seleccionada (de sell_by)
 }
 
 export interface VentaPOSItem {

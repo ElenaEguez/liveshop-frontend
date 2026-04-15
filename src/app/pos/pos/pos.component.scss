@@ -153,6 +153,13 @@
 
   .cart-prod-name { font-size: 14px; font-weight: 500; }
   .cart-variant   { font-size: 12px; color: #888; }
+  .cart-unidad { margin-top: 3px; }
+  .unidad-select {
+    font-size: 11px; border: 1px solid #ddd; border-radius: 4px;
+    padding: 2px 4px; color: #555; background: #fafafa; cursor: pointer;
+    &:focus { outline: none; border-color: #1565c0; }
+  }
+  .cart-unidad-label { font-size: 11px; color: #888; margin-top: 2px; }
 
   .qty-control {
     display: flex;
@@ -170,6 +177,13 @@
     text-align: right;
     font-size: 14px;
     &:focus { outline: none; border-color: #1565c0; }
+  }
+
+  .discount-item-input {
+    width: 60px;
+    border-color: #f59e0b;
+    color: #b45309;
+    &:focus { border-color: #d97706; }
   }
 }
 
@@ -377,4 +391,67 @@
 /* ── Print styles ─────────────────────────────────────────────────────────── */
 @media print {
   .pos-shell, mat-toolbar, mat-sidenav { display: none !important; }
+}
+
+/* ── Responsive: móvil (< 768px) ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pos-shell {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .pos-left {
+    padding: 8px;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .pos-right {
+    width: 100%;
+    min-width: unset;
+    padding: 0 8px 12px;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .pos-header {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .header-selects {
+      width: 100%;
+      flex-wrap: wrap;
+      .sucursal-select, .caja-select { flex: 1; min-width: 120px; }
+    }
+
+    .header-info { width: 100%; }
+
+    .header-actions {
+      width: 100%;
+      flex-wrap: wrap;
+      button { flex: 1; font-size: 11px; }
+    }
+  }
+
+  .cart-table {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .metodos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cobrar-section .cobrar-btn {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  /* Ajustar columnas de la tabla del carrito en móvil */
+  ::ng-deep .mat-column-subtotal,
+  ::ng-deep .mat-column-precio {
+    display: none;
+  }
 }

@@ -59,11 +59,6 @@
           <mat-icon>qr_code_scanner</mat-icon>
         </button>
       </mat-form-field>
-      <div class="scanner-status" [class.active]="scannerFocused">
-        <mat-icon>{{ scannerFocused ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
-        {{ scannerStatusMessage }}
-      </div>
-
       <!-- Resultados -->
       <div class="search-results" *ngIf="searchResults.length > 0">
         <div class="search-item"
@@ -105,6 +100,15 @@
             <div>
               <div class="cart-prod-name">{{ item.product.name }}</div>
               <div class="cart-variant" *ngIf="variantLabel(item)">{{ variantLabel(item) }}</div>
+              <!-- Selector de unidad (solo si el producto tiene más de 1 unidad configurada) -->
+              <div class="cart-unidad" *ngIf="item.product.sell_by?.length > 1">
+                <select [(ngModel)]="item.unidad" class="unidad-select">
+                  <option *ngFor="let u of item.product.sell_by" [value]="u">{{ u }}</option>
+                </select>
+              </div>
+              <div class="cart-unidad-label" *ngIf="item.product.sell_by?.length === 1">
+                {{ item.product.sell_by[0] }}
+              </div>
             </div>
           </mat-cell>
         </ng-container>
@@ -131,10 +135,22 @@
           </mat-cell>
         </ng-container>
 
+        <ng-container matColumnDef="descuento">
+          <mat-header-cell *matHeaderCellDef>Desc.</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <input class="price-input discount-item-input"
+                   type="number"
+                   [(ngModel)]="item.descuento_unitario"
+                   min="0"
+                   [max]="item.precio_unitario"
+                   placeholder="0">
+          </mat-cell>
+        </ng-container>
+
         <ng-container matColumnDef="subtotal">
           <mat-header-cell *matHeaderCellDef>Subt.</mat-header-cell>
           <mat-cell *matCellDef="let item">
-            {{ moneda }} {{ (item.precio_unitario * item.cantidad) | number:'1.2-2' }}
+            {{ moneda }} {{ (Math.max(0, item.precio_unitario - (item.descuento_unitario || 0)) * item.cantidad) | number:'1.2-2' }}
           </mat-cell>
         </ng-container>
 
@@ -147,8 +163,8 @@
           </mat-cell>
         </ng-container>
 
-        <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','subtotal','accion']"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','subtotal','accion'];"></mat-row>
+        <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','descuento','subtotal','accion']"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','descuento','subtotal','accion'];"></mat-row>
       </mat-table>
 
       <!-- Footer del carrito -->
