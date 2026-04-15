@@ -7,6 +7,7 @@ import {
   EcomOrderFilters
 } from '../ecommerce-orders.service';
 import { OrderDetailComponent } from '../order-detail/order-detail.component';
+import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 
 interface StatusTab {
   label: string;
@@ -38,6 +39,7 @@ export class OrderListComponent implements OnInit {
   error = '';
   search = '';
   activeTab: EcomOrderStatus | '' = '';
+  vendorSlug = '';
 
   readonly paymentLabels: Record<string, string> = {
     tigo_money: 'Tigo Money',
@@ -60,11 +62,16 @@ export class OrderListComponent implements OnInit {
 
   constructor(
     private service: EcommerceOrdersService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private vendorProfileService: VendorProfileService
   ) {}
 
   ngOnInit(): void {
     this.load();
+    this.vendorProfileService.getProfile().subscribe({
+      next: p => { this.vendorSlug = p.slug; },
+      error: () => {}
+    });
   }
 
   normalizeStatus(value: string): string {

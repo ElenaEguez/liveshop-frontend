@@ -275,6 +275,37 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return row.variantes ?? [];
   }
 
+  // ── Canal-aware stat helpers ──────────────────────────────────────────────
+
+  get canalOrders(): number {
+    if (!this.salesData) return 0;
+    if (this.selectedCanal === 'tienda') return this.salesData.pos_total_orders || 0;
+    if (this.selectedCanal === 'web')    return this.salesData.web_total_orders || 0;
+    if (this.selectedCanal === 'live')   return this.salesData.total_orders || 0;
+    // todos
+    return (this.salesData.total_orders || 0)
+         + (this.salesData.pos_total_orders || 0)
+         + (this.salesData.web_total_orders || 0);
+  }
+
+  get canalRevenue(): number {
+    if (!this.salesData) return 0;
+    if (this.selectedCanal === 'tienda') return +this.salesData.pos_total_revenue || 0;
+    if (this.selectedCanal === 'web')    return +this.salesData.web_total_revenue || 0;
+    if (this.selectedCanal === 'live')   return +this.salesData.total_revenue || 0;
+    // todos
+    return (+this.salesData.total_revenue || 0)
+         + (+this.salesData.pos_total_revenue || 0)
+         + (+this.salesData.web_total_revenue || 0);
+  }
+
+  get canalLabel(): string {
+    const labels: Record<string, string> = {
+      live: 'Live (online)', tienda: 'Tienda física', web: 'Web', todos: 'Todos los canales'
+    };
+    return labels[this.selectedCanal] || 'Todos los canales';
+  }
+
   // ── Chart helpers ─────────────────────────────────────────────────────────
 
   get maxRevenue(): number {

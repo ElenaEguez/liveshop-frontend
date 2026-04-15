@@ -173,23 +173,16 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Ciudad</mat-label>
-            <input matInput formControlName="customer_city" placeholder="Ej: Santa Cruz de la Sierra">
-            <mat-icon matPrefix>location_city</mat-icon>
-            <mat-error>La ciudad es requerida</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Departamento</mat-label>
+            <mat-label>Departamento (opcional)</mat-label>
             <mat-select formControlName="shipping_department">
+              <mat-option value="">— Sin especificar —</mat-option>
               <mat-option *ngFor="let dept of bolivianDepartments" [value]="dept">{{ dept }}</mat-option>
             </mat-select>
             <mat-icon matPrefix>map</mat-icon>
-            <mat-error>El departamento es requerido</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Descripción de envío (opcional)</mat-label>
+            <mat-label>Dirección de envío (opcional)</mat-label>
             <textarea matInput formControlName="shipping_description" rows="2"
                       placeholder="Ej: Barrio Las Palmas, calle 3 #15, portón azul"></textarea>
             <mat-icon matPrefix>local_shipping</mat-icon>
@@ -617,23 +610,16 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Ciudad</mat-label>
-            <input matInput formControlName="customer_city" placeholder="Ej: Santa Cruz de la Sierra">
-            <mat-icon matPrefix>location_city</mat-icon>
-            <mat-error>La ciudad es requerida</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Departamento</mat-label>
+            <mat-label>Departamento (opcional)</mat-label>
             <mat-select formControlName="shipping_department">
+              <mat-option value="">— Sin especificar —</mat-option>
               <mat-option *ngFor="let dept of bolivianDepartments" [value]="dept">{{ dept }}</mat-option>
             </mat-select>
             <mat-icon matPrefix>map</mat-icon>
-            <mat-error>El departamento es requerido</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-field">
-            <mat-label>Descripción de envío (opcional)</mat-label>
+            <mat-label>Dirección de envío (opcional)</mat-label>
             <textarea matInput formControlName="shipping_description" rows="2"
                       placeholder="Ej: Barrio Las Palmas, calle 3 #15, portón azul"></textarea>
             <mat-icon matPrefix>local_shipping</mat-icon>

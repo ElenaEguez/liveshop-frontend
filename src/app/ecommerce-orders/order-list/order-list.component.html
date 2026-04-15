@@ -9,6 +9,18 @@
     <span class="order-count" *ngIf="!loading">{{ totalCount }} pedido{{ totalCount !== 1 ? 's' : '' }}</span>
   </div>
 
+  <!-- Slug info banner -->
+  <div *ngIf="vendorSlug" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;
+       padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; gap:10px; font-size:0.85rem; color:#1d4ed8;">
+    <mat-icon style="font-size:18px; width:18px; height:18px; flex-shrink:0;">info</mat-icon>
+    <span>
+      Tu tienda web usa el slug: <strong>{{ vendorSlug }}</strong>.
+      Verificá que tu sitio externo (GAIA-WEBSITE u otro) apunte a
+      <code style="background:#dbeafe; padding:2px 6px; border-radius:4px;">/api/public/{{ vendorSlug }}/</code>
+      para que los pedidos aparezcan aquí.
+    </span>
+  </div>
+
   <!-- Status tabs -->
   <mat-tab-group class="status-tabs" animationDuration="150ms"
     (selectedIndexChange)="onTabChange(tabs[$event].value)">

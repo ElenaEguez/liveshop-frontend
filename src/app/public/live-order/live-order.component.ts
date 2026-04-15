@@ -39,6 +39,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   // ── Session ──────────────────────────────────────────────────────────────
   slug = '';
+  vendorSlug = '';
   session: any = null;
   loading = true;
   error = '';
@@ -141,8 +142,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.orderForm = this.fb.group({
       customer_name:       ['', [Validators.required, Validators.minLength(2)]],
       customer_phone:      ['', [Validators.required, Validators.minLength(7)]],
-      customer_city:       ['', Validators.required],
-      shipping_department: ['', Validators.required],
+      shipping_department: [''],
       shipping_description:[''],
       payment_method:      ['qr', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
@@ -151,8 +151,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.cartCustomerForm = this.fb.group({
       customer_name:       ['', [Validators.required, Validators.minLength(2)]],
       customer_phone:      ['', [Validators.required, Validators.minLength(7)]],
-      customer_city:       ['', Validators.required],
-      shipping_department: ['', Validators.required],
+      shipping_department: [''],
       shipping_description:[''],
       payment_method:      ['qr', Validators.required],
       notes: ['']
@@ -206,7 +205,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.cuponValido = null;
     this.cuponError = '';
     this.http.get<any>('/api/v1/cupones/public/validar/', {
-      params: { vendor_slug: this.slug, codigo: code, total: total.toString() }
+      params: { vendor_slug: this.vendorSlug || this.slug, codigo: code, total: total.toString() }
     }).subscribe({
       next: res => {
         this.cuponChecking = false;
@@ -234,6 +233,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.http.get<any>(`/api/v1/livestreams/public/${this.slug}/`).subscribe({
       next: (data) => {
         this.session = data;
+        this.vendorSlug = data.vendor_slug || this.slug;
         this.vendorQR = data.payment_qr_image || null;
         this.loading = false;
         if (data.status !== 'live') {
@@ -292,7 +292,6 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     const body: any = {
       customer_name:        this.orderForm.get('customer_name')?.value,
       customer_phone:       this.orderForm.get('customer_phone')?.value,
-      customer_city:        this.orderForm.get('customer_city')?.value,
       shipping_department:  this.orderForm.get('shipping_department')?.value,
       shipping_description: this.orderForm.get('shipping_description')?.value,
       quantity:             this.orderForm.get('quantity')?.value,
@@ -426,7 +425,6 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
     const name               = this.cartCustomerForm.get('customer_name')?.value;
     const phone              = this.cartCustomerForm.get('customer_phone')?.value;
-    const city               = this.cartCustomerForm.get('customer_city')?.value;
     const shippingDept       = this.cartCustomerForm.get('shipping_department')?.value;
     const shippingDesc       = this.cartCustomerForm.get('shipping_description')?.value;
     const notes              = this.cartCustomerForm.get('notes')?.value;
@@ -465,7 +463,6 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
       this.http.post<any>(`/api/v1/orders/public/live/${this.slug}/reserve/`, {
         customer_name:        name,
         customer_phone:       phone,
-        customer_city:        city,
         shipping_department:  shippingDept,
         shipping_description: shippingDesc,
         quantity:             item.quantity,

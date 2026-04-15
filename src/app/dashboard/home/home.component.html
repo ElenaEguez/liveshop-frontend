@@ -111,8 +111,8 @@
     <!-- ── METRIC CARDS ────────────────────────────────────────────────── -->
     <div class="stats-grid">
 
-      <!-- Ventas Live (online) -->
-      <div class="stat-card">
+      <!-- Ventas Live (online) — ocultar si canal específico no es 'live' -->
+      <div class="stat-card" *ngIf="selectedCanal === 'todos' || selectedCanal === 'live'">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Pedidos Live (online)</p>
@@ -126,7 +126,7 @@
       </div>
 
       <!-- Ventas POS (tienda física) -->
-      <div class="stat-card">
+      <div class="stat-card" *ngIf="selectedCanal === 'todos' || selectedCanal === 'tienda'">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Ventas Tienda Física</p>
@@ -140,7 +140,7 @@
       </div>
 
       <!-- Ventas Web (ecommerce) -->
-      <div class="stat-card">
+      <div class="stat-card" *ngIf="selectedCanal === 'todos' || selectedCanal === 'web'">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Ventas Web</p>
@@ -153,18 +153,18 @@
         <p class="stat-footer">Bs.&nbsp;{{ (salesData.web_total_revenue || '0') | number:'1.2-2' }}</p>
       </div>
 
-      <!-- Ingresos totales combinados -->
+      <!-- Ingresos del canal seleccionado -->
       <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
-            <p class="stat-label">Ingresos totales</p>
-            <h2 class="stat-value">Bs.&nbsp;{{ (+salesData.total_revenue + +(salesData.pos_total_revenue || 0) + +(salesData.web_total_revenue || 0)) | number:'1.2-2' }}</h2>
+            <p class="stat-label">Ingresos — {{ canalLabel }}</p>
+            <h2 class="stat-value">Bs.&nbsp;{{ canalRevenue | number:'1.2-2' }}</h2>
           </div>
           <div class="stat-icon-bg" style="background:#fefce8;">
             <mat-icon style="color:#ca8a04;">payments</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Live + Tienda física + Web</p>
+        <p class="stat-footer">{{ canalOrders }} pedido{{ canalOrders !== 1 ? 's' : '' }} confirmado{{ canalOrders !== 1 ? 's' : '' }}</p>
       </div>
 
       <div class="stat-card" *ngIf="salesData.gross_margin !== null">
