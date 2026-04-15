@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Inventory, InventoryService } from '../../services/inventory.service';
 import { Category, ProductVariant, ProductService } from '../../../products/products.service';
 import { EditStockDialogComponent } from '../edit-stock-dialog/edit-stock-dialog.component';
@@ -16,10 +18,16 @@ export class InventoryListComponent implements OnInit {
   categories: Category[] = [];
   sucursales: any[] = [];
   almacenes: any[] = [];
+  availableTallas: string[] = [];
+  availableColors: string[] = [];
 
   selectedCategoryId: number | null = null;
   selectedSucursalId: number | null = null;
   selectedAlmacenId: number | null = null;
+  selectedTalla: string = '';
+  selectedColor: string = '';
+
+  searchControl = new FormControl('');
 
   displayedColumns = ['product_name', 'quantity', 'reserved_quantity', 'available_quantity', 'purchase_cost', 'margin', 'variantes', 'actions'];
 
@@ -39,12 +47,21 @@ export class InventoryListComponent implements OnInit {
     this.loadInventory();
     this.loadCategories();
     this.loadSucursales();
+    this.loadVariantOptions();
+
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => this.loadInventory());
   }
 
   loadInventory(): void {
     const filters: any = {};
-    if (this.selectedAlmacenId) filters.almacen_id = this.selectedAlmacenId;
-    if (this.selectedCategoryId) filters.category = this.selectedCategoryId;
+    if (this.selectedAlmacenId)  filters.almacen_id = this.selectedAlmacenId;
+    if (this.selectedCategoryId) filters.category   = this.selectedCategoryId;
+    if (this.searchControl.value) filters.search    = this.searchControl.value;
+    if (this.selectedTalla)      filters.talla      = this.selectedTalla;
+    if (this.selectedColor)      filters.color      = this.selectedColor;
 
     this.inventoryService.getInventory(filters).subscribe({
       next: (data: any) => {
@@ -62,6 +79,16 @@ export class InventoryListComponent implements OnInit {
   loadCategories(): void {
     this.productService.getCategories().subscribe({
       next: cats => this.categories = cats,
+      error: () => {}
+    });
+  }
+
+  loadVariantOptions(): void {
+    this.productService.getAllVariantOptions().subscribe({
+      next: opts => {
+        this.availableTallas = opts.tallas;
+        this.availableColors = opts.colors;
+      },
       error: () => {}
     });
   }
@@ -93,16 +120,23 @@ export class InventoryListComponent implements OnInit {
     this.loadInventory();
   }
 
+  onTallaChange(): void  { this.loadInventory(); }
+  onColorChange(): void  { this.loadInventory(); }
+
   clearFilters(): void {
     this.selectedCategoryId = null;
     this.selectedSucursalId = null;
-    this.selectedAlmacenId = null;
+    this.selectedAlmacenId  = null;
+    this.selectedTalla      = '';
+    this.selectedColor      = '';
     this.almacenes = [];
+    this.searchControl.setValue('');
     this.loadInventory();
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.selectedCategoryId || this.selectedSucursalId || this.selectedAlmacenId);
+    return !!(this.selectedCategoryId || this.selectedSucursalId || this.selectedAlmacenId ||
+              this.selectedTalla || this.selectedColor || this.searchControl.value);
   }
 
   // ── Variant expansion ────────────────────────────────────────────────────────

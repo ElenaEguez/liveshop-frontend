@@ -57,11 +57,25 @@ export class ProductService {
 
   constructor(private http: HttpClient) { }
 
-  getProducts(page: number = 1, search?: string, category?: number): Observable<PaginatedResponse<Product>> {
+  getProducts(
+    page: number = 1,
+    search?: string,
+    category?: number,
+    talla?: string,
+    color?: string,
+    isActive?: boolean
+  ): Observable<PaginatedResponse<Product>> {
     let params = new HttpParams().set('page', page.toString());
     if (search) params = params.set('search', search);
     if (category) params = params.set('category', category.toString());
+    if (talla) params = params.set('talla', talla);
+    if (color) params = params.set('color', color);
+    if (isActive !== undefined) params = params.set('is_active', String(isActive));
     return this.http.get<PaginatedResponse<Product>>(`${this.apiUrl}/`, { params });
+  }
+
+  getAllVariantOptions(): Observable<{ tallas: string[]; colors: string[] }> {
+    return this.http.get<{ tallas: string[]; colors: string[] }>(`${this.apiUrl}/variant-options/`);
   }
 
   getProduct(id: number): Observable<Product> {

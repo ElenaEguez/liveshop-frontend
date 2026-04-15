@@ -46,6 +46,9 @@ export interface Inventory {
 export interface InventoryFilters {
   almacen_id?: number;
   category?: number;
+  search?: string;
+  talla?: string;
+  color?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -58,7 +61,10 @@ export class InventoryService {
   getInventory(filters?: InventoryFilters): Observable<Inventory[]> {
     let params = new HttpParams();
     if (filters?.almacen_id) params = params.set('almacen_id', filters.almacen_id.toString());
-    if (filters?.category) params = params.set('category', filters.category.toString());
+    if (filters?.category)   params = params.set('category',   filters.category.toString());
+    if (filters?.search)     params = params.set('search',     filters.search);
+    if (filters?.talla)      params = params.set('talla',      filters.talla);
+    if (filters?.color)      params = params.set('color',      filters.color);
     return this.http.get<Inventory[]>(this.apiUrl, { params });
   }
 

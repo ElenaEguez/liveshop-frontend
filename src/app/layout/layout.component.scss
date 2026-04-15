@@ -163,6 +163,27 @@ $sidenav-w:    230px;
   }
 
   @media (max-width: 480px) {
-    padding: 12px;
+    padding: 10px;
+  }
+}
+
+// ── MOBILE TABLE OVERRIDES ────────────────────────────────
+@media (max-width: 600px) {
+  .app-toolbar {
+    .vendor-badge {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      padding: 4px 10px;
+    }
+    .page-title {
+      font-size: 15px;
+    }
+  }
+
+  // Make Material tables scroll horizontally on small screens
+  mat-table, table[mat-table] {
+    min-width: auto;
   }
 }

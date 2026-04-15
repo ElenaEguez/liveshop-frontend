@@ -52,14 +52,14 @@ export class OrderListComponent implements OnInit, OnDestroy {
     'total_price', 'status', 'created_at', 'actions'
   ];
 
-  statusOptions: { value: OrderStatus | ''; label: string }[] = [
-    { value: '',          label: 'Todos'      },
-    { value: 'pending',   label: 'Pendiente'  },
-    { value: 'confirmed', label: 'Confirmado' },
-    { value: 'paid',      label: 'Pagado'     },
-    { value: 'recibido',  label: 'Recibido'   },
-    { value: 'delivered', label: 'Entregado'  },
-    { value: 'cancelled', label: 'Cancelado'  }
+  statusOptions: { value: OrderStatus | ''; label: string; icon: string }[] = [
+    { value: '',          label: 'Todos',               icon: 'list_alt'        },
+    { value: 'pending',   label: 'Sin comprobante',     icon: 'hourglass_empty' },
+    { value: 'confirmed', label: 'Comprobante enviado', icon: 'receipt'         },
+    { value: 'paid',      label: 'Pago verificado',     icon: 'verified'        },
+    { value: 'recibido',  label: 'Recibido',            icon: 'inventory'       },
+    { value: 'delivered', label: 'Entregado',           icon: 'local_shipping'  },
+    { value: 'cancelled', label: 'Cancelado',           icon: 'cancel'          }
   ];
 
   private subs = new Subscription();
@@ -250,14 +250,26 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      pending:   'Pendiente',
-      confirmed: 'Confirmado',
-      paid:      'Pagado',
+      pending:   'Sin comprobante',
+      confirmed: 'Comprobante enviado',
+      paid:      'Pago verificado',
       recibido:  'Recibido',
       delivered: 'Entregado',
       cancelled: 'Cancelado'
     };
     return map[status] ?? status;
+  }
+
+  getStatusIcon(status: string): string {
+    const map: Record<string, string> = {
+      pending:   'hourglass_empty',
+      confirmed: 'receipt',
+      paid:      'verified',
+      recibido:  'inventory',
+      delivered: 'local_shipping',
+      cancelled: 'cancel'
+    };
+    return map[status] ?? 'help_outline';
   }
 
   getStatusBg(status: string): string {

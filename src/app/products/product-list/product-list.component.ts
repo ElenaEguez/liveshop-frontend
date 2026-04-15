@@ -11,12 +11,20 @@ import { ProductFormComponent } from '../product-form/product-form.component';
   styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
-  products: Product[] = []; 
+  products: Product[] = [];
   categories: Category[] = [];
+  availableTallas: string[] = [];
+  availableColors: string[] = [];
+
   currentPage = 1;
-  totalPages = 1;
-  searchControl = new FormControl('');
-  categoryControl = new FormControl('');
+  totalItems = 0;
+  pageSize = 10;
+
+  searchControl    = new FormControl('');
+  categoryControl  = new FormControl('');
+  tallaControl     = new FormControl('');
+  colorControl     = new FormControl('');
+
   displayedColumns: string[] = ['name', 'price', 'stock', 'category', 'status', 'actions'];
 
   constructor(
@@ -26,39 +34,70 @@ export class ProductListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCategories();
+    this.loadVariantOptions();
     this.loadProducts();
 
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
-    ).subscribe(() => this.loadProducts());
+    ).subscribe(() => { this.currentPage = 1; this.loadProducts(); });
 
-    this.categoryControl.valueChanges.subscribe(() => this.loadProducts());
+    this.categoryControl.valueChanges.subscribe(() => { this.currentPage = 1; this.loadProducts(); });
+    this.tallaControl.valueChanges.subscribe(() => { this.currentPage = 1; this.loadProducts(); });
+    this.colorControl.valueChanges.subscribe(() => { this.currentPage = 1; this.loadProducts(); });
   }
 
-loadProducts(): void {
-  const search = this.searchControl.value || undefined;
-  const category = this.categoryControl.value ? Number(this.categoryControl.value) : undefined;
-  this.productService.getProducts(this.currentPage, search, category).subscribe(
-    (response: any) => {
-      // Maneja tanto array directo como respuesta paginada
-      if (Array.isArray(response)) {
-        this.products = response;
-        this.totalPages = 1;
-      } else {
-        this.products = response.results || [];
-        this.totalPages = Math.ceil((response.count || 0) / 10);
-      }
-    },
-    error => console.error('Error loading products:', error)
-  );
-}
+  loadProducts(): void {
+    const search   = this.searchControl.value   || undefined;
+    const category = this.categoryControl.value  ? Number(this.categoryControl.value) : undefined;
+    const talla    = this.tallaControl.value     || undefined;
+    const color    = this.colorControl.value     || undefined;
+
+    this.productService.getProducts(this.currentPage, search, category, talla, color).subscribe(
+      (response: any) => {
+        if (Array.isArray(response)) {
+          this.products   = response;
+          this.totalItems = response.length;
+        } else {
+          this.products   = response.results || [];
+          this.totalItems = response.count   || 0;
+        }
+      },
+      error => console.error('Error loading products:', error)
+    );
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalItems / this.pageSize);
+  }
 
   loadCategories(): void {
     this.productService.getCategories().subscribe(
       categories => this.categories = categories,
       error => console.error('Error loading categories:', error)
     );
+  }
+
+  loadVariantOptions(): void {
+    this.productService.getAllVariantOptions().subscribe({
+      next: opts => {
+        this.availableTallas = opts.tallas;
+        this.availableColors = opts.colors;
+      },
+      error: () => {}
+    });
+  }
+
+  clearFilters(): void {
+    this.searchControl.setValue('');
+    this.categoryControl.setValue('');
+    this.tallaControl.setValue('');
+    this.colorControl.setValue('');
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(this.searchControl.value || this.categoryControl.value ||
+              this.tallaControl.value  || this.colorControl.value);
   }
 
   openProductForm(product?: Product): void {

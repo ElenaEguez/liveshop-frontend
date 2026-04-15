@@ -1,0 +1,162 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-card {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.info-card .label {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.info-card .value {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.info-card .sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.amount-value {
+  font-weight: 700;
+  color: #db0000;
+  font-size: 1.2rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.receipt-section label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.receipt-img {
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  cursor: zoom-in;
+  object-fit: contain;
+  transition: max-height 0.2s;
+  display: block;
+  margin: 0 auto;
+}
+
+.receipt-hint {
+  text-align: center;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+.no-receipt {
+  text-align: center;
+  padding: 28px;
+  background: #f9fafb;
+  border-radius: 8px;
+  color: #9ca3af;
+}
+
+.notes-section label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.notes-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.notes-textarea:focus {
+  border-color: #db0000;
+}
+
+.notes-readonly {
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid #f3f4f6;
+  flex-shrink: 0;
+  background: white;
+}

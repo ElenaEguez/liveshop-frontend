@@ -11,14 +11,34 @@
 
   <!-- Filtros -->
   <div class="filter-bar">
+    <!-- Búsqueda -->
+    <mat-form-field appearance="outline" class="filter-field filter-search">
+      <mat-label>Buscar producto</mat-label>
+      <input matInput [formControl]="searchControl" placeholder="Nombre, código...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Categoría</mat-label>
       <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange()">
         <mat-option [value]="null">Todas</mat-option>
-        <mat-option *ngFor="let cat of categories" [value]="cat.id">
-          <mat-icon style="font-size:16px;vertical-align:middle;margin-right:4px;">filter_list</mat-icon>
-          {{ cat.name }}
-        </mat-option>
+        <mat-option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="availableTallas.length">
+      <mat-label>Talla</mat-label>
+      <mat-select [(ngModel)]="selectedTalla" (selectionChange)="onTallaChange()">
+        <mat-option value="">Todas</mat-option>
+        <mat-option *ngFor="let t of availableTallas" [value]="t">{{ t }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="availableColors.length">
+      <mat-label>Color</mat-label>
+      <mat-select [(ngModel)]="selectedColor" (selectionChange)="onColorChange()">
+        <mat-option value="">Todos</mat-option>
+        <mat-option *ngFor="let c of availableColors" [value]="c">{{ c }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -40,7 +60,7 @@
 
     <button *ngIf="hasActiveFilters" mat-stroked-button (click)="clearFilters()"
             style="height:48px; color:#6b7280; border-color:#d1d5db;">
-      <mat-icon>clear</mat-icon> Limpiar filtros
+      <mat-icon>clear</mat-icon> Limpiar
     </button>
   </div>
 

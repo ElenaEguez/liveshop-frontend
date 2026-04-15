@@ -1037,3 +1037,90 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
     background: $red-light;
   }
 }
+
+// ── MOBILE RESPONSIVE ────────────────────────────────────
+@media (max-width: 600px) {
+  .live-hero {
+    padding: 16px 14px 20px;
+  }
+
+  .hero-title {
+    font-size: 1.3rem !important;
+  }
+
+  .hero-shop {
+    font-size: 0.82rem;
+  }
+
+  .main-content {
+    padding: 0 10px 80px;
+    gap: 12px;
+  }
+
+  .section-card {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  .product-card {
+    border-radius: 10px;
+  }
+
+  .product-name {
+    font-size: 0.82rem;
+  }
+
+  .product-price {
+    font-size: 0.9rem;
+  }
+
+  .detail-card {
+    padding: 14px;
+  }
+
+  .qty-control {
+    gap: 12px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px 16px;
+  }
+
+  // Cart panel full-screen on mobile
+  .cart-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh !important;
+  }
+
+  // Forms
+  mat-form-field {
+    font-size: 14px;
+  }
+
+  // Confirmation screen
+  .confirm-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .product-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+

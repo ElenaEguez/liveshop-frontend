@@ -1,57 +1,54 @@
-<div style="padding:0;">
+<!-- Modal: Verificar / Ver Pago -->
+<div style="display:flex; flex-direction:column; max-height:90vh; overflow:hidden;">
 
   <!-- Header -->
-  <div style="display:flex; align-items:center; justify-content:space-between;
-              padding:20px 24px 16px; border-bottom:1px solid #f3f4f6;">
-    <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:#111827;">
-      {{ isPending ? 'Verificar Pago' : 'Detalle del Pago' }}
-    </h2>
-    <button mat-icon-button (click)="close()" style="color:#6b7280;">
+  <div class="modal-header">
+    <h2>{{ isPending ? 'Verificar Pago' : 'Detalle del Pago' }}</h2>
+    <button mat-icon-button (click)="close()" style="color:#6b7280;" matTooltip="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <div style="padding:24px; display:flex; flex-direction:column; gap:20px;">
+  <!-- Body (scrollable) -->
+  <div class="modal-body">
 
-    <!-- Info del pago -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <!-- Info grid -->
+    <div class="info-grid">
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Cliente</div>
-        <div style="font-weight:600; color:#111827;">{{ payment.customer_name }}</div>
-        <div style="font-size:0.82rem; color:#6b7280;">{{ payment.customer_phone }}</div>
+      <div class="info-card">
+        <div class="label">Cliente</div>
+        <div class="value">{{ payment.customer_name }}</div>
+        <div class="sub">{{ payment.customer_phone }}</div>
       </div>
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Producto / Live</div>
-        <div style="font-weight:600; color:#111827;">{{ payment.product_name }}</div>
-        <div style="font-size:0.82rem; color:#6b7280;">{{ payment.session_title }}</div>
+      <div class="info-card">
+        <div class="label">Producto / Live</div>
+        <div class="value">{{ payment.product_name }}</div>
+        <div class="sub">{{ payment.session_title }}</div>
       </div>
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Monto</div>
-        <div style="font-weight:700; color:#db0000; font-size:1.1rem;">
-          Bs. {{ payment.amount | number:'1.2-2' }}
-        </div>
+      <div class="info-card">
+        <div class="label">Monto</div>
+        <div class="amount-value">Bs. {{ payment.amount | number:'1.2-2' }}</div>
       </div>
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Método de pago</div>
-        <div style="font-weight:600; color:#111827;">{{ getMethodLabel(payment.payment_method) }}</div>
+      <div class="info-card">
+        <div class="label">Método de pago</div>
+        <div class="value">{{ getMethodLabel(payment.payment_method) }}</div>
       </div>
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Estado</div>
-        <span [style.background]="getStatusBg(payment.status)"
-              [style.color]="getStatusColor(payment.status)"
-              style="padding:3px 10px; border-radius:20px; font-size:0.82rem; font-weight:600;">
+      <div class="info-card">
+        <div class="label">Estado</div>
+        <span class="status-badge"
+              [style.background]="getStatusBg(payment.status)"
+              [style.color]="getStatusColor(payment.status)">
           {{ getStatusLabel(payment.status) }}
         </span>
       </div>
 
-      <div style="background:#f9fafb; border-radius:8px; padding:12px;">
-        <div style="font-size:0.75rem; color:#6b7280; margin-bottom:4px;">Referencia del cliente</div>
-        <div style="font-weight:500; color:#374151;">
+      <div class="info-card">
+        <div class="label">Referencia del cliente</div>
+        <div class="value" style="font-weight:500; color:#374151;">
           {{ payment.customer_reference || '—' }}
         </div>
       </div>
@@ -59,82 +56,61 @@
     </div>
 
     <!-- Comprobante -->
-    <div>
-      <div style="font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:10px;">
-        Comprobante de pago
-      </div>
+    <div class="receipt-section">
+      <label>Comprobante de pago</label>
 
-      <div *ngIf="receiptUrl; else noReceipt"
-           style="text-align:center;">
+      <ng-container *ngIf="receiptUrl; else noReceipt">
         <img [src]="receiptUrl"
+             class="receipt-img"
              (click)="imageExpanded = !imageExpanded"
-             [style.maxHeight]="imageExpanded ? 'none' : '260px'"
-             style="max-width:100%; border-radius:10px; border:1px solid #e5e7eb;
-                    cursor:zoom-in; object-fit:contain; transition:max-height .2s;"
+             [style.maxHeight]="imageExpanded ? 'none' : '240px'"
              [matTooltip]="imageExpanded ? 'Clic para reducir' : 'Clic para ampliar'">
-        <div style="margin-top:6px; font-size:0.75rem; color:#9ca3af;">
-          {{ imageExpanded ? 'Clic para reducir' : 'Clic para ampliar' }}
-        </div>
-      </div>
-
+        <div class="receipt-hint">{{ imageExpanded ? 'Clic para reducir' : 'Clic para ampliar' }}</div>
+      </ng-container>
       <ng-template #noReceipt>
-        <div style="text-align:center; padding:32px; background:#f9fafb;
-                    border-radius:8px; color:#9ca3af;">
-          <mat-icon style="font-size:40px; width:40px; height:40px;">image_not_supported</mat-icon>
+        <div class="no-receipt">
+          <mat-icon style="font-size:36px; width:36px; height:36px;">image_not_supported</mat-icon>
           <p style="margin:8px 0 0; font-size:0.875rem;">Sin comprobante adjunto</p>
         </div>
       </ng-template>
     </div>
 
-    <!-- Notas del vendedor -->
-    <div *ngIf="isPending || payment.vendor_notes">
-      <div style="font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:8px;">
-        Notas del vendedor
-      </div>
-      <textarea
-        *ngIf="isPending"
-        [formControl]="notesControl"
-        placeholder="Observaciones opcionales (ej: número de transacción, motivo de rechazo...)"
-        rows="3"
-        style="width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px;
-               font-size:0.875rem; color:#374151; resize:vertical; box-sizing:border-box;
-               font-family:inherit; outline:none;">
+    <!-- Notas -->
+    <div class="notes-section" *ngIf="isPending || payment.vendor_notes">
+      <label>Notas del vendedor</label>
+      <textarea *ngIf="isPending"
+                class="notes-textarea"
+                [formControl]="notesControl"
+                rows="3"
+                placeholder="Número de transacción, motivo de rechazo, observaciones...">
       </textarea>
-      <div *ngIf="!isPending && payment.vendor_notes"
-           style="padding:10px 12px; background:#f9fafb; border-radius:8px;
-                  font-size:0.875rem; color:#374151;">
+      <div *ngIf="!isPending && payment.vendor_notes" class="notes-readonly">
         {{ payment.vendor_notes }}
       </div>
     </div>
 
   </div>
 
-  <!-- Acciones -->
-  <div style="display:flex; justify-content:flex-end; gap:12px;
-              padding:16px 24px; border-top:1px solid #f3f4f6;">
-
+  <!-- Footer -->
+  <div class="modal-footer">
     <button mat-stroked-button (click)="close()" [disabled]="loading">
       {{ isPending ? 'Cancelar' : 'Cerrar' }}
     </button>
 
     <ng-container *ngIf="isPending">
-      <button mat-stroked-button color="warn"
-              (click)="reject()"
-              [disabled]="loading"
+      <button mat-stroked-button (click)="reject()" [disabled]="loading"
               style="border-color:#dc2626; color:#dc2626;">
         <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">cancel</mat-icon>
         Rechazar
       </button>
 
-      <button mat-raised-button color="primary"
-              (click)="confirm()"
-              [disabled]="loading"
+      <button mat-raised-button (click)="confirm()" [disabled]="loading"
               style="background:#166534; color:white;">
-        <mat-icon style="font-size:18px; width:18px; height:18px; margin-right:4px;">check_circle</mat-icon>
+        <mat-icon *ngIf="!loading" style="font-size:18px; width:18px; height:18px; margin-right:4px;">check_circle</mat-icon>
+        <mat-spinner *ngIf="loading" [diameter]="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
         {{ loading ? 'Procesando...' : 'Confirmar Pago' }}
       </button>
     </ng-container>
-
   </div>
 
 </div>

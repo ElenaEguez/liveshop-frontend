@@ -19,18 +19,23 @@ export class OrderDetailComponent {
   saving = false;
 
   // Status flow: pending → confirmed → paid → recibido → delivered
+  // pending   = order placed, no payment proof yet
+  // confirmed = client sent payment proof
+  // paid      = vendor verified the payment
+  // recibido  = client confirmed receipt
+  // delivered = vendor marked as delivered
   private transitions: Partial<Record<OrderStatus, StatusAction[]>> = {
     pending: [
-      { label: 'Confirmar', next: 'confirmed', color: 'primary' },
-      { label: 'Cancelar',  next: 'cancelled', color: 'warn'    }
+      { label: 'Confirmar pedido', next: 'confirmed', color: 'primary' },
+      { label: 'Cancelar',         next: 'cancelled', color: 'warn'    }
     ],
     confirmed: [
-      { label: 'Marcar recibido', next: 'recibido',  color: 'primary' },
-      { label: 'Cancelar',        next: 'cancelled', color: 'warn'    }
+      { label: 'Marcar entregado', next: 'delivered', color: 'primary' },
+      { label: 'Cancelar',         next: 'cancelled', color: 'warn'    }
     ],
     paid: [
-      { label: 'Confirmar pago',  next: 'recibido',  color: 'primary' },
-      { label: 'Rechazar pago',   next: 'cancelled', color: 'warn'    }
+      { label: 'Marcar entregado', next: 'delivered', color: 'primary' },
+      { label: 'Cancelar',         next: 'cancelled', color: 'warn'    }
     ],
     recibido: [
       { label: 'Marcar entregado', next: 'delivered', color: '' }
@@ -90,14 +95,32 @@ export class OrderDetailComponent {
   // ── Status helpers ────────────────────────────────────────────────
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      pending:   'Pendiente',
-      confirmed: 'Confirmado',
-      paid:      'Pagado',
-      recibido:  'Recibido',
+      pending:   'Sin comprobante',
+      confirmed: 'Comprobante enviado',
+      paid:      'Pago verificado',
+      recibido:  'Recibido por cliente',
       delivered: 'Entregado',
       cancelled: 'Cancelado'
     };
     return map[status] ?? status;
+  }
+
+  // Status pipeline for visual progress
+  readonly statusPipeline = ['pending', 'confirmed', 'paid', 'delivered'];
+
+  getStepIndex(status: string): number {
+    if (status === 'recibido') return 3;
+    return this.statusPipeline.indexOf(status);
+  }
+
+  getStepLabel(s: string): string {
+    const m: Record<string, string> = {
+      pending:   'Sin comprobante',
+      confirmed: 'Comprobante enviado',
+      paid:      'Pago verificado',
+      delivered: 'Entregado'
+    };
+    return m[s] ?? s;
   }
 
   getStatusBg(status: string): string {

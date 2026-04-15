@@ -256,3 +256,46 @@ mat-sidenav-content {
   justify-content: center;
   padding: 32px;
 }
+
+// ── RESPONSIVE GLOBAL ────────────────────────────────────────
+@media (max-width: 768px) {
+  // Tables scroll horizontally instead of overflowing
+  .mat-mdc-table-container,
+  .mat-table {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+  }
+
+  // Dialog full-width on mobile
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+  }
+
+  // Reduce paginator text on small screens
+  .mat-mdc-paginator-range-label {
+    font-size: 0.75rem;
+  }
+
+  // Forms take full width
+  mat-form-field {
+    width: 100%;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.4rem !important;
+  }
+
+  // Stacked filter bars
+  .filter-bar {
+    flex-direction: column;
+  }
+
+  .filter-field {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}

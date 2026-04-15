@@ -122,6 +122,35 @@
     </div>
   </div>
 
+  <!-- Progress pipeline -->
+  <div *ngIf="order.status !== 'cancelled'"
+       style="margin-bottom:16px; background:#f9fafb; border-radius:10px; padding:14px 16px;">
+    <div style="font-size:0.72rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;">
+      Progreso del pedido
+    </div>
+    <div style="display:flex; align-items:center; gap:0;">
+      <ng-container *ngFor="let step of statusPipeline; let i = index; let last = last">
+        <!-- Step circle -->
+        <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+          <div [style.background]="getStepIndex(order.status) >= i ? '#db0000' : '#e5e7eb'"
+               [style.color]="getStepIndex(order.status) >= i ? 'white' : '#9ca3af'"
+               style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center;
+                      justify-content:center; font-size:0.75rem; font-weight:700; transition:all 0.2s;">
+            {{ i + 1 }}
+          </div>
+          <div style="font-size:0.65rem; text-align:center; margin-top:4px; max-width:64px; color:#6b7280; line-height:1.2;">
+            {{ getStepLabel(step) }}
+          </div>
+        </div>
+        <!-- Connector line -->
+        <div *ngIf="!last"
+             [style.background]="getStepIndex(order.status) > i ? '#db0000' : '#e5e7eb'"
+             style="flex:1; height:3px; margin-bottom:20px; transition:background 0.2s; min-width:12px;">
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
   <!-- Acciones de estado -->
   <div *ngIf="actions.length > 0" style="margin-top:4px;">
     <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">
