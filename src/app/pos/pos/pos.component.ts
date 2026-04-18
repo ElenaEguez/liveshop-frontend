@@ -62,6 +62,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   cuponError = '';
   cuponLoading = false;
 
+  // ── Selector de variante (modal POS) ──────────────────────────────────────
+  mostrarSelectorVariante = false;
+  productoParaVariante: ProductoPOS | null = null;
+
   // ── Estado UI ──────────────────────────────────────────────────────────────
   cobrando = false;
   vendorName = 'Mi Tienda';
@@ -298,11 +302,24 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
+    // Si no se especificó variante y el producto tiene variantes, abrir selector
+    if (variant === null && product.variantes && product.variantes.length > 0) {
+      this.productoParaVariante = product;
+      this.mostrarSelectorVariante = true;
+      this.searchResults = [];
+      this.scanResult = null;
+      this.searchCtrl.setValue('', { emitEvent: false });
+      return;
+    }
+
     const existing = this.carrito.find(
       c => Number(c.product.id) === Number(product.id) &&
            (c.variant?.id ?? null) === (variant?.id ?? null),
     );
-    const stockDisp = product.stock_disponible;
+    // Usa stock de variante si tiene stock propio; si no, usa stock del producto
+    const stockDisp = (variant && variant.stock_extra > 0)
+      ? variant.stock_extra
+      : product.stock_disponible;
     const cantActual = existing ? existing.cantidad : 0;
 
     if (cantActual >= stockDisp) {
@@ -330,9 +347,27 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
   }
 
+  confirmarVariante(variante: ProductVariantPOS): void {
+    if (!this.productoParaVariante) return;
+    const stockDisp = (variante.stock_extra > 0)
+      ? variante.stock_extra
+      : this.productoParaVariante.stock_disponible;
+    if (stockDisp <= 0) {
+      this.snack.open('Esta variante está agotada', 'OK', { duration: 2000 });
+      return;
+    }
+    this.mostrarSelectorVariante = false;
+    this.agregarProducto(this.productoParaVariante, variante);
+    this.productoParaVariante = null;
+    setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
+  }
+
   incrementar(item: CartItem): void {
-    if (item.cantidad >= item.product.stock_disponible) {
-      this.snack.open(`Stock máximo: ${item.product.stock_disponible}`, 'OK', {
+    const stockDisp = (item.variant && item.variant.stock_extra > 0)
+      ? item.variant.stock_extra
+      : item.product.stock_disponible;
+    if (item.cantidad >= stockDisp) {
+      this.snack.open(`Stock máximo: ${stockDisp}`, 'OK', {
         duration: 2000, panelClass: 'snack-error',
       });
       return;

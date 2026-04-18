@@ -1,3 +1,39 @@
+<!-- ══ MODAL: Selector de variante POS ══════════════════════════════════════ -->
+<ng-container *ngIf="mostrarSelectorVariante && productoParaVariante">
+  <!-- Overlay -->
+  <div class="variante-overlay" (click)="mostrarSelectorVariante = false; productoParaVariante = null"></div>
+
+  <!-- Modal -->
+  <div class="variante-modal">
+    <div class="variante-modal-header">
+      <h3>{{ productoParaVariante.name }}</h3>
+      <p>Seleccioná la variante a vender</p>
+    </div>
+
+    <div class="variante-modal-grid">
+      <button *ngFor="let v of productoParaVariante.variantes"
+              class="variante-modal-btn"
+              [class.agotada]="(v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0"
+              [disabled]="(v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0"
+              (click)="confirmarVariante(v)">
+        <span class="variante-modal-label">
+          {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
+        </span>
+        <span class="variante-modal-stock">
+          {{ (v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0
+             ? 'Agotado'
+             : (v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) + ' en stock' }}
+        </span>
+      </button>
+    </div>
+
+    <button class="variante-modal-cancel"
+            (click)="mostrarSelectorVariante = false; productoParaVariante = null">
+      Cancelar
+    </button>
+  </div>
+</ng-container>
+
 <div class="pos-shell">
 
   <!-- ══ COLUMNA IZQUIERDA ══════════════════════════════════════════════════ -->
@@ -135,18 +171,6 @@
           </mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="descuento">
-          <mat-header-cell *matHeaderCellDef>Desc.</mat-header-cell>
-          <mat-cell *matCellDef="let item">
-            <input class="price-input discount-item-input"
-                   type="number"
-                   [(ngModel)]="item.descuento_unitario"
-                   min="0"
-                   [max]="item.precio_unitario"
-                   placeholder="0">
-          </mat-cell>
-        </ng-container>
-
         <ng-container matColumnDef="subtotal">
           <mat-header-cell *matHeaderCellDef>Subt.</mat-header-cell>
           <mat-cell *matCellDef="let item">
@@ -163,8 +187,8 @@
           </mat-cell>
         </ng-container>
 
-        <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','descuento','subtotal','accion']"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','descuento','subtotal','accion'];"></mat-row>
+        <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','subtotal','accion']"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','subtotal','accion'];"></mat-row>
       </mat-table>
 
       <!-- Footer del carrito -->

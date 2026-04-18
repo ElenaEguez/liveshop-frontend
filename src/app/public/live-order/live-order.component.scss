@@ -349,15 +349,32 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
   }
 }
 
+.variant-hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0 0;
+}
+
 .variant-hint {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
   color: $red;
-  margin: 10px 0 0;
+  margin: 0;
 
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.variant-stock-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: $text-muted;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
 }
 
 // ── ORDER FORM ───────────────────────────────────────────

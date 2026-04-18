@@ -124,10 +124,16 @@
               <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
             </button>
           </div>
-          <p *ngIf="!selectedVariant" class="variant-hint">
-            <mat-icon>info_outline</mat-icon>
-            Seleccioná una variante para continuar
-          </p>
+          <div class="variant-hint-row">
+            <p *ngIf="!selectedVariant" class="variant-hint">
+              <mat-icon>info_outline</mat-icon>
+              Seleccioná una variante para continuar
+            </p>
+            <span *ngIf="selectedVariant && maxStock > 0" class="variant-stock-info">
+              <mat-icon>inventory_2</mat-icon>
+              {{ maxStock }} disponibles
+            </span>
+          </div>
         </div>
       </div>
 
@@ -411,10 +417,16 @@
                 <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
               </button>
             </div>
-            <p *ngIf="!selectedVariant" class="variant-hint">
-              <mat-icon>info_outline</mat-icon>
-              Seleccioná una variante para continuar
-            </p>
+            <div class="variant-hint-row">
+              <p *ngIf="!selectedVariant" class="variant-hint">
+                <mat-icon>info_outline</mat-icon>
+                Seleccioná una variante para continuar
+              </p>
+              <span *ngIf="selectedVariant && maxStock > 0" class="variant-stock-info">
+                <mat-icon>inventory_2</mat-icon>
+                {{ maxStock }} disponibles
+              </span>
+            </div>
           </div>
 
           <!-- Qty + Add to cart button -->
