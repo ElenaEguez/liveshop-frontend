@@ -69,7 +69,7 @@
         </div>
 
         <div class="products-grid">
-          <div *ngFor="let product of products"
+          <div *ngFor="let product of products; trackBy: trackByProductId"
                class="product-card"
                [class.selected]="selectedProduct?.id === product.id"
                (click)="selectProduct(product)">
@@ -356,7 +356,7 @@
             <h2 class="step-title">Elegí tus productos</h2>
           </div>
           <div class="products-grid">
-            <div *ngFor="let product of products"
+            <div *ngFor="let product of products; trackBy: trackByProductId"
                  class="product-card"
                  [class.selected]="selectedProduct?.id === product.id"
                  (click)="selectProduct(product)">

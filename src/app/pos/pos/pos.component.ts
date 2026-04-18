@@ -299,7 +299,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
     const existing = this.carrito.find(
-      c => c.product.id === product.id && (c.variant?.id ?? null) === (variant?.id ?? null),
+      c => Number(c.product.id) === Number(product.id) &&
+           (c.variant?.id ?? null) === (variant?.id ?? null),
     );
     const stockDisp = product.stock_disponible;
     const cantActual = existing ? existing.cantidad : 0;

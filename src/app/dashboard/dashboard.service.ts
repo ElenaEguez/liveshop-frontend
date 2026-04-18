@@ -117,7 +117,7 @@ export class DashboardService {
     if (params.category_id != null) {
       httpParams = httpParams.set('category_id', String(params.category_id));
     }
-    if (params.canal && params.canal !== 'todos') {
+    if (params.canal) {
       httpParams = httpParams.set('canal', params.canal);
     }
     return this.http.get<SalesDashboardData>(this.salesDashboardUrl, { params: httpParams });

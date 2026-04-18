@@ -100,11 +100,17 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   }
 
   get products(): any[] {
-    return this.session?.products || [];
+    const raw: any[] = this.session?.products || [];
+    return raw.filter((p: any, idx: number, arr: any[]) =>
+      arr.findIndex((x: any) => x.id === p.id) === idx
+    );
   }
 
   get maxStock(): number {
-    if (this.selectedVariant) return this.selectedVariant.stock;
+    if (this.selectedVariant) {
+      const vs = this.selectedVariant.stock;
+      if (vs != null && vs > 0) return vs;
+    }
     return this.selectedProduct?.available_quantity ?? this.selectedProduct?.stock ?? 1;
   }
 
@@ -373,13 +379,14 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     if (existingIdx >= 0) {
       const maxQ = this.maxStock;
       this.cart[existingIdx].quantity = Math.min(this.cart[existingIdx].quantity + qty, maxQ);
+      this.cart = [...this.cart];
     } else {
-      this.cart.push({
+      this.cart = [...this.cart, {
         product: this.selectedProduct,
         variant: this.selectedVariant,
         variantLabel: this.variantDetail,
         quantity: qty
-      });
+      }];
     }
 
     this.clearSelection();
@@ -511,6 +518,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
         this.snackBar.open(msg, 'Cerrar', { duration: 5000 });
       }
     });
+  }
+
+  trackByProductId(_: number, item: any): number {
+    return item.id;
   }
 
   private scrollToId(id: string): void {
