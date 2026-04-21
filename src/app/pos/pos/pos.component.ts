@@ -130,14 +130,29 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       this.metodosPago = m;
     });
 
-    // Búsqueda solo on enter (para escáner)
-    // El debounce se mantiene por si acaso, pero no muestra resultados automáticamente
+    // Búsqueda reactiva mientras se escribe (≥2 chars, 300ms debounce).
+    // El Enter del escáner sigue usando onSearchEnter() para el flujo de match exacto.
     this.searchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       takeUntil(this.destroy$),
     ).subscribe(q => {
-      // No hacer búsqueda automática, solo on enter
+      const term = q?.trim() ?? '';
+      if (term.length < 2) { this.searchResults = []; return; }
+      this.searching = true;
+      this.posService.buscarProducto(term).subscribe({
+        next: result => {
+          this.searching = false;
+          if (result.match === 'exact' && result.product) {
+            this.searchResults = [result.product];
+          } else if (result.match === 'partial' && result.products?.length) {
+            this.searchResults = result.products;
+          } else {
+            this.searchResults = [];
+          }
+        },
+        error: () => { this.searching = false; },
+      });
     });
   }
 
@@ -372,14 +387,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       return;
     }
-    item.cantidad++;
-    this.carrito = [...this.carrito];
+    // Crea nueva referencia del item para forzar detección de cambios en todos los browsers/devices
+    this.carrito = this.carrito.map(c => c === item ? { ...c, cantidad: c.cantidad + 1 } : c);
   }
 
   decrementar(item: CartItem): void {
     if (item.cantidad > 1) {
-      item.cantidad--;
-      this.carrito = [...this.carrito];
+      // Crea nueva referencia del item para forzar detección de cambios en todos los browsers/devices
+      this.carrito = this.carrito.map(c => c === item ? { ...c, cantidad: c.cantidad - 1 } : c);
     } else {
       this.eliminarItem(item);
     }

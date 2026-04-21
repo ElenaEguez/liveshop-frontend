@@ -83,8 +83,11 @@
       <mat-form-field appearance="outline" class="search-field"
         [class.scanner-focused]="scannerFocused">
         <mat-label>Buscar producto (nombre o código de barras)</mat-label>
+        <!-- type="search" + keydown.preventDefault evitan focus-jump en teclado mobile -->
         <input matInput #searchInput [formControl]="searchCtrl"
+               type="search"
                placeholder="Escribe o escanea..."
+               (keydown.enter)="$event.preventDefault()"
                (keyup.enter)="onSearchEnter()"
                (focus)="onSearchFocus()"
                (blur)="onSearchBlur()"
@@ -153,11 +156,12 @@
           <mat-header-cell *matHeaderCellDef>Cant.</mat-header-cell>
           <mat-cell *matCellDef="let item">
             <div class="qty-control">
-              <button mat-icon-button (click)="decrementar(item)">
+              <!-- type="button" evita que un posible form-parent lo interprete como submit en mobile -->
+              <button mat-icon-button type="button" (click)="decrementar(item)">
                 <mat-icon>remove</mat-icon>
               </button>
               <span class="qty-value">{{ item.cantidad }}</span>
-              <button mat-icon-button (click)="incrementar(item)">
+              <button mat-icon-button type="button" (click)="incrementar(item)">
                 <mat-icon>add</mat-icon>
               </button>
             </div>

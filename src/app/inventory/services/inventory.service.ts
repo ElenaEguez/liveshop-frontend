@@ -22,6 +22,7 @@ export interface KardexMovimiento {
   usuario_nombre: string | null;
   notas: string;
   created_at: string;
+  variant_name: string | null;
 }
 
 export interface PaginatedKardex {

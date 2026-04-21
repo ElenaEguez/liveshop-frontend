@@ -12,6 +12,9 @@
 .kd-content {
   width: 100%;
   max-width: 820px;
+  /* Limita altura y permite scroll interno para que el modal no quede cortado */
+  max-height: 80vh;
+  overflow-y: auto;
   padding: 0 4px;
   box-sizing: border-box;
   overflow-x: hidden;
@@ -53,7 +56,9 @@
 }
 
 .kd-table-wrap {
-  max-height: 400px;
+  /* Altura dinámica relativa al viewport para que quepan filtros + tabla en pantallas pequeñas */
+  max-height: calc(80vh - 260px);
+  min-height: 120px;
   overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
