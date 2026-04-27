@@ -16,6 +16,7 @@ import { MatSlideToggleModule }     from '@angular/material/slide-toggle';
 import { MatSnackBarModule }        from '@angular/material/snack-bar';
 import { MatTableModule }           from '@angular/material/table';
 import { MatTabsModule }            from '@angular/material/tabs';
+import { MatButtonToggleModule }    from '@angular/material/button-toggle';
 import { MatTooltipModule }         from '@angular/material/tooltip';
 
 import { PosRoutingModule }                    from './pos-routing.module';
@@ -60,6 +61,7 @@ import { ScannerConfigDialogComponent }        from './scanner-config-dialog/sca
     MatSnackBarModule,
     MatTableModule,
     MatTabsModule,
+    MatButtonToggleModule,
     MatTooltipModule,
   ],
 })

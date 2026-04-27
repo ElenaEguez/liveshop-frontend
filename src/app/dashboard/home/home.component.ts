@@ -15,12 +15,14 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 
 import {
+  DashboardData,
   DashboardService,
   MovimientoCaja,
   SalesByProduct,
   SalesDashboardData,
   SalesDashboardParams,
   VarianteVenta,
+  VentaMetodoPago,
 } from '../dashboard.service';
 import { Category, CategoryService } from '../../categories/services/category.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
@@ -56,6 +58,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Data ──────────────────────────────────────────────────────────────────
   salesData: SalesDashboardData | null = null;
+  vendorData: DashboardData | null = null;
   categories: Category[] = [];
 
   // ── Table ─────────────────────────────────────────────────────────────────
@@ -175,6 +178,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.error   = true;
         this.loading = false;
       }
+    });
+
+    const vendorPeriodo = this.selectedPeriod === 'day' ? 'today' : this.selectedPeriod;
+    this.dashboardService.getDashboardData(vendorPeriodo).subscribe({
+      next: data => (this.vendorData = data),
+      error: () => {}
     });
   }
 
@@ -332,6 +341,30 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get utilidadNetaPositiva(): boolean {
     return parseFloat(this.salesData?.utilidad_neta ?? '0') >= 0;
+  }
+
+  // ── Métodos de pago helpers ───────────────────────────────────────────────
+
+  get metodosPagoArray(): { nombre: string; monto: number; cantidad: number }[] {
+    const map = this.vendorData?.ventas_por_metodo_pago;
+    if (!map) return [];
+    return Object.entries(map)
+      .map(([nombre, v]) => ({ nombre, monto: v.monto, cantidad: v.cantidad }))
+      .sort((a, b) => b.monto - a.monto);
+  }
+
+  get maxMetodoMonto(): number {
+    const arr = this.metodosPagoArray;
+    return arr.length ? Math.max(...arr.map(m => m.monto)) || 1 : 1;
+  }
+
+  getMetodoIcon(nombre: string): string {
+    const n = nombre.toLowerCase();
+    if (n.includes('efectivo')) return 'payments';
+    if (n.includes('qr') || n.includes('tigo') || n.includes('billetera')) return 'qr_code';
+    if (n.includes('tarjeta') || n.includes('débito') || n.includes('crédito')) return 'credit_card';
+    if (n.includes('transfer')) return 'account_balance';
+    return 'attach_money';
   }
 
   // ── WebSocket ─────────────────────────────────────────────────────────────

@@ -29,7 +29,7 @@ export class InventoryListComponent implements OnInit {
 
   searchControl = new FormControl('');
 
-  displayedColumns = ['product_name', 'quantity', 'reserved_quantity', 'available_quantity', 'purchase_cost', 'margin', 'variantes', 'actions'];
+  displayedColumns = ['product_name', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'purchase_cost', 'margin', 'variantes', 'actions'];
 
   // Variant expansion state
   expandedProductId: number | null = null;

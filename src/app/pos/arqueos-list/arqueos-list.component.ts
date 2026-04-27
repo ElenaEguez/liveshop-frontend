@@ -10,9 +10,11 @@ export class ArqueosListComponent implements OnInit {
   turnos: TurnoCaja[] = [];
   loading = false;
   periodo = 'month';
+  semana: number | null = null;
   page = 1;
   pages = 1;
   count = 0;
+  expandedTurnoId: number | null = null;
 
   periodos = [
     { value: 'today', label: 'Hoy' },
@@ -21,7 +23,9 @@ export class ArqueosListComponent implements OnInit {
     { value: 'year',  label: 'Año' },
   ];
 
-  displayedColumns = ['fecha', 'caja', 'cajero', 'apertura', 'ventas', 'esperado', 'contado', 'diferencia', 'notas'];
+  semanas = [1, 2, 3, 4, 5];
+
+  displayedColumns = ['fecha', 'caja', 'cajero', 'apertura', 'ventas', 'metodos', 'esperado', 'contado', 'diferencia', 'notas'];
 
   constructor(private posService: PosService) {}
 
@@ -30,7 +34,7 @@ export class ArqueosListComponent implements OnInit {
   load(p = 1): void {
     this.loading = true;
     this.page = p;
-    this.posService.getArqueos(this.periodo, p).subscribe({
+    this.posService.getArqueos(this.periodo, p, 20, this.semana).subscribe({
       next: res => {
         this.turnos = res.results;
         this.count  = res.count;
@@ -41,7 +45,28 @@ export class ArqueosListComponent implements OnInit {
     });
   }
 
-  setPeriodo(v: string): void { this.periodo = v; this.load(1); }
+  setPeriodo(v: string): void {
+    this.periodo = v;
+    this.semana = null;
+    this.load(1);
+  }
+
+  setSemana(s: number | null): void {
+    this.semana = s;
+    this.load(1);
+  }
+
+  toggleExpand(t: TurnoCaja): void {
+    this.expandedTurnoId = this.expandedTurnoId === t.id ? null : t.id;
+  }
+
+  getMetodosArray(turno: TurnoCaja): { nombre: string; monto: number; cantidad: number }[] {
+    const map = turno.metodos_pago;
+    if (!map) return [];
+    return Object.entries(map)
+      .map(([nombre, v]) => ({ nombre, monto: v.monto, cantidad: v.cantidad }))
+      .sort((a, b) => b.monto - a.monto);
+  }
 
   diferenciaClass(turno: TurnoCaja): string {
     if (turno.diferencia_cierre === null || turno.diferencia_cierre === undefined) return '';

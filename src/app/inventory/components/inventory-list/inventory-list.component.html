@@ -105,6 +105,19 @@
         </td>
       </ng-container>
 
+      <!-- Columna Vendido (POS) -->
+      <ng-container matColumnDef="vendido">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Vendido (POS)</th>
+        <td mat-cell *matCellDef="let item">
+          <span *ngIf="item.vendido != null && item.vendido > 0"
+                style="background:#eff6ff; color:#1d4ed8; padding:4px 10px;
+                       border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ item.vendido }} uds.
+          </span>
+          <span *ngIf="!item.vendido" style="color:#9ca3af;">—</span>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="purchase_cost">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Costo de compra</th>
         <td mat-cell *matCellDef="let item">

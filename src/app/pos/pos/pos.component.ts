@@ -56,6 +56,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   plazoDias: number | null = null;
   notas = '';
 
+  // ── Canal de venta ─────────────────────────────────────────────────────────
+  canalVenta = 'TIENDA';
+  direccionEnvio = '';
+
+  get esEnvio(): boolean {
+    return ['DOMICILIO', 'INTERPROVINCIAL', 'NACIONAL'].includes(this.canalVenta);
+  }
+
   // ── Cupón ──────────────────────────────────────────────────────────────────
   cuponCodigo = '';
   cuponAplicado: { descuento: number; codigo: string } | null = null;
@@ -417,6 +425,30 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cuponAplicado = null;
     this.cuponError = '';
     this.selectedMetodo = null;
+    this.canalVenta = 'TIENDA';
+    this.direccionEnvio = '';
+  }
+
+  editarFondoInicial(): void {
+    if (!this.turnoActivo) return;
+    const fondoActual = this.turnoActivo.monto_apertura || '0';
+    const input = prompt(
+      `Fondo inicial actual: ${this.moneda} ${fondoActual}\nIngrese el nuevo monto:`,
+      fondoActual,
+    );
+    if (input === null) return;
+    const nuevoFondo = parseFloat(input);
+    if (isNaN(nuevoFondo) || nuevoFondo < 0) {
+      this.snack.open('Ingrese un monto válido (≥ 0)', '', { duration: 2500 });
+      return;
+    }
+    this.posService.editarFondo(this.turnoActivo.id, nuevoFondo).subscribe({
+      next: res => {
+        if (this.turnoActivo) this.turnoActivo.monto_apertura = res.fondo_inicial;
+        this.snack.open('Fondo inicial actualizado', '', { duration: 2000 });
+      },
+      error: () => this.snack.open('Error al actualizar el fondo', '', { duration: 3000 }),
+    });
   }
 
   // ── Cupón ───────────────────────────────────────────────────────────────────
@@ -503,6 +535,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       es_credito: this.esCredito,
       plazo_dias: this.esCredito ? this.plazoDias : null,
       notas: this.notas,
+      canal_venta: this.canalVenta,
+      direccion_envio: this.esEnvio ? this.direccionEnvio : null,
     };
 
     this.posService.crearVenta(payload).subscribe({

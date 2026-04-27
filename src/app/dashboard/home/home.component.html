@@ -266,6 +266,34 @@
       </div>
     </div>
 
+    <!-- ── VENTAS POR MÉTODO DE PAGO ─────────────────────────────────── -->
+    <div class="section-card" *ngIf="metodosPagoArray.length > 0">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">credit_card</mat-icon>
+        Ventas por método de pago
+      </h3>
+      <div class="chart-container">
+        <div *ngFor="let m of metodosPagoArray" class="bar-row">
+          <span class="bar-label">
+            <mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;">
+              {{ getMetodoIcon(m.nombre) }}
+            </mat-icon>
+            {{ m.nombre }}
+          </span>
+          <div class="bar-track">
+            <div class="bar-fill metodo-bar"
+                 [style.width.%]="(m.monto / maxMetodoMonto) * 100"
+                 [title]="'Bs. ' + m.monto + ' · ' + m.cantidad + ' ventas'">
+            </div>
+          </div>
+          <div class="bar-meta">
+            <span class="bar-value">Bs.&nbsp;{{ m.monto | number:'1.2-2' }}</span>
+            <span class="bar-orders">{{ m.cantidad }} venta{{ m.cantidad !== 1 ? 's' : '' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── FLUJO DE CAJA ─────────────────────────────────────────────── -->
     <div class="section-card flujo-caja-card"
          *ngIf="(+salesData.total_ingresos_caja > 0) || (+salesData.total_retiros_caja > 0)">

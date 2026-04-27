@@ -53,7 +53,12 @@
       <!-- Totales -->
       <div class="ticket-totals">
         <div class="ticket-total-row" *ngIf="+data.venta.descuento > 0">
-          <span>Descuento:</span>
+          <span>
+            Descuento
+            <ng-container *ngIf="data.venta.discount_percentage && +data.venta.discount_percentage > 0">
+              {{ data.venta.discount_percentage | number:'1.0-2' }}%
+            </ng-container>:
+          </span>
           <span>-{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.descuento | number:'1.2-2' }}</span>
         </div>
         <div class="ticket-total-row total-final">

@@ -44,6 +44,71 @@ h1 { margin: 0; font-size: 22px; font-weight: 700; }
   color: #888;
 }
 
+/* ── Semana bar ── */
+.semana-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  button { font-size: 12px; min-width: 44px; }
+  button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+}
+
+.semana-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* ── Métodos de pago cell ── */
+.metodos-cell {
+  min-width: 120px;
+}
+
+.expand-btn {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+.metodos-resumen {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+.metodos-desglose {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.metodo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.metodo-nombre {
+  color: #374151;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.metodo-monto {
+  color: #111827;
+  font-weight: 600;
+}
+
+.metodo-cant {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
 /* ── Loading ── */
 .loading-wrap {
   display: flex;

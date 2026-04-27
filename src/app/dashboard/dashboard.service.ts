@@ -4,11 +4,17 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // ── Legacy vendor summary (still used by WebSocket reconnect) ───────────────
+export interface VentaMetodoPago {
+  monto: number;
+  cantidad: number;
+}
+
 export interface DashboardData {
   total_active_products: number;
   monthly_sales: number;
   pending_orders: number;
   next_live: string | null;
+  ventas_por_metodo_pago?: { [nombre: string]: VentaMetodoPago };
 }
 
 // ── New sales-analytics dashboard ───────────────────────────────────────────
@@ -91,8 +97,9 @@ export class DashboardService {
 
   constructor(private http: HttpClient) {}
 
-  getDashboardData(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(this.vendorDashboardUrl);
+  getDashboardData(periodo = 'month'): Observable<DashboardData> {
+    const params = new HttpParams().set('periodo', periodo);
+    return this.http.get<DashboardData>(this.vendorDashboardUrl, { params });
   }
 
   getMovimientosCaja(period = 'today', page = 1, pageSize = 10): Observable<MovimientosCajaResponse> {

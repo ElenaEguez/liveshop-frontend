@@ -61,6 +61,14 @@
         <div class="turno-status" *ngIf="turnoActivo">
           <mat-icon class="icon-open">lock_open</mat-icon>
           <span>Caja abierta desde {{ turnoActivo.fecha_apertura | date:'HH:mm' }}</span>
+          <span style="font-size:11px; color:#666; margin-left:8px;">
+            Fondo: {{ moneda }} {{ turnoActivo.monto_apertura | number:'1.2-2' }}
+          </span>
+          <button mat-icon-button style="width:22px; height:22px; line-height:22px;"
+                  (click)="editarFondoInicial()"
+                  matTooltip="Editar fondo inicial">
+            <mat-icon style="font-size:14px; line-height:22px;">edit</mat-icon>
+          </button>
         </div>
         <div class="header-time">{{ now | date:'dd/MM/yyyy HH:mm:ss' }}</div>
       </div>
@@ -333,6 +341,24 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Notas</mat-label>
         <textarea matInput [(ngModel)]="notas" rows="2"></textarea>
+      </mat-form-field>
+    </div>
+
+    <!-- Canal de venta -->
+    <div class="right-section" style="padding: 8px 0;">
+      <p style="font-size:11px; color:#888; margin:0 0 6px; text-transform:uppercase; letter-spacing:0.5px;">Canal de venta</p>
+      <mat-button-toggle-group [(ngModel)]="canalVenta" name="canalVenta"
+                                style="flex-wrap:wrap; width:100%; font-size:12px;">
+        <mat-button-toggle value="TIENDA"         style="flex:1;">Tienda</mat-button-toggle>
+        <mat-button-toggle value="LIVE"           style="flex:1;">Live</mat-button-toggle>
+        <mat-button-toggle value="DOMICILIO"      style="flex:1;">Domicilio</mat-button-toggle>
+        <mat-button-toggle value="INTERPROVINCIAL" style="flex:1;">Interprov.</mat-button-toggle>
+        <mat-button-toggle value="NACIONAL"       style="flex:1;">Nacional</mat-button-toggle>
+      </mat-button-toggle-group>
+      <mat-form-field *ngIf="esEnvio" appearance="outline" style="width:100%; margin-top:8px;">
+        <mat-label>Dirección / Referencia de envío</mat-label>
+        <textarea matInput [(ngModel)]="direccionEnvio" name="direccionEnvio" rows="2"
+                  placeholder="Av. Principal #456, zona norte..."></textarea>
       </mat-form-field>
     </div>
 

@@ -42,6 +42,7 @@ export interface Inventory {
   available_quantity: number;
   purchase_cost: number | null;
   almacen: number | null;
+  vendido?: number;
 }
 
 export interface InventoryFilters {

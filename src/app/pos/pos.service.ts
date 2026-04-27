@@ -38,6 +38,7 @@ export interface TurnoCaja {
   fecha_cierre: string | null;
   total_ventas: string;
   notas_cierre?: string;
+  metodos_pago?: { [nombre: string]: { monto: number; cantidad: number } };
 }
 
 export interface MetodoPago {
@@ -112,6 +113,10 @@ export interface VentaPOS {
   metodo_pago_nombre: string | null;
   subtotal: string;
   descuento: string;
+  discount_percentage: string | null;
+  discount_type: string | null;
+  canal_venta: string;
+  direccion_envio: string | null;
   total: string;
   monto_recibido: string | null;
   vuelto: string | null;
@@ -147,6 +152,10 @@ export interface VentaPOSCreatePayload {
   metodo_pago_id?: number | null;
   items: { product_id: number; variant_id?: number | null; cantidad: number; precio_unitario: number }[];
   descuento?: number;
+  discount_percentage?: number | null;
+  discount_type?: string | null;
+  canal_venta?: string;
+  direccion_envio?: string | null;
   cupon_codigo?: string | null;
   monto_recibido?: number | null;
   es_credito?: boolean;
@@ -282,11 +291,19 @@ export class PosService {
     return this.http.get<TurnoResumen>(`${API}/pos/turnos/${turnoId}/resumen/`);
   }
 
-  getArqueos(periodo = 'month', page = 1, pageSize = 20): Observable<{ count: number; page: number; pages: number; results: TurnoCaja[] }> {
-    const params = new HttpParams()
+  editarFondo(turnoId: number, fondoInicial: number): Observable<{ fondo_inicial: string }> {
+    return this.http.patch<{ fondo_inicial: string }>(
+      `${API}/pos/turnos/${turnoId}/editar-fondo/`,
+      { fondo_inicial: fondoInicial },
+    );
+  }
+
+  getArqueos(periodo = 'month', page = 1, pageSize = 20, semana?: number | null): Observable<{ count: number; page: number; pages: number; results: TurnoCaja[] }> {
+    let params = new HttpParams()
       .set('periodo', periodo)
       .set('page', String(page))
       .set('page_size', String(pageSize));
+    if (semana != null) params = params.set('semana', String(semana));
     return this.http.get<{ count: number; page: number; pages: number; results: TurnoCaja[] }>(`${API}/pos/turnos/arqueos/`, { params });
   }
 

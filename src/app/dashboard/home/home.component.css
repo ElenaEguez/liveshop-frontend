@@ -264,6 +264,14 @@
   min-width: 4px;
 }
 
+.gasto-bar {
+  background: #f97316;
+}
+
+.metodo-bar {
+  background: #2563eb;
+}
+
 .bar-meta {
   display: flex;
   flex-direction: column;
