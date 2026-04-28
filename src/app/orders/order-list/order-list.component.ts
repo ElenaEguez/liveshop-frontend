@@ -82,9 +82,9 @@ export class OrderListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Handle ?status=paid query param (from dashboard "Por confirmar" card)
     const queryStatus = this.route.snapshot.queryParamMap.get('status');
-    if (queryStatus === 'paid' && this.canConfirmPayments) {
+    if ((queryStatus === 'paid' || queryStatus === 'confirmed') && this.canConfirmPayments) {
       this.activeTabIndex  = 1;
-      this.selectedStatus  = 'paid';
+      this.selectedStatus  = 'confirmed';
     }
 
     const querySession = this.route.snapshot.queryParamMap.get('session');
@@ -139,7 +139,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
   }
 
   private loadPendingCount(): void {
-    this.orderService.getOrders({ status: 'paid', page: 1, page_size: 1 }).subscribe({
+    this.orderService.getOrders({ status: 'confirmed', page: 1, page_size: 1 }).subscribe({
       next: res => (this.pendingConfirmationCount = res.count),
       error: ()  => {}
     });
@@ -155,7 +155,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   onTabChange(index: number): void {
     this.activeTabIndex  = index;
-    this.selectedStatus  = index === 1 ? 'paid' : '';
+    this.selectedStatus  = index === 1 ? 'confirmed' : '';
     this.currentPage     = 0;
     this.loadOrders();
   }
