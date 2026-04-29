@@ -10,7 +10,7 @@ export interface EditarFondoData {
   selector: 'app-editar-fondo-dialog',
   template: `
     <h2 mat-dialog-title style="margin:0 0 8px;">Editar fondo inicial</h2>
-    <mat-dialog-content style="padding: 0 0 8px; overflow-x: hidden;">
+    <mat-dialog-content style="padding: 0 0 8px; overflow: auto; max-height: 62vh;">
       <p style="font-size:13px; color:#6b7280; margin:0 0 12px;">
         Fondo actual: <strong>{{ data.moneda }} {{ data.fondoActual }}</strong>
       </p>
