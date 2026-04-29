@@ -35,27 +35,6 @@
             </mat-error>
           </mat-form-field>
 
-          <!-- Slug -->
-          <div style="position:relative;">
-            <mat-form-field appearance="outline" style="width:100%;">
-              <mat-label>Slug (URL de tu live)</mat-label>
-              <span matPrefix style="color:#6b7280; font-size:0.85rem; padding-right:2px;">liveshop.bo/live/</span>
-              <input matInput formControlName="slug" placeholder="mi-tienda">
-              <button mat-icon-button matSuffix type="button"
-                      matTooltip="Regenerar desde nombre"
-                      (click)="resetSlugFromName()">
-                <mat-icon style="font-size:18px; width:18px; height:18px;">refresh</mat-icon>
-              </button>
-              <mat-hint style="color:#6b7280;">Solo letras minúsculas, números y guiones</mat-hint>
-              <mat-error *ngIf="form.get('slug')?.hasError('required')">
-                El slug es requerido
-              </mat-error>
-              <mat-error *ngIf="form.get('slug')?.hasError('pattern')">
-                Solo letras minúsculas, números y guiones (ej: mi-tienda-2)
-              </mat-error>
-            </mat-form-field>
-          </div>
-
           <mat-form-field appearance="outline" style="width:100%;">
             <mat-label>Teléfono / WhatsApp</mat-label>
             <input matInput formControlName="phone" placeholder="+591 70000000">

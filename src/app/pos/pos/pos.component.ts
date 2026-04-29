@@ -228,6 +228,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     const ref = this.dialog.open(AbrirCajaDialogComponent, {
       width: '400px',
       disableClose: true,
+      data: {
+        sucursal_id: this.selectedSucursal,
+        caja_id: this.selectedCaja,
+      },
     });
     ref.afterClosed().subscribe(result => {
       if (result?.turno) {
@@ -441,9 +445,15 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       this.posService.editarFondo(this.turnoActivo.id, nuevoFondo).subscribe({
         next: res => {
           if (this.turnoActivo) this.turnoActivo.monto_apertura = res.fondo_inicial;
+          if (this.selectedCaja) {
+            this.posService.getTurnoActivo(this.selectedCaja).subscribe({
+              next: r => (this.turnoActivo = r.turno),
+              error: () => {},
+            });
+          }
           this.snack.open('Fondo inicial actualizado', '', { duration: 2000 });
         },
-        error: () => this.snack.open('Error al actualizar el fondo', '', { duration: 3000 }),
+        error: err => this.snack.open(err?.error?.error || 'Error al actualizar el fondo', '', { duration: 3000 }),
       });
     });
   }
@@ -510,7 +520,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Cobrar ──────────────────────────────────────────────────────────────────
 
   cobrar(): void {
-    if (this.carritoVacio || !this.selectedSucursal) return;
+    if (this.carritoVacio || !this.selectedSucursal || !this.selectedCaja || !this.turnoActivo) {
+      this.snack.open('Debes seleccionar caja y abrir turno antes de cobrar.', 'OK', { duration: 3000 });
+      return;
+    }
     this.cobrando = true;
 
     const payload = {

@@ -27,6 +27,7 @@ export class ArqueosListComponent implements OnInit {
   cajeros: CajeroOpcion[] = [];
   selectedSucursal: number | null = null;
   selectedCajero: number | null = null;
+  selectedMetodoPagoTipo: string | null = null;
 
   // Totales
   totalesPorCajero: TotalCajero[] = [];
@@ -59,7 +60,7 @@ export class ArqueosListComponent implements OnInit {
     this.page = p;
     this.posService.getArqueos(
       this.periodo, p, 20, this.semana,
-      this.selectedCajero, this.selectedSucursal,
+      this.selectedCajero, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         this.turnos            = res.results;
@@ -93,6 +94,7 @@ export class ArqueosListComponent implements OnInit {
 
   onSucursalChange(): void { this.selectedCajero = null; this.load(1); }
   onCajeroChange(): void   { this.load(1); }
+  onMetodoPagoChange(): void { this.load(1); }
 
   toggleExpand(t: TurnoCaja): void {
     this.expandedTurnoId = this.expandedTurnoId === t.id ? null : t.id;
@@ -143,7 +145,7 @@ export class ArqueosListComponent implements OnInit {
     // Descarga todos los registros del período
     this.posService.getArqueos(
       this.periodo, 1, 1000, this.semana,
-      this.selectedCajero, this.selectedSucursal,
+      this.selectedCajero, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         const rows = res.results.map(t => ({

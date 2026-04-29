@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Inject } from '@angular/core';
 import { PosService, Sucursal, Caja } from '../pos.service';
 
 @Component({
@@ -18,6 +19,7 @@ export class AbrirCajaDialogComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AbrirCajaDialogComponent>,
     private posService: PosService,
+    @Inject(MAT_DIALOG_DATA) public data: { sucursal_id?: number | null; caja_id?: number | null } | null,
   ) {}
 
   ngOnInit(): void {
@@ -29,6 +31,9 @@ export class AbrirCajaDialogComponent implements OnInit {
 
     this.posService.getSucursales().subscribe(s => {
       this.sucursales = s.filter(x => x.activa);
+      if (this.data?.sucursal_id) {
+        this.form.patchValue({ sucursal_id: this.data.sucursal_id });
+      }
     });
 
     this.form.get('sucursal_id')!.valueChanges.subscribe(id => {
@@ -37,6 +42,9 @@ export class AbrirCajaDialogComponent implements OnInit {
         this.form.get('caja_id')!.reset();
         this.posService.getCajas(id).subscribe(c => {
           this.cajas = c.filter(x => x.activa);
+          if (this.data?.caja_id && this.cajas.some(x => x.id === this.data?.caja_id)) {
+            this.form.patchValue({ caja_id: this.data.caja_id });
+          }
         });
       }
     });

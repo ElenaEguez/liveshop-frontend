@@ -21,9 +21,26 @@ export class VentasListComponent implements OnInit {
   loading = false;
 
   sucursales: Sucursal[] = [];
-  filters = { periodo: 'hoy', sucursal_id: null as number | null, status: '' };
+  cajeros: Array<{ id: number; nombre: string }> = [];
+  metodoPagoTipos = [
+    { value: '', label: 'Todos' },
+    { value: 'efectivo', label: 'Efectivo' },
+    { value: 'qr', label: 'QR' },
+    { value: 'billetera', label: 'Billetera' },
+    { value: 'transferencia', label: 'Transferencia' },
+    { value: 'tarjeta', label: 'Tarjeta' },
+    { value: 'credito', label: 'Crédito' },
+  ];
+  filters = {
+    periodo: 'hoy',
+    sucursal_id: null as number | null,
+    status: '',
+    cajero_id: null as number | null,
+    metodo_pago_tipo: '',
+  };
+  resumen = { total_ventas: '0', total_cobrado: '0', cantidad_ventas: 0 };
 
-  displayedColumns = ['numero_ticket', 'fecha', 'cliente', 'total', 'metodo', 'cajero', 'status', 'acciones'];
+  displayedColumns = ['numero_ticket', 'fecha', 'cliente', 'productos', 'total', 'monto_cobrado', 'metodo', 'cajero', 'status', 'acciones'];
 
   today = new Date().toISOString().substring(0, 10);
 
@@ -47,15 +64,35 @@ export class VentasListComponent implements OnInit {
       periodo:     periodoMap[this.filters.periodo] || 'today',
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status:      this.filters.status || undefined,
+      cajero_id:   this.filters.cajero_id ?? undefined,
+      metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
       page:        this.pageIndex + 1,
       page_size:   this.pageSize,
     }).subscribe({
       next: res => {
         this.ventas = res.results;
         this.totalCount = res.count;
+        const cajeroMap = new Map<number, string>();
+        for (const v of res.results) {
+          if (v.usuario && v.usuario_nombre && !cajeroMap.has(v.usuario)) {
+            cajeroMap.set(v.usuario, v.usuario_nombre);
+          }
+        }
+        this.cajeros = Array.from(cajeroMap.entries()).map(([id, nombre]) => ({ id, nombre }));
         this.loading = false;
       },
       error: () => { this.loading = false; },
+    });
+
+    this.posService.getVentasResumen({
+      periodo: periodoMap[this.filters.periodo] || 'today',
+      sucursal_id: this.filters.sucursal_id ?? undefined,
+      status: this.filters.status || undefined,
+      cajero_id: this.filters.cajero_id ?? undefined,
+      metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
+    }).subscribe({
+      next: res => (this.resumen = res),
+      error: () => {},
     });
   }
 
@@ -112,5 +149,12 @@ export class VentasListComponent implements OnInit {
 
   isHoy(venta: VentaPOS): boolean {
     return venta.created_at.substring(0, 10) === this.today;
+  }
+
+  productosResumen(v: VentaPOS): string {
+    if (!v.items?.length) return '—';
+    return v.items
+      .map(i => `${i.product_name || 'Producto'} x${i.cantidad}`)
+      .join(', ');
   }
 }

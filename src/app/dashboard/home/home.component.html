@@ -183,20 +183,20 @@
         </p>
       </div>
 
-      <!-- Gastos Operativos (solo cuando viene del backend) -->
-      <div class="stat-card" *ngIf="salesData.total_gastos_operativos !== null">
+      <!-- Gastos Operativos (incluye retiros de caja) -->
+      <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Gastos Operativos</p>
             <h2 class="stat-value" style="color:#dc2626;">
-              Bs.&nbsp;{{ salesData.total_gastos_operativos | number:'1.2-2' }}
+              Bs.&nbsp;{{ salesData.total_gastos_operativos_final | number:'1.2-2' }}
             </h2>
           </div>
           <div class="stat-icon-bg" style="background:#fef2f2;">
             <mat-icon style="color:#dc2626;">receipt_long</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Gastos operativos del período</p>
+        <p class="stat-footer">Incluye gastos operativos + retiros de caja</p>
       </div>
 
       <!-- Utilidad Neta -->
@@ -216,7 +216,7 @@
             </mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Utilidad bruta − Gastos operativos</p>
+        <p class="stat-footer">Utilidad bruta − (gastos operativos + retiros)</p>
         <p *ngIf="showMissingCostWarning" class="stat-warning">
           Costo no configurado en uno o más productos.
         </p>

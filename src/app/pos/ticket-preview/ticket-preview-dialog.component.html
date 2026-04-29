@@ -94,7 +94,7 @@
           <span>Pago:</span>
           <span>{{ data.venta.metodo_pago_nombre }}</span>
         </div>
-        <div *ngIf="data.venta.monto_recibido && !data.venta.es_credito"
+        <div *ngIf="data.venta.monto_recibido !== null && data.venta.monto_recibido !== undefined && !data.venta.es_credito"
              style="display:flex; justify-content:space-between; margin:2px 0;">
           <span>Recibido:</span>
           <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.monto_recibido | number:'1.2-2' }}</span>

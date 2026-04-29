@@ -56,6 +56,8 @@ export interface SalesDashboardData {
   total_cost: string | null;
   gross_margin: string | null;
   missing_cost_data: boolean;
+  total_gastos_operativos_base: string;
+  total_gastos_operativos_final: string;
   total_gastos_operativos: string | null;
   utilidad_neta: string | null;
   gastos_por_categoria: GastoCategoria[];

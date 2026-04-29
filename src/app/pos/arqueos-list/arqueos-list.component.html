@@ -41,6 +41,19 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Tipo de pago</mat-label>
+      <mat-select [(ngModel)]="selectedMetodoPagoTipo" (ngModelChange)="onMetodoPagoChange()">
+        <mat-option [value]="null">Todos</mat-option>
+        <mat-option value="efectivo">Efectivo</mat-option>
+        <mat-option value="qr">QR</mat-option>
+        <mat-option value="billetera">Billetera</mat-option>
+        <mat-option value="transferencia">Transferencia</mat-option>
+        <mat-option value="tarjeta">Tarjeta</mat-option>
+        <mat-option value="credito">Crédito</mat-option>
+      </mat-select>
+    </mat-form-field>
+
     <button mat-icon-button matTooltip="Ver totales por cajero / método"
             [class.active]="mostrarTotales"
             (click)="mostrarTotales = !mostrarTotales">

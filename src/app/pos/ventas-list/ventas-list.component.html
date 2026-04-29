@@ -33,6 +33,29 @@
           <mat-option value="credito">Crédito</mat-option>
         </mat-select>
       </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Cajero</mat-label>
+        <mat-select [(ngModel)]="filters.cajero_id" (ngModelChange)="load()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let c of cajeros" [value]="c.id">{{ c.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de pago</mat-label>
+        <mat-select [(ngModel)]="filters.metodo_pago_tipo" (ngModelChange)="load()">
+          <mat-option *ngFor="let m of metodoPagoTipos" [value]="m.value">{{ m.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  <mat-card class="filter-card">
+    <div class="filter-row">
+      <strong>Total vendido: Bs. {{ +resumen.total_ventas | number:'1.2-2' }}</strong>
+      <strong>Total cobrado: Bs. {{ +resumen.total_cobrado | number:'1.2-2' }}</strong>
+      <strong>{{ resumen.cantidad_ventas }} venta{{ resumen.cantidad_ventas !== 1 ? 's' : '' }}</strong>
     </div>
   </mat-card>
 
@@ -61,10 +84,22 @@
         <mat-cell *matCellDef="let v">{{ v.cliente_nombre }}</mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="productos">
+        <mat-header-cell *matHeaderCellDef>Producto vendido</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ productosResumen(v) }}</mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="total">
         <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
         <mat-cell *matCellDef="let v">
           <strong>Bs. {{ v.total | number:'1.2-2' }}</strong>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="monto_cobrado">
+        <mat-header-cell *matHeaderCellDef>Monto cobrado</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          <strong>Bs. {{ +(v.monto_cobrado || '0') | number:'1.2-2' }}</strong>
         </mat-cell>
       </ng-container>
 
@@ -75,7 +110,7 @@
 
       <ng-container matColumnDef="cajero">
         <mat-header-cell *matHeaderCellDef>Cajero</mat-header-cell>
-        <mat-cell *matCellDef="let v">{{ v.usuario || '—' }}</mat-cell>
+        <mat-cell *matCellDef="let v">{{ v.usuario_nombre || v.usuario || '—' }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="status">
