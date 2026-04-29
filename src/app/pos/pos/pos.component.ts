@@ -437,7 +437,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   editarFondoInicial(): void {
     if (!this.turnoActivo) return;
     const ref = this.dialog.open(EditarFondoDialogComponent, {
-      width: '340px',
+      width: '380px',
+      maxWidth: '94vw',
       data: { fondoActual: this.turnoActivo.monto_apertura || '0', moneda: this.moneda },
     });
     ref.afterClosed().subscribe((nuevoFondo: number | null) => {

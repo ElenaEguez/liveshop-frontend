@@ -60,8 +60,9 @@ export class VentasListComponent implements OnInit {
     const periodoMap: Record<string, string> = {
       hoy: 'today', '7d': 'week', '30d': 'month', año: 'year',
     };
+    const periodoApi = periodoMap[this.filters.periodo] || 'today';
     this.posService.getVentas({
-      periodo:     periodoMap[this.filters.periodo] || 'today',
+      periodo:     periodoApi,
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status:      this.filters.status || undefined,
       cajero_id:   this.filters.cajero_id ?? undefined,
@@ -72,26 +73,36 @@ export class VentasListComponent implements OnInit {
       next: res => {
         this.ventas = res.results;
         this.totalCount = res.count;
-        const cajeroMap = new Map<number, string>();
-        for (const v of res.results) {
-          if (v.usuario && v.usuario_nombre && !cajeroMap.has(v.usuario)) {
-            cajeroMap.set(v.usuario, v.usuario_nombre);
-          }
-        }
-        this.cajeros = Array.from(cajeroMap.entries()).map(([id, nombre]) => ({ id, nombre }));
         this.loading = false;
       },
       error: () => { this.loading = false; },
     });
 
     this.posService.getVentasResumen({
-      periodo: periodoMap[this.filters.periodo] || 'today',
+      periodo: periodoApi,
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status: this.filters.status || undefined,
       cajero_id: this.filters.cajero_id ?? undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
     }).subscribe({
       next: res => (this.resumen = res),
+      error: () => {},
+    });
+
+    // Cargar cajeros desde turnos del periodo (no depende de ventas de la página actual)
+    this.posService.getTurnos(periodoApi).subscribe({
+      next: turnos => {
+        const map = new Map<number, string>();
+        for (const t of turnos || []) {
+          const id = t?.usuario;
+          if (!id) continue;
+          const nombre = t?.usuario_nombre || t?.usuario_email || `Usuario ${id}`;
+          if (!map.has(id)) map.set(id, nombre);
+        }
+        this.cajeros = Array.from(map.entries())
+          .map(([id, nombre]) => ({ id, nombre }))
+          .sort((a, b) => a.nombre.localeCompare(b.nombre));
+      },
       error: () => {},
     });
   }

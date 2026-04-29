@@ -25,6 +25,7 @@ export interface Caja {
 export interface TurnoCaja {
   id: number;
   caja: number;
+  usuario?: number | null;
   caja_nombre?: string;
   sucursal_nombre?: string;
   usuario_nombre?: string;

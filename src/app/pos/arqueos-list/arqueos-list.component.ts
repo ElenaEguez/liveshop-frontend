@@ -47,6 +47,29 @@ export class ArqueosListComponent implements OnInit {
 
   constructor(private posService: PosService) {}
 
+  private buildCajeros(turnos: TurnoCaja[], totales: TotalCajero[]): CajeroOpcion[] {
+    const seen = new Set<number>();
+    const list: CajeroOpcion[] = [];
+
+    for (const t of turnos) {
+      if (t.usuario && !seen.has(t.usuario)) {
+        seen.add(t.usuario);
+        list.push({
+          id: t.usuario,
+          nombre: t.usuario_nombre || t.usuario_email || `Usuario ${t.usuario}`,
+        });
+      }
+    }
+    for (const c of totales) {
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        list.push({ id: c.id, nombre: c.nombre });
+      }
+    }
+
+    return list.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
   ngOnInit(): void {
     this.posService.getSucursales().subscribe({
       next: s => { this.sucursales = s.filter(x => x.activa); },
@@ -68,13 +91,10 @@ export class ArqueosListComponent implements OnInit {
         this.pages             = res.pages;
         this.totalesPorCajero  = res.totales_por_cajero ?? [];
         this.totalesPorMetodo  = res.totales_por_metodo ?? [];
-        // Construir lista de cajeros únicos para el filtro
-        const seen = new Set<number>();
-        const list: CajeroOpcion[] = [];
-        for (const c of this.totalesPorCajero) {
-          if (!seen.has(c.id)) { seen.add(c.id); list.push({ id: c.id, nombre: c.nombre }); }
+        this.cajeros = this.buildCajeros(this.turnos, this.totalesPorCajero);
+        if (this.selectedCajero && !this.cajeros.some(c => c.id === this.selectedCajero)) {
+          this.selectedCajero = null;
         }
-        if (!this.selectedCajero) this.cajeros = list;
         this.loading = false;
       },
       error: () => { this.loading = false; },
