@@ -51,6 +51,8 @@ export interface InventoryFilters {
   search?: string;
   talla?: string;
   color?: string;
+  page?: number;
+  page_size?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -60,14 +62,16 @@ export class InventoryService {
 
   constructor(private http: HttpClient) {}
 
-  getInventory(filters?: InventoryFilters): Observable<Inventory[]> {
+  getInventory(filters?: InventoryFilters): Observable<any> {
     let params = new HttpParams();
     if (filters?.almacen_id) params = params.set('almacen_id', filters.almacen_id.toString());
     if (filters?.category)   params = params.set('category',   filters.category.toString());
     if (filters?.search)     params = params.set('search',     filters.search);
     if (filters?.talla)      params = params.set('talla',      filters.talla);
     if (filters?.color)      params = params.set('color',      filters.color);
-    return this.http.get<Inventory[]>(this.apiUrl, { params });
+    if (filters?.page)       params = params.set('page',       filters.page.toString());
+    if (filters?.page_size)  params = params.set('page_size',  filters.page_size.toString());
+    return this.http.get<any>(this.apiUrl, { params });
   }
 
   updateStock(id: number, quantity: number, purchase_cost?: number | null): Observable<Inventory> {

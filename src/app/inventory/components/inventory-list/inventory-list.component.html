@@ -5,7 +5,7 @@
     <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Inventario</h1>
     <span style="background:#fef2f2; color:#db0000; padding:6px 14px; border-radius:20px;
                  font-size:0.875rem; font-weight:600;">
-      {{ inventory.length }} productos
+      {{ totalCount }} productos
     </span>
   </div>
 
@@ -241,6 +241,14 @@
         El inventario se crea automáticamente al agregar productos.
       </p>
     </div>
+    <mat-paginator
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageIndex]="currentPage"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
   </div>
 
   <!-- ── Resumen de costos ────────────────────────────────────────────────── -->

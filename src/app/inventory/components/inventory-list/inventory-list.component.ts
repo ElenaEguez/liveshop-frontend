@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PageEvent } from '@angular/material/paginator';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Inventory, InventoryService } from '../../services/inventory.service';
 import { Category, ProductVariant, ProductService } from '../../../products/products.service';
@@ -26,6 +27,9 @@ export class InventoryListComponent implements OnInit {
   selectedAlmacenId: number | null = null;
   selectedTalla: string = '';
   selectedColor: string = '';
+  totalCount = 0;
+  pageSize = 20;
+  currentPage = 0; // 0-indexed for paginator
 
   searchControl = new FormControl('');
 
@@ -52,7 +56,10 @@ export class InventoryListComponent implements OnInit {
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
-    ).subscribe(() => this.loadInventory());
+    ).subscribe(() => {
+      this.currentPage = 0;
+      this.loadInventory();
+    });
   }
 
   loadInventory(): void {
@@ -62,10 +69,13 @@ export class InventoryListComponent implements OnInit {
     if (this.searchControl.value) filters.search    = this.searchControl.value;
     if (this.selectedTalla)      filters.talla      = this.selectedTalla;
     if (this.selectedColor)      filters.color      = this.selectedColor;
+    filters.page = this.currentPage + 1;
+    filters.page_size = this.pageSize;
 
     this.inventoryService.getInventory(filters).subscribe({
       next: (data: any) => {
         const list: Inventory[] = Array.isArray(data) ? data : (data.results ?? []);
+        this.totalCount = Array.isArray(data) ? list.length : (data.count ?? list.length);
         this.inventory = list.map(item => ({
           ...item,
           available_quantity: item.available_quantity ?? (item.quantity - item.reserved_quantity)
@@ -117,11 +127,12 @@ export class InventoryListComponent implements OnInit {
   }
 
   onCategoryChange(): void {
+    this.currentPage = 0;
     this.loadInventory();
   }
 
-  onTallaChange(): void  { this.loadInventory(); }
-  onColorChange(): void  { this.loadInventory(); }
+  onTallaChange(): void  { this.currentPage = 0; this.loadInventory(); }
+  onColorChange(): void  { this.currentPage = 0; this.loadInventory(); }
 
   clearFilters(): void {
     this.selectedCategoryId = null;
@@ -130,7 +141,14 @@ export class InventoryListComponent implements OnInit {
     this.selectedTalla      = '';
     this.selectedColor      = '';
     this.almacenes = [];
+    this.currentPage = 0;
     this.searchControl.setValue('');
+    this.loadInventory();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadInventory();
   }
 

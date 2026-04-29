@@ -172,8 +172,9 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   openDetail(order: Order): void {
     const dialogRef = this.dialog.open(OrderDetailComponent, {
-      width: '560px',
+      width: 'min(96vw, 760px)',
       maxHeight: '90vh',
+      autoFocus: false,
       data: { order }
     });
     dialogRef.afterClosed().subscribe(updated => {

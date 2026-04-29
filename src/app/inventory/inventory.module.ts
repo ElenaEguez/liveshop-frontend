@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { SharedModule } from '../shared/shared.module';
 import { InventoryRoutingModule } from './inventory-routing.module';
@@ -42,6 +43,7 @@ import { KardexDialogComponent } from './components/kardex-dialog/kardex-dialog.
     MatSnackBarModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
   ]
 })
 export class InventoryModule { }

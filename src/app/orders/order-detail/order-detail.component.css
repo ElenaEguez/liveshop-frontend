@@ -1,0 +1,8 @@
+.order-detail-content {
+  width: min(92vw, 720px);
+  max-height: 72vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 8px;
+  box-sizing: border-box;
+}
