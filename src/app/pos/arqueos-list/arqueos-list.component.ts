@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as XLSX from 'xlsx';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   PosService, TurnoCaja, Sucursal,
   TotalCajero, TotalMetodo,
@@ -45,7 +46,10 @@ export class ArqueosListComponent implements OnInit {
 
   displayedColumns = ['fecha', 'caja', 'cajero', 'apertura', 'ventas', 'metodos', 'esperado', 'contado', 'diferencia', 'notas'];
 
-  constructor(private posService: PosService) {}
+  constructor(
+    private posService: PosService,
+    private snack: MatSnackBar,
+  ) {}
 
   private buildCajeros(turnos: TurnoCaja[], totales: TotalCajero[]): CajeroOpcion[] {
     const seen = new Set<number>();
@@ -97,7 +101,11 @@ export class ArqueosListComponent implements OnInit {
         }
         this.loading = false;
       },
-      error: () => { this.loading = false; },
+      error: (err) => {
+        this.loading = false;
+        const msg = err?.error?.error || err?.error?.detail || 'Error al cargar arqueos.';
+        this.snack.open(msg, 'OK', { duration: 4000 });
+      },
     });
   }
 
