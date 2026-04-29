@@ -68,8 +68,19 @@
           <h2 class="step-title">Elegí tu producto</h2>
         </div>
 
+        <div class="category-filters" *ngIf="categories.length > 1">
+          <button
+            type="button"
+            *ngFor="let cat of categories"
+            class="category-chip"
+            [class.active]="selectedCategory === cat.id"
+            (click)="selectCategory(cat.id)">
+            {{ cat.label }}
+          </button>
+        </div>
+
         <div class="products-grid">
-          <div *ngFor="let product of products; trackBy: trackByProductId"
+          <div *ngFor="let product of paginatedProducts; trackBy: trackByProductId"
                class="product-card"
                [class.selected]="selectedProduct?.id === product.id"
                (click)="selectProduct(product)">
@@ -93,6 +104,11 @@
               </span>
             </div>
           </div>
+        </div>
+        <div class="pager" *ngIf="totalPages > 1">
+          <button type="button" class="pager-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Anterior</button>
+          <span>Página {{ currentPage }} de {{ totalPages }}</span>
+          <button type="button" class="pager-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Siguiente</button>
         </div>
       </div>
 
@@ -361,8 +377,18 @@
             <div class="step-number">1</div>
             <h2 class="step-title">Elegí tus productos</h2>
           </div>
+          <div class="category-filters" *ngIf="categories.length > 1">
+            <button
+              type="button"
+              *ngFor="let cat of categories"
+              class="category-chip"
+              [class.active]="selectedCategory === cat.id"
+              (click)="selectCategory(cat.id)">
+              {{ cat.label }}
+            </button>
+          </div>
           <div class="products-grid">
-            <div *ngFor="let product of products; trackBy: trackByProductId"
+            <div *ngFor="let product of paginatedProducts; trackBy: trackByProductId"
                  class="product-card"
                  [class.selected]="selectedProduct?.id === product.id"
                  (click)="selectProduct(product)">
@@ -386,6 +412,11 @@
                 </span>
               </div>
             </div>
+          </div>
+          <div class="pager" *ngIf="totalPages > 1">
+            <button type="button" class="pager-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Anterior</button>
+            <span>Página {{ currentPage }} de {{ totalPages }}</span>
+            <button type="button" class="pager-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Siguiente</button>
           </div>
         </div>
 

@@ -95,6 +95,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   cuponError = '';
 
   // ── Computed ──────────────────────────────────────────────────────────────
+  selectedCategory = 'all';
+  currentPage = 1;
+  readonly pageSize = 12;
+
   get allowMultipleCart(): boolean {
     return !!this.session?.allow_multiple_cart;
   }
@@ -104,6 +108,32 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     return raw.filter((p: any, idx: number, arr: any[]) =>
       arr.findIndex((x: any) => x.id === p.id) === idx
     );
+  }
+
+  get categories(): { id: string; label: string }[] {
+    const map = new Map<string, string>();
+    this.products.forEach((p: any) => {
+      const rawId = p.category_id ?? p.category ?? p.category_name;
+      const label = (p.category_name || p.category?.name || '').toString().trim();
+      if (rawId !== null && rawId !== undefined && label) {
+        map.set(String(rawId), label);
+      }
+    });
+    return [{ id: 'all', label: 'Todas' }, ...Array.from(map.entries()).map(([id, label]) => ({ id, label }))];
+  }
+
+  get filteredProducts(): any[] {
+    if (this.selectedCategory === 'all') return this.products;
+    return this.products.filter((p: any) => String(p.category_id ?? p.category ?? '') === this.selectedCategory);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredProducts.length / this.pageSize));
+  }
+
+  get paginatedProducts(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredProducts.slice(start, start + this.pageSize);
   }
 
   get maxStock(): number {
@@ -263,6 +293,16 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     this.scrollToId('section-detail');
   }
 
+  selectCategory(categoryId: string): void {
+    this.selectedCategory = categoryId;
+    this.currentPage = 1;
+    this.clearSelection();
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = Math.max(1, Math.min(page, this.totalPages));
+  }
+
   selectVariant(variant: any): void {
     if (variant.stock === 0) return;
     this.selectedVariant = variant;
@@ -298,7 +338,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     const body: any = {
       customer_name:        this.orderForm.get('customer_name')?.value,
       customer_phone:       this.orderForm.get('customer_phone')?.value,
-      shipping_department:  this.orderForm.get('shipping_department')?.value,
+      shipping_department:  this.normalizeDepartment(this.orderForm.get('shipping_department')?.value),
       shipping_description: this.orderForm.get('shipping_description')?.value,
       quantity:             this.orderForm.get('quantity')?.value,
       notes:                this.orderForm.get('notes')?.value,
@@ -432,7 +472,7 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
     const name               = this.cartCustomerForm.get('customer_name')?.value;
     const phone              = this.cartCustomerForm.get('customer_phone')?.value;
-    const shippingDept       = this.cartCustomerForm.get('shipping_department')?.value;
+    const shippingDept       = this.normalizeDepartment(this.cartCustomerForm.get('shipping_department')?.value);
     const shippingDesc       = this.cartCustomerForm.get('shipping_description')?.value;
     const notes              = this.cartCustomerForm.get('notes')?.value;
 
@@ -522,6 +562,13 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   trackByProductId(_: number, item: any): number {
     return item.id;
+  }
+
+  private normalizeDepartment(raw: any): string {
+    const value = (raw || '').toString().trim();
+    if (!value) return '';
+    const match = this.bolivianDepartments.find(d => d.toLowerCase() === value.toLowerCase());
+    return match || value;
   }
 
   private scrollToId(id: string): void {

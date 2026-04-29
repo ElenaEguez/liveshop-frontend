@@ -230,6 +230,64 @@
     </div>
   </div>
 
+  <!-- Tarjetas móvil -->
+  <div class="mobile-cards" *ngIf="!loading && turnos.length > 0">
+    <div class="turno-card" *ngFor="let t of turnos">
+      <div class="turno-card-head">
+        <div>
+          <div class="fecha-main">{{ t.fecha_apertura | date:'dd/MM/yy HH:mm' }}</div>
+          <div class="fecha-sub" *ngIf="t.fecha_cierre">→ {{ t.fecha_cierre | date:'HH:mm' }}</div>
+        </div>
+        <span class="badge-abierto" *ngIf="t.status === 'abierto'">EN CURSO</span>
+      </div>
+
+      <div class="turno-card-row"><span>Caja</span><strong>{{ t.caja_nombre || '—' }}</strong></div>
+      <div class="turno-card-row"><span>Sucursal</span><strong>{{ t.sucursal_nombre || '—' }}</strong></div>
+      <div class="turno-card-row"><span>Cajero</span><strong>{{ t.usuario_nombre || t.usuario_email || '—' }}</strong></div>
+      <div class="turno-card-row"><span>Fondo inicial</span><strong>Bs. {{ t.monto_apertura | number:'1.2-2' }}</strong></div>
+      <div class="turno-card-row"><span>Ventas</span><strong>Bs. {{ t.total_ventas | number:'1.2-2' }}</strong></div>
+      <div class="turno-card-row">
+        <span>Efectivo esperado</span>
+        <strong *ngIf="t.efectivo_esperado !== null">Bs. {{ t.efectivo_esperado | number:'1.2-2' }}</strong>
+        <strong *ngIf="t.efectivo_esperado === null">—</strong>
+      </div>
+      <div class="turno-card-row">
+        <span>Contado</span>
+        <strong *ngIf="t.monto_cierre !== null">Bs. {{ t.monto_cierre | number:'1.2-2' }}</strong>
+        <strong *ngIf="t.monto_cierre === null">Abierto</strong>
+      </div>
+      <div class="turno-card-row">
+        <span>Diferencia</span>
+        <span *ngIf="t.diferencia_cierre !== null"
+              class="dif-chip"
+              [class.faltante]="diferenciaClass(t) === 'faltante'"
+              [class.sobrante]="diferenciaClass(t) === 'sobrante'"
+              [class.cuadrado]="diferenciaClass(t) === 'cuadrado'">
+          {{ diferenciaLabel(t) }}
+        </span>
+        <strong *ngIf="t.diferencia_cierre === null">—</strong>
+      </div>
+
+      <button type="button" class="turno-card-toggle" [class.open]="expandedTurnoId === t.id" (click)="toggleExpand(t)">
+        <span>{{ expandedTurnoId === t.id ? 'Ocultar detalle' : 'Ver detalle' }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+
+      <div class="turno-card-metodos" *ngIf="expandedTurnoId === t.id && getMetodosArray(t).length > 0">
+        <p>Métodos de pago</p>
+        <div class="metodo-row" *ngFor="let m of getMetodosArray(t)">
+          <span class="metodo-nombre">{{ m.nombre }}</span>
+          <span class="metodo-cant">({{ m.cantidad }})</span>
+          <span class="metodo-total">Bs. {{ m.monto | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="turno-card-notas" *ngIf="expandedTurnoId === t.id && t.notas_cierre">
+        {{ t.notas_cierre }}
+      </div>
+    </div>
+  </div>
+
   <!-- Paginación -->
   <div class="pagination" *ngIf="!loading && pages > 1">
     <button mat-icon-button [disabled]="page === 1" (click)="load(page - 1)">

@@ -328,7 +328,7 @@ export class PosService {
   }
 
   editarFondo(turnoId: number, fondoInicial: number): Observable<{ fondo_inicial: string }> {
-    return this.http.patch<{ fondo_inicial: string }>(
+    return this.http.post<{ fondo_inicial: string }>(
       `${API}/pos/turnos/${turnoId}/editar-fondo/`,
       { fondo_inicial: fondoInicial },
     );

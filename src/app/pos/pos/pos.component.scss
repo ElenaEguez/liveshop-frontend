@@ -19,6 +19,8 @@
   width: 90%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   z-index: 1201;
+  max-height: 90vh;
+  overflow-y: auto;
 
   &-header {
     margin-bottom: 16px;
@@ -544,6 +546,13 @@
   .cobrar-section .cobrar-btn {
     height: 52px;
     font-size: 15px;
+  }
+
+  .variante-modal {
+    top: auto;
+    bottom: 10px;
+    transform: translateX(-50%);
+    max-height: 82vh;
   }
 
   /* Ajustar columnas de la tabla del carrito en móvil */

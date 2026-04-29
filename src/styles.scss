@@ -80,6 +80,16 @@ mat-sidenav-content {
   background: rgba(0,0,0,0.5);
 }
 
+.editar-fondo-dialog .mat-mdc-dialog-surface {
+  max-height: 92vh;
+}
+
+.editar-fondo-dialog .mat-mdc-dialog-content,
+.editar-fondo-dialog mat-dialog-content {
+  max-height: calc(92vh - 140px);
+  overflow-y: auto !important;
+}
+
 // ── VARIANT SELECTOR (shared component) ────────────────────
 .variant-selector { margin: 8px 0; }
 
@@ -270,6 +280,10 @@ mat-sidenav-content {
   // Dialog full-width on mobile
   .mat-mdc-dialog-container {
     padding: 0 !important;
+  }
+
+  .editar-fondo-dialog .mat-mdc-dialog-surface {
+    width: min(96vw, 420px) !important;
   }
 
   // Reduce paginator text on small screens
