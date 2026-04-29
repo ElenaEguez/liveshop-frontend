@@ -309,8 +309,10 @@
         <ng-template #noQr>
           <div class="qr-no-img">
             <mat-icon>qr_code_2</mat-icon>
-            <p>Sin QR configurado.</p>
-            <p style="font-size:11px; color:#aaa;">Sube el QR en <strong>Mi Tienda → Editar perfil</strong></p>
+            <p class="qr-amount" style="margin:6px 0 2px;">
+              Total a cobrar: <strong>{{ moneda }} {{ total | number:'1.2-2' }}</strong>
+            </p>
+            <p style="font-size:11px; color:#aaa;">Sin QR configurado. Sube el QR en <strong>Mi Tienda → Editar perfil</strong></p>
           </div>
         </ng-template>
       </div>

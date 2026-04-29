@@ -24,6 +24,7 @@ export interface Product {
 export interface Variant {
   size?: string;
   color?: string;
+  color_hex?: string;
   stock: number;
 }
 

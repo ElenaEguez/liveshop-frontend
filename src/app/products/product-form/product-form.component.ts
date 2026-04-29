@@ -219,10 +219,15 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   createVariant(variant?: Variant): FormGroup {
     return this.fb.group({
-      size:  [variant?.size  || ''],
-      color: [variant?.color || ''],
-      stock: [variant?.stock || 0, [Validators.required, Validators.min(0)]]
+      size:      [variant?.size      || ''],
+      color:     [variant?.color     || ''],
+      color_hex: [variant?.color_hex || ''],
+      stock:     [variant?.stock || 0, [Validators.required, Validators.min(0)]]
     });
+  }
+
+  hasVariantColor(index: number): boolean {
+    return !!this.variants.at(index).get('color')?.value?.trim();
   }
 
   get variants(): FormArray {

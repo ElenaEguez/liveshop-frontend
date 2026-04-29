@@ -216,3 +216,96 @@ h1 { margin: 0; font-size: 22px; font-weight: 700; }
   font-size: 14px;
   color: #555;
 }
+
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .filter-field { min-width: 160px; max-width: 220px; }
+  button.active { color: #1565c0; }
+}
+
+/* ── XLSX button ── */
+.xlsx-btn { color: #166534; border-color: #bbf7d0; }
+
+/* ── Totales panel ── */
+.totales-panel {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.totales-col {
+  flex: 1;
+  min-width: 260px;
+}
+
+.totales-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 10px;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: #6b7280; }
+}
+
+.totales-empty { font-size: 12px; color: #9ca3af; }
+
+.metodo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  .metodo-nombre { flex: 1; font-weight: 500; color: #374151; }
+  .metodo-cant   { color: #9ca3af; font-size: 11px; }
+  .metodo-total  { font-weight: 700; color: #1565c0; }
+}
+
+.totales-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  padding-top: 4px;
+  border-top: 2px solid #cbd5e1;
+}
+
+.cajero-block { margin-bottom: 12px; }
+
+.cajero-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  padding: 4px 0;
+}
+
+.cajero-nombre { flex: 1; }
+.cajero-total  { color: #1565c0; }
+
+.cajero-metodo {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  padding: 1px 8px;
+
+  span:first-child { flex: 1; }
+  .cajero-metodo-cant { color: #9ca3af; font-size: 11px; }
+}

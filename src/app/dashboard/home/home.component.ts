@@ -343,6 +343,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return parseFloat(this.salesData?.utilidad_neta ?? '0') >= 0;
   }
 
+  get showMissingCostWarning(): boolean {
+    return !!this.salesData?.missing_cost_data;
+  }
+
   // ── Métodos de pago helpers ───────────────────────────────────────────────
 
   get metodosPagoArray(): { nombre: string; monto: number; cantidad: number }[] {

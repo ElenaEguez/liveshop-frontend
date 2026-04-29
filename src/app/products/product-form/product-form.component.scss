@@ -83,7 +83,7 @@
 
 .variant-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 80px;
+  grid-template-columns: 1fr 1fr 54px 80px;
   gap: 8px;
   flex: 1;
 
@@ -92,6 +92,43 @@
   @media (max-width: 480px) {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.color-picker-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8px;
+  gap: 4px;
+  min-width: 0;
+}
+
+.color-hex-input {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 2px;
+  background: transparent;
+
+  &::-webkit-color-swatch-wrapper { padding: 0; }
+  &::-webkit-color-swatch {
+    border: 1.5px solid rgba(0,0,0,0.12);
+    border-radius: 6px;
+  }
+}
+
+.color-hex-label {
+  font-size: 9px;
+  font-family: monospace;
+  color: #9ca3af;
+  max-width: 54px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .remove-btn {

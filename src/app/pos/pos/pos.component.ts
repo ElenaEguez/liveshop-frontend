@@ -16,6 +16,7 @@ import { TicketPreviewDialogComponent } from '../ticket-preview/ticket-preview-d
 import { SettingsService, TicketConfig } from '../../settings/settings.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 import { ScannerConfigDialogComponent } from '../scanner-config-dialog/scanner-config-dialog.component';
+import { EditarFondoDialogComponent } from '../editar-fondo-dialog/editar-fondo-dialog.component';
 
 @Component({
   selector: 'app-pos',
@@ -431,23 +432,19 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   editarFondoInicial(): void {
     if (!this.turnoActivo) return;
-    const fondoActual = this.turnoActivo.monto_apertura || '0';
-    const input = prompt(
-      `Fondo inicial actual: ${this.moneda} ${fondoActual}\nIngrese el nuevo monto:`,
-      fondoActual,
-    );
-    if (input === null) return;
-    const nuevoFondo = parseFloat(input);
-    if (isNaN(nuevoFondo) || nuevoFondo < 0) {
-      this.snack.open('Ingrese un monto válido (≥ 0)', '', { duration: 2500 });
-      return;
-    }
-    this.posService.editarFondo(this.turnoActivo.id, nuevoFondo).subscribe({
-      next: res => {
-        if (this.turnoActivo) this.turnoActivo.monto_apertura = res.fondo_inicial;
-        this.snack.open('Fondo inicial actualizado', '', { duration: 2000 });
-      },
-      error: () => this.snack.open('Error al actualizar el fondo', '', { duration: 3000 }),
+    const ref = this.dialog.open(EditarFondoDialogComponent, {
+      width: '340px',
+      data: { fondoActual: this.turnoActivo.monto_apertura || '0', moneda: this.moneda },
+    });
+    ref.afterClosed().subscribe((nuevoFondo: number | null) => {
+      if (nuevoFondo === null || nuevoFondo === undefined || !this.turnoActivo) return;
+      this.posService.editarFondo(this.turnoActivo.id, nuevoFondo).subscribe({
+        next: res => {
+          if (this.turnoActivo) this.turnoActivo.monto_apertura = res.fondo_inicial;
+          this.snack.open('Fondo inicial actualizado', '', { duration: 2000 });
+        },
+        error: () => this.snack.open('Error al actualizar el fondo', '', { duration: 3000 }),
+      });
     });
   }
 

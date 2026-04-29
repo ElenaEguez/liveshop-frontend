@@ -29,6 +29,7 @@ import { TicketPreviewDialogComponent }        from './ticket-preview/ticket-pre
 import { CobrarCreditoDialogComponent }        from './cobrar-credito-dialog/cobrar-credito-dialog.component';
 import { ArqueosListComponent }                from './arqueos-list/arqueos-list.component';
 import { ScannerConfigDialogComponent }        from './scanner-config-dialog/scanner-config-dialog.component';
+import { EditarFondoDialogComponent }          from './editar-fondo-dialog/editar-fondo-dialog.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { ScannerConfigDialogComponent }        from './scanner-config-dialog/sca
     CobrarCreditoDialogComponent,
     ArqueosListComponent,
     ScannerConfigDialogComponent,
+    EditarFondoDialogComponent,
   ],
   imports: [
     CommonModule,

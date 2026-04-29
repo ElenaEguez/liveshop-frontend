@@ -200,6 +200,13 @@
   font-weight: 500;
 }
 
+.stat-warning {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #b45309;
+  font-weight: 500;
+}
+
 /* ── Section card (chart + table) ───────────────────────────────────────────── */
 .section-card {
   background: #fff;

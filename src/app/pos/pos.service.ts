@@ -170,6 +170,29 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface TotalMetodo {
+  tipo: string;
+  nombre: string;
+  total: string;
+  cantidad: number;
+}
+
+export interface TotalCajero {
+  id: number;
+  nombre: string;
+  total: string;
+  por_metodo: TotalMetodo[];
+}
+
+export interface ArqueosResponse {
+  count: number;
+  page: number;
+  pages: number;
+  results: TurnoCaja[];
+  totales_por_cajero: TotalCajero[];
+  totales_por_metodo: TotalMetodo[];
+}
+
 export interface TurnoResumen {
   turno: TurnoCaja;
   total_ventas: string;
@@ -298,13 +321,22 @@ export class PosService {
     );
   }
 
-  getArqueos(periodo = 'month', page = 1, pageSize = 20, semana?: number | null): Observable<{ count: number; page: number; pages: number; results: TurnoCaja[] }> {
+  getArqueos(
+    periodo = 'month',
+    page = 1,
+    pageSize = 20,
+    semana?: number | null,
+    cajeroId?: number | null,
+    sucursalId?: number | null,
+  ): Observable<ArqueosResponse> {
     let params = new HttpParams()
       .set('periodo', periodo)
       .set('page', String(page))
       .set('page_size', String(pageSize));
-    if (semana != null) params = params.set('semana', String(semana));
-    return this.http.get<{ count: number; page: number; pages: number; results: TurnoCaja[] }>(`${API}/pos/turnos/arqueos/`, { params });
+    if (semana != null)    params = params.set('semana', String(semana));
+    if (cajeroId != null)  params = params.set('cajero_id', String(cajeroId));
+    if (sucursalId != null) params = params.set('sucursal_id', String(sucursalId));
+    return this.http.get<ArqueosResponse>(`${API}/pos/turnos/arqueos/`, { params });
   }
 
   // ── Cupones ──────────────────────────────────────────────────────────────

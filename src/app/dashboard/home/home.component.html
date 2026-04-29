@@ -167,7 +167,7 @@
         <p class="stat-footer">{{ canalOrders }} pedido{{ canalOrders !== 1 ? 's' : '' }} confirmado{{ canalOrders !== 1 ? 's' : '' }}</p>
       </div>
 
-      <div class="stat-card" *ngIf="salesData.gross_margin !== null">
+      <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Utilidad bruta</p>
@@ -178,6 +178,9 @@
           </div>
         </div>
         <p class="stat-footer">Ingresos − Costo de compra</p>
+        <p *ngIf="showMissingCostWarning" class="stat-warning">
+          Costo no configurado en uno o más productos.
+        </p>
       </div>
 
       <!-- Gastos Operativos (solo cuando viene del backend) -->
@@ -197,7 +200,7 @@
       </div>
 
       <!-- Utilidad Neta -->
-      <div class="stat-card" *ngIf="salesData.utilidad_neta !== null">
+      <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Utilidad Neta</p>
@@ -214,6 +217,9 @@
           </div>
         </div>
         <p class="stat-footer">Utilidad bruta − Gastos operativos</p>
+        <p *ngIf="showMissingCostWarning" class="stat-warning">
+          Costo no configurado en uno o más productos.
+        </p>
       </div>
 
       <div
