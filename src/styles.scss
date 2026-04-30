@@ -81,13 +81,21 @@ mat-sidenav-content {
 }
 
 .editar-fondo-dialog .mat-mdc-dialog-surface {
-  max-height: 92vh;
+  width: min(98vw, 640px) !important;
+  max-width: 98vw !important;
+  max-height: 96vh !important;
+  overflow: hidden !important;
 }
 
 .editar-fondo-dialog .mat-mdc-dialog-content,
 .editar-fondo-dialog mat-dialog-content {
-  max-height: calc(92vh - 140px);
+  max-height: calc(96vh - 170px);
   overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.editar-fondo-dialog .mat-mdc-dialog-container {
+  overflow: hidden !important;
 }
 
 // ── VARIANT SELECTOR (shared component) ────────────────────
@@ -283,7 +291,12 @@ mat-sidenav-content {
   }
 
   .editar-fondo-dialog .mat-mdc-dialog-surface {
-    width: min(96vw, 420px) !important;
+    width: min(98vw, 520px) !important;
+  }
+
+  .editar-fondo-dialog .mat-mdc-dialog-content,
+  .editar-fondo-dialog mat-dialog-content {
+    max-height: calc(96vh - 190px);
   }
 
   // Reduce paginator text on small screens

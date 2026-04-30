@@ -430,9 +430,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   editarFondoInicial(): void {
     if (!this.turnoActivo) return;
     const ref = this.dialog.open(EditarFondoDialogComponent, {
-      width: '520px',
-      maxWidth: '94vw',
-      maxHeight: '95vh',
+      width: '640px',
+      maxWidth: '98vw',
+      maxHeight: '96vh',
+      autoFocus: false,
       panelClass: 'editar-fondo-dialog',
       data: { fondoActual: this.turnoActivo.monto_apertura || '0', moneda: this.moneda },
     });
