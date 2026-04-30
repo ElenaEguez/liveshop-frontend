@@ -10,7 +10,7 @@ export interface EditarFondoData {
   selector: 'app-editar-fondo-dialog',
   template: `
     <h2 mat-dialog-title style="margin:0 0 8px;">Editar fondo inicial</h2>
-    <mat-dialog-content style="padding: 0 0 8px; overflow: auto; max-height: 62vh;">
+    <mat-dialog-content style="padding: 0 0 8px; overflow-x: hidden; overflow-y: auto; max-height: 72vh;">
       <p style="font-size:13px; color:#6b7280; margin:0 0 12px;">
         Fondo actual: <strong>{{ data.moneda }} {{ data.fondoActual }}</strong>
       </p>
@@ -34,7 +34,7 @@ export interface EditarFondoData {
         El fondo no puede quedar negativo.
       </p>
     </mat-dialog-content>
-    <mat-dialog-actions align="end" style="padding: 8px 0 0; gap: 8px;">
+    <mat-dialog-actions align="end" style="padding: 8px 0 0; gap: 8px; flex-wrap: wrap;">
       <button mat-stroked-button (click)="dialogRef.close(null)">Cancelar</button>
       <button mat-raised-button color="primary"
               [disabled]="montoAjuste === null || montoAjuste < 0 || fondoResultante < 0"

@@ -482,7 +482,7 @@
                       <td>{{ v.variante }}</td>
                       <td class="col-num">{{ v.units_sold }}</td>
                       <td class="col-num">
-                        {{ (v.units_sold * +row.revenue / row.units_sold) | number:'1.2-2' }}
+                        {{ (v.revenue || '0') | number:'1.2-2' }}
                       </td>
                     </tr>
                   </tbody>

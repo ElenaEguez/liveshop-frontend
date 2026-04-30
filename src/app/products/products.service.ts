@@ -19,6 +19,9 @@ export interface Product {
   barcode?: string | null;
   internal_code?: string;
   sell_by?: string[];
+  is_active_live?: boolean;
+  is_active_pos?: boolean;
+  is_active_web?: boolean;
 }
 
 export interface Variant {

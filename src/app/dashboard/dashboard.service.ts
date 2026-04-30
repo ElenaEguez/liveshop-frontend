@@ -21,6 +21,7 @@ export interface DashboardData {
 export interface VarianteVenta {
   variante: string;
   units_sold: number;
+  revenue?: string;
 }
 
 export interface SalesByProduct {

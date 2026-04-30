@@ -344,10 +344,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       c => Number(c.product.id) === Number(product.id) &&
            (c.variant?.id ?? null) === (variant?.id ?? null),
     );
-    // Usa stock de variante si tiene stock propio; si no, usa stock del producto
-    const stockDisp = (variant && variant.stock_extra > 0)
-      ? variant.stock_extra
-      : product.stock_disponible;
+    const stockDisp = variant ? variant.stock_extra : product.stock_disponible;
     const cantActual = existing ? existing.cantidad : 0;
 
     if (cantActual >= stockDisp) {
@@ -377,9 +374,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   confirmarVariante(variante: ProductVariantPOS): void {
     if (!this.productoParaVariante) return;
-    const stockDisp = (variante.stock_extra > 0)
-      ? variante.stock_extra
-      : this.productoParaVariante.stock_disponible;
+    const stockDisp = variante.stock_extra;
     if (stockDisp <= 0) {
       this.snack.open('Esta variante está agotada', 'OK', { duration: 2000 });
       return;
@@ -391,9 +386,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   incrementar(item: CartItem): void {
-    const stockDisp = (item.variant && item.variant.stock_extra > 0)
-      ? item.variant.stock_extra
-      : item.product.stock_disponible;
+    const stockDisp = item.variant ? item.variant.stock_extra : item.product.stock_disponible;
     if (item.cantidad >= stockDisp) {
       this.snack.open(`Stock máximo: ${stockDisp}`, 'OK', {
         duration: 2000, panelClass: 'snack-error',
@@ -437,9 +430,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   editarFondoInicial(): void {
     if (!this.turnoActivo) return;
     const ref = this.dialog.open(EditarFondoDialogComponent, {
-      width: '380px',
+      width: '520px',
       maxWidth: '94vw',
-      maxHeight: '92vh',
+      maxHeight: '95vh',
       panelClass: 'editar-fondo-dialog',
       data: { fondoActual: this.turnoActivo.monto_apertura || '0', moneda: this.moneda },
     });

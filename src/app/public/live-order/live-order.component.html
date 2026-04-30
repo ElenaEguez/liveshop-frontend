@@ -266,7 +266,7 @@
                 Bs. {{ singleProductTotal | number:'1.2-2' }}
               </span>
               <span class="total-amount">
-                Bs. {{ (singleProductTotal - cuponDescuentoNum) | number:'1.2-2' }}
+                Bs. {{ singleProductTotalWithDiscount | number:'1.2-2' }}
               </span>
             </div>
           </div>
@@ -304,7 +304,7 @@
           </div>
           <div class="summary-row total">
             <span>Total</span>
-            <strong>Bs. {{ (singleProductTotal - cuponDescuentoNum) | number:'1.2-2' }}</strong>
+            <strong>Bs. {{ singleProductTotalWithDiscount | number:'1.2-2' }}</strong>
           </div>
         </div>
 
@@ -726,7 +726,7 @@
             <span *ngIf="cuponDescuentoNum > 0" class="total-original">
               Bs. {{ cartTotal | number:'1.2-2' }}
             </span>
-            <strong>Bs. {{ (cartTotal - cuponDescuentoNum) | number:'1.2-2' }}</strong>
+            <strong>Bs. {{ cartTotalWithDiscount | number:'1.2-2' }}</strong>
           </div>
         </div>
         <button mat-raised-button color="primary" class="submit-btn"

@@ -165,6 +165,14 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     return this.selectedProduct.price * (this.orderForm.get('quantity')?.value || 1);
   }
 
+  get singleProductTotalWithDiscount(): number {
+    return Math.max(0, this.singleProductTotal - this.cuponDescuentoNum);
+  }
+
+  get cartTotalWithDiscount(): number {
+    return Math.max(0, this.cartTotal - this.cuponDescuentoNum);
+  }
+
   get cuponDescuentoNum(): number {
     return parseFloat(this.cuponDescuento) || 0;
   }
@@ -333,6 +341,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   submitOrder(): void {
     if (this.orderForm.invalid || this.isSubmitting || !this.selectedProduct) return;
     if (this.selectedProduct.variants?.length > 0 && !this.selectedVariant) return;
+    if (this.cuponCodigo.trim() && this.cuponValido !== true) {
+      this.snackBar.open('Validá el cupón antes de confirmar el pedido.', 'Cerrar', { duration: 3000 });
+      return;
+    }
     this.isSubmitting = true;
 
     const body: any = {
@@ -467,6 +479,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   submitCartOrders(): void {
     if (this.cartCustomerForm.invalid || this.isSubmittingCart || this.cart.length === 0) return;
+    if (this.cuponCodigo.trim() && this.cuponValido !== true) {
+      this.snackBar.open('Validá el cupón antes de confirmar los pedidos.', 'Cerrar', { duration: 3000 });
+      return;
+    }
     this.isSubmittingCart = true;
     this.cartFailedItems = [];
 
@@ -495,6 +511,9 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
         this.cartTotalAmount = snapshot
           .filter((_, i) => results[i] !== null)
           .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+        if (this.cuponValido === true) {
+          this.cartTotalAmount = Math.max(0, this.cartTotalAmount - this.cuponDescuentoNum);
+        }
         // Remove only items that were successfully submitted
         this.cart = this.cart.filter((_, i) => results[i] === null);
         this.cartOpen = false;

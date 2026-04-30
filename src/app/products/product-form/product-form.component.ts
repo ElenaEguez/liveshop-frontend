@@ -56,6 +56,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       stock:                [data.product?.stock ?? '', [Validators.required, Validators.min(0)]],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
+      is_active_live:       [data.product?.is_active_live ?? true],
+      is_active_pos:        [data.product?.is_active_pos ?? true],
+      is_active_web:        [data.product?.is_active_web ?? true],
       barcode:              [data.product?.barcode ?? ''],
       internal_code:        [data.product?.internal_code ?? ''],
       sell_by:              this.fb.group(sellByGroup),
@@ -279,6 +282,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         formData.append(key, v !== null && v !== undefined ? String(v) : '');
       } else if (key === 'barcode') {
         formData.append(key, val[key] ?? '');
+      } else if (key === 'is_active' || key === 'is_active_live' || key === 'is_active_pos' || key === 'is_active_web') {
+        formData.append(key, String(!!val[key]));
       } else {
         formData.append(key, val[key]);
       }

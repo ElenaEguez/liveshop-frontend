@@ -210,13 +210,13 @@
                     </td>
                     <td style="color:#6b7280; font-size:0.8rem;">{{ v.sku || '—' }}</td>
                     <td style="font-weight:600;">
-                      {{ v.stock_extra > 0 ? v.stock_extra + ' uds.' : 'Usa stock prod.' }}
+                      {{ v.stock_extra }} uds.
                     </td>
                     <td>
                       <span [style.background]="v.stock_extra <= 0 ? '#fef9c3' : (v.stock_extra <= 5 ? '#fee2e2' : '#dcfce7')"
                             [style.color]="v.stock_extra <= 0 ? '#854d0e' : (v.stock_extra <= 5 ? '#991b1b' : '#166534')"
                             style="padding:2px 8px; border-radius:12px; font-size:0.78rem; font-weight:600;">
-                        {{ v.stock_extra <= 0 ? 'Sin stock propio' : (v.stock_extra <= 5 ? 'Stock bajo' : 'Disponible') }}
+                        {{ v.stock_extra <= 0 ? 'Sin stock' : (v.stock_extra <= 5 ? 'Stock bajo' : 'Disponible') }}
                       </span>
                     </td>
                   </tr>

@@ -22,6 +22,7 @@ export class AlmacenComponent implements OnInit {
   sucursales: any[] = [];
   almacenes: any[] = [];
   inventories: any[] = [];
+  productQuery = '';
 
   filters = {
     periodo: 'todo',
@@ -49,6 +50,27 @@ export class AlmacenComponent implements OnInit {
     this.svc.getAlmacenes().subscribe(a => this.almacenes = a);
     this.svc.getInventories().subscribe(i => this.inventories = i);
     this.load();
+  }
+
+  get filteredInventories(): any[] {
+    const q = this.productQuery.trim().toLowerCase();
+    if (!q) return this.inventories;
+    return this.inventories.filter(inv =>
+      String(inv.product_name || '').toLowerCase().includes(q)
+    );
+  }
+
+  onProductInputChange(): void {
+    if (!this.productQuery.trim()) {
+      this.filters.product_id = null;
+      this.resetPage();
+    }
+  }
+
+  selectProductFilter(inv: any): void {
+    this.productQuery = inv?.product_name || '';
+    this.filters.product_id = inv?.product ?? null;
+    this.resetPage();
   }
 
   buildDateFilters(): { fecha_desde?: string; fecha_hasta?: string } {

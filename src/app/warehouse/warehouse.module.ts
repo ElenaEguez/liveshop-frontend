@@ -14,6 +14,7 @@ import { MatSelectModule }          from '@angular/material/select';
 import { MatSnackBarModule }        from '@angular/material/snack-bar';
 import { MatTableModule }           from '@angular/material/table';
 import { MatTooltipModule }         from '@angular/material/tooltip';
+import { MatAutocompleteModule }    from '@angular/material/autocomplete';
 
 import { WarehouseRoutingModule }         from './warehouse-routing.module';
 import { AlmacenComponent }               from './almacen/almacen.component';
@@ -26,7 +27,7 @@ import { KardexAjusteDialogComponent }    from './kardex-ajuste-dialog/kardex-aj
     WarehouseRoutingModule,
     MatButtonModule, MatCardModule, MatDialogModule, MatFormFieldModule,
     MatIconModule, MatInputModule, MatPaginatorModule, MatProgressSpinnerModule,
-    MatSelectModule, MatSnackBarModule, MatTableModule, MatTooltipModule,
+    MatSelectModule, MatSnackBarModule, MatTableModule, MatTooltipModule, MatAutocompleteModule,
   ],
 })
 export class WarehouseModule {}

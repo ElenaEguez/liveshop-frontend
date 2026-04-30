@@ -50,10 +50,19 @@
       <!-- Producto -->
       <mat-form-field appearance="outline">
         <mat-label>Producto</mat-label>
-        <mat-select [(ngModel)]="filters.product_id" (ngModelChange)="resetPage()">
-          <mat-option [value]="null">Todos</mat-option>
-          <mat-option *ngFor="let inv of inventories" [value]="inv.product">{{ inv.product_name }}</mat-option>
-        </mat-select>
+        <input
+          matInput
+          [(ngModel)]="productQuery"
+          (ngModelChange)="onProductInputChange()"
+          [matAutocomplete]="productAuto"
+          placeholder="Escribe para buscar..."
+        >
+        <mat-autocomplete #productAuto="matAutocomplete">
+          <mat-option (click)="selectProductFilter(null)">Todos</mat-option>
+          <mat-option *ngFor="let inv of filteredInventories" (click)="selectProductFilter(inv)">
+            {{ inv.product_name }}
+          </mat-option>
+        </mat-autocomplete>
       </mat-form-field>
 
       <!-- Almacén -->

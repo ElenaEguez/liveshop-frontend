@@ -79,6 +79,10 @@ export class EcommerceOrdersService {
     return this.http.post<EcomOrder>(`${this.apiUrl}/${id}/cancel/`, {});
   }
 
+  deleteCancelledOrder(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/delete/`);
+  }
+
   getPendingCount(): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(`${this.apiUrl}/pending-count/`);
   }

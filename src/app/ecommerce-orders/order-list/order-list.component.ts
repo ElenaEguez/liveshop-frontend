@@ -7,7 +7,6 @@ import {
   EcomOrderFilters
 } from '../ecommerce-orders.service';
 import { OrderDetailComponent } from '../order-detail/order-detail.component';
-import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 
 interface StatusTab {
   label: string;
@@ -39,7 +38,6 @@ export class OrderListComponent implements OnInit {
   error = '';
   search = '';
   activeTab: EcomOrderStatus | '' = '';
-  vendorSlug = '';
 
   readonly paymentLabels: Record<string, string> = {
     tigo_money: 'Tigo Money',
@@ -62,16 +60,11 @@ export class OrderListComponent implements OnInit {
 
   constructor(
     private service: EcommerceOrdersService,
-    private dialog: MatDialog,
-    private vendorProfileService: VendorProfileService
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.load();
-    this.vendorProfileService.getProfile().subscribe({
-      next: p => { this.vendorSlug = p.slug; },
-      error: () => {}
-    });
   }
 
   normalizeStatus(value: string): string {
@@ -91,6 +84,10 @@ export class OrderListComponent implements OnInit {
   isCancelableState(status: string): boolean {
     const normalized = this.normalizeStatus(status);
     return normalized === 'pending' || normalized === 'pending_confirmation' || normalized === 'confirmed';
+  }
+
+  isDeletableCancelledState(status: string): boolean {
+    return this.normalizeStatus(status) === 'cancelled';
   }
 
   load(): void {
@@ -176,6 +173,15 @@ export class OrderListComponent implements OnInit {
   quickCancel(event: Event, order: EcomOrder): void {
     event.stopPropagation();
     this.service.cancelOrder(order.id).subscribe({
+      next: () => this.load(),
+      error: () => {}
+    });
+  }
+
+  deleteCancelledOrder(event: Event, order: EcomOrder): void {
+    event.stopPropagation();
+    if (!confirm(`¿Eliminar definitivamente el pedido #${order.id}?`)) return;
+    this.service.deleteCancelledOrder(order.id).subscribe({
       next: () => this.load(),
       error: () => {}
     });

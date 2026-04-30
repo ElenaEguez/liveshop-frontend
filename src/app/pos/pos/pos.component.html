@@ -13,16 +13,16 @@
     <div class="variante-modal-grid">
       <button *ngFor="let v of productoParaVariante.variantes"
               class="variante-modal-btn"
-              [class.agotada]="(v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0"
-              [disabled]="(v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0"
+              [class.agotada]="v.stock_extra <= 0"
+              [disabled]="v.stock_extra <= 0"
               (click)="confirmarVariante(v)">
         <span class="variante-modal-label">
           {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
         </span>
         <span class="variante-modal-stock">
-          {{ (v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) <= 0
+          {{ v.stock_extra <= 0
              ? 'Agotado'
-             : (v.stock_extra > 0 ? v.stock_extra : productoParaVariante.stock_disponible) + ' en stock' }}
+             : v.stock_extra + ' en stock' }}
         </span>
       </button>
     </div>
