@@ -218,6 +218,11 @@
           </div>
         </div>
 
+        <div class="footer-row" *ngIf="descuento > 0" style="color:#e53935;">
+          <span>Descuento aplicado</span>
+          <strong>-{{ moneda }} {{ descuento | number:'1.2-2' }}</strong>
+        </div>
+
         <div class="footer-row cupon-row" *ngIf="cuponAplicado">
           <span>Cupón ({{ cuponAplicado.codigo }})</span>
           <div class="cupon-applied">

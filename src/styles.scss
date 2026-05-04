@@ -80,6 +80,11 @@ mat-sidenav-content {
   background: rgba(0,0,0,0.5);
 }
 
+/* mat-select dentro de cart-panel (z-index 1001) necesita overlay más alto */
+.cdk-overlay-container {
+  z-index: 1100;
+}
+
 .editar-fondo-dialog .mat-mdc-dialog-surface {
   width: min(98vw, 640px) !important;
   max-width: 98vw !important;

@@ -206,6 +206,7 @@ export interface TurnoResumen {
   turno: TurnoCaja;
   total_ventas: string;
   cantidad_ventas: number;
+  cantidad_ventas_efectivo: number;
   total_ventas_efectivo: string;
   total_ingresos: string;
   total_retiros: string;

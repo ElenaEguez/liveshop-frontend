@@ -26,7 +26,8 @@
       <div class="arqueo-row green">
         <span class="arqueo-label">
           <mat-icon class="row-icon">point_of_sale</mat-icon>
-          Ventas en efectivo ({{ resumen.cantidad_ventas }} ventas)
+          Ventas en efectivo
+          <small *ngIf="resumen.cantidad_ventas_efectivo > 0">({{ resumen.cantidad_ventas_efectivo }})</small>
         </span>
         <span class="arqueo-val">+ Bs. {{ resumen.total_ventas_efectivo | number:'1.2-2' }}</span>
       </div>
@@ -55,7 +56,7 @@
     <div class="otros-metodos" *ngIf="resumen.ventas_por_metodo.length > 0">
       <div class="otros-title">Ventas por método (informativo)</div>
       <div class="otros-row" *ngFor="let m of resumen.ventas_por_metodo">
-        <span>{{ m.metodo }} <small>({{ m.cantidad }})</small></span>
+        <span>{{ metodoLabel(m.metodo) }} <small>({{ m.cantidad }})</small></span>
         <span>Bs. {{ m.total | number:'1.2-2' }}</span>
       </div>
     </div>
@@ -68,12 +69,16 @@
     <form [formGroup]="form">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Efectivo contado en caja (Bs.)</mat-label>
-        <input matInput type="number" formControlName="monto_cierre" min="0">
+        <input matInput type="number" formControlName="monto_cierre" min="0" placeholder="0.00">
         <mat-hint>Ingresa el monto que físicamente cuenta en caja</mat-hint>
       </mat-form-field>
 
       <!-- Diferencia / resultado del arqueo -->
-      <div class="result-box" [class.sobrante]="diferencia > 0" [class.faltante]="diferencia < 0" [class.exacto]="diferencia === 0">
+      <div *ngIf="hayConteo"
+           class="result-box"
+           [class.sobrante]="diferencia > 0"
+           [class.faltante]="diferencia < 0"
+           [class.exacto]="diferencia === 0">
         <div class="result-left">
           <mat-icon class="result-icon">
             {{ diferencia > 0 ? 'trending_up' : diferencia < 0 ? 'trending_down' : 'check_circle' }}
@@ -88,12 +93,12 @@
           </div>
         </div>
         <div class="result-amount">
-          Bs. {{ diferenciaAbs | number:'1.2-2' }}
+          {{ diferencia === 0 ? '✓' : 'Bs. ' + (diferenciaAbs | number:'1.2-2') }}
         </div>
       </div>
 
       <mat-form-field appearance="outline" class="full-width mt-sm">
-        <mat-label>{{ diferencia !== 0 ? 'Razón de la diferencia (requerida si hay faltante/sobrante)' : 'Notas de cierre (opcional)' }}</mat-label>
+        <mat-label>{{ diferencia !== 0 && hayConteo ? 'Razón de la diferencia (requerida si hay faltante/sobrante)' : 'Notas de cierre (opcional)' }}</mat-label>
         <textarea matInput formControlName="notas_cierre" rows="2"
                   [placeholder]="diferencia < 0 ? 'Ej: Se realizó un gasto de emergencia de...' : 'Observaciones del turno'">
         </textarea>
@@ -107,6 +112,9 @@
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-stroked-button (click)="imprimir()" [disabled]="!resumen || loadingResumen" style="margin-right:8px;">
+    <mat-icon>print</mat-icon> Imprimir
+  </button>
   <button mat-raised-button color="warn"
           [disabled]="form.invalid || loading || loadingResumen"
           (click)="cerrar()">
