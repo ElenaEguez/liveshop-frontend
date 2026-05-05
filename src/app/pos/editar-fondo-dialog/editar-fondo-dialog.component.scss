@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.caja-dialog-title {
+  margin: 0;
+  padding: 20px 24px 8px;
+  font-weight: 700;
+}
+
+.caja-dialog-content {
+  padding: 0 24px 8px;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.dialog-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+  min-width: 0;
+}
+
+.result-text {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.error-text {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+.caja-dialog-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 0;
+  padding: 12px 24px 20px;
+  gap: 10px;
+  justify-content: flex-end;
+  border-top: 1px solid #eceff3;
+  background: #fff;
+}
+
+@media (max-width: 600px) {
+  .caja-dialog-title {
+    padding: 16px 16px 8px;
+  }
+
+  .caja-dialog-content {
+    padding: 0 16px 8px;
+  }
+
+  .caja-dialog-actions {
+    padding: 12px 16px 16px;
+    flex-wrap: wrap-reverse;
+  }
+
+  .caja-dialog-actions button {
+    width: 100%;
+  }
+}

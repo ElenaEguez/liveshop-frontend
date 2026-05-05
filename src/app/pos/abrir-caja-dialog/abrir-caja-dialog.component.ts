@@ -7,6 +7,7 @@ import { PosService, Sucursal, Caja } from '../pos.service';
 @Component({
   selector: 'app-abrir-caja-dialog',
   templateUrl: './abrir-caja-dialog.component.html',
+  styleUrls: ['./abrir-caja-dialog.component.scss'],
 })
 export class AbrirCajaDialogComponent implements OnInit {
   form!: FormGroup;

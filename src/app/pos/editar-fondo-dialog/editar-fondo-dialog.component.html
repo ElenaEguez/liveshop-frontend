@@ -1,0 +1,51 @@
+<h2 mat-dialog-title class="caja-dialog-title">Editar fondo inicial</h2>
+
+<mat-dialog-content class="caja-dialog-content">
+  <p class="dialog-subtitle">
+    Fondo actual: <strong>{{ data.moneda }} {{ data.fondoActual }}</strong>
+  </p>
+
+  <div class="form-grid">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Acción</mat-label>
+      <mat-select [(ngModel)]="accion" cdkFocusInitial>
+        <mat-option value="set">Reemplazar fondo</mat-option>
+        <mat-option value="sum">Aumentar fondo</mat-option>
+        <mat-option value="sub">Disminuir fondo</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ accion === 'set' ? 'Nuevo fondo' : 'Monto del ajuste' }} ({{ data.moneda }})</mat-label>
+      <input
+        id="editar-fondo-monto"
+        matInput
+        type="number"
+        [(ngModel)]="montoAjuste"
+        min="0"
+        step="0.01"
+        (keyup.enter)="aceptar()"
+      >
+    </mat-form-field>
+  </div>
+
+  <p class="result-text">
+    Fondo resultante: <strong>{{ data.moneda }} {{ fondoResultante | number:'1.2-2' }}</strong>
+  </p>
+  <p *ngIf="accion === 'sub' && fondoResultante < 0" class="error-text">
+    El fondo no puede quedar negativo.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="caja-dialog-actions">
+  <button mat-stroked-button type="button" (click)="dialogRef.close(null)">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="montoAjuste === null || montoAjuste < 0 || fondoResultante < 0"
+    (click)="aceptar()"
+  >
+    Aceptar
+  </button>
+</mat-dialog-actions>

@@ -226,8 +226,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   abrirCajaDialog(): void {
     const ref = this.dialog.open(AbrirCajaDialogComponent, {
-      width: '400px',
-      disableClose: true,
+      width: '560px',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      autoFocus: true,
+      panelClass: ['pos-caja-dialog', 'abrir-caja-dialog-panel'],
       data: {
         sucursal_id: this.selectedSucursal,
         caja_id: this.selectedCaja,
@@ -430,11 +433,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   editarFondoInicial(): void {
     if (!this.turnoActivo) return;
     const ref = this.dialog.open(EditarFondoDialogComponent, {
-      width: '640px',
-      maxWidth: '98vw',
-      maxHeight: '96vh',
-      autoFocus: false,
-      panelClass: 'editar-fondo-dialog',
+      width: '560px',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      autoFocus: true,
+      panelClass: ['pos-caja-dialog', 'editar-fondo-dialog'],
       data: { fondoActual: this.turnoActivo.monto_apertura || '0', moneda: this.moneda },
     });
     ref.afterClosed().subscribe((nuevoFondo: number | null) => {
