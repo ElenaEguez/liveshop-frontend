@@ -23,7 +23,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   productForm: FormGroup;
   categories: Category[] = [];
   almacenes: Array<{ id: number; nombre: string; sucursal?: number }> = [];
-  selectedPrimaryWarehouseControl = new FormControl<number | null>(null);
+  selectedPrimaryWarehouseControl = new FormControl(null);
   selectedFiles: File[] = [];
   selectedFilePreviews: SafeUrl[] = [];
   existingImages: string[] = [];
