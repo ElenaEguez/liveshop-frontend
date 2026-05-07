@@ -22,8 +22,9 @@ export interface EcomOrder {
   customer_phone: string;
   customer_email?: string;
   customer_address?: string;
-  delivery_method: 'pickup' | 'delivery';
+  delivery_method: 'pickup' | 'delivery' | 'envio_nacional' | 'envio_scz';
   payment_method: 'tigo_money' | 'banco_union' | 'efectivo';
+  qr_image?: string;
   payment_receipt?: string;
   payment_receipt_url?: string;
   status: EcomOrderStatus;

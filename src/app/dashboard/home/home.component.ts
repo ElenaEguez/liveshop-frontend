@@ -8,7 +8,7 @@ import {
 import * as XLSX from 'xlsx';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime } from 'rxjs/operators';
 
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -290,22 +290,38 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.salesData) return 0;
     if (this.selectedCanal === 'tienda') return this.salesData.pos_total_orders || 0;
     if (this.selectedCanal === 'web')    return this.salesData.web_total_orders || 0;
-    if (this.selectedCanal === 'live')   return this.salesData.total_orders || 0;
+    if (this.selectedCanal === 'live')   return this.liveOrders;
     // todos
-    return (this.salesData.total_orders || 0)
-         + (this.salesData.pos_total_orders || 0)
-         + (this.salesData.web_total_orders || 0);
+    if (this.salesData.canal === 'todos') return this.salesData.total_orders || 0;
+    return this.liveOrders + (this.salesData.pos_total_orders || 0) + (this.salesData.web_total_orders || 0);
   }
 
   get canalRevenue(): number {
     if (!this.salesData) return 0;
     if (this.selectedCanal === 'tienda') return +this.salesData.pos_total_revenue || 0;
     if (this.selectedCanal === 'web')    return +this.salesData.web_total_revenue || 0;
-    if (this.selectedCanal === 'live')   return +this.salesData.total_revenue || 0;
+    if (this.selectedCanal === 'live')   return this.liveRevenue;
     // todos
-    return (+this.salesData.total_revenue || 0)
-         + (+this.salesData.pos_total_revenue || 0)
-         + (+this.salesData.web_total_revenue || 0);
+    if (this.salesData.canal === 'todos') return +this.salesData.total_revenue || 0;
+    return this.liveRevenue + (+this.salesData.pos_total_revenue || 0) + (+this.salesData.web_total_revenue || 0);
+  }
+
+  get liveOrders(): number {
+    if (!this.salesData) return 0;
+    if (this.salesData.canal !== 'todos') return this.salesData.total_orders || 0;
+    const live = (this.salesData.total_orders || 0)
+      - (this.salesData.pos_total_orders || 0)
+      - (this.salesData.web_total_orders || 0);
+    return Math.max(0, live);
+  }
+
+  get liveRevenue(): number {
+    if (!this.salesData) return 0;
+    if (this.salesData.canal !== 'todos') return +this.salesData.total_revenue || 0;
+    const live = (+this.salesData.total_revenue || 0)
+      - (+this.salesData.pos_total_revenue || 0)
+      - (+this.salesData.web_total_revenue || 0);
+    return Math.max(0, live);
   }
 
   get canalLabel(): string {
@@ -353,7 +369,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const map = this.vendorData?.ventas_por_metodo_pago;
     if (!map) return [];
     return Object.entries(map)
-      .map(([nombre, v]) => ({ nombre, monto: v.monto, cantidad: v.cantidad }))
+      .map(([nombre, v]) => ({
+        nombre,
+        monto: Number((v as any)?.monto ?? (v as any)?.total ?? 0),
+        cantidad: Number(v?.cantidad ?? 0),
+      }))
       .sort((a, b) => b.monto - a.monto);
   }
 
@@ -376,15 +396,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private connectSocket(): void {
     this.socketSub = this.vendorSocket.events
       .pipe(
-        filter(e =>
-          [
-            'payment_submitted', 'payment_confirmed', 'payment_rejected',
-            'new_order', 'order_status_changed', 'venta_pos',
-          ].includes(e.type)
-        ),
         debounceTime(400)
       )
-      .subscribe(() => this.loadSalesDashboard());
+      .subscribe(() => {
+        this.loadSalesDashboard();
+        this.loadMovimientos(this.movPage);
+      });
 
     this.vendorProfileService.getProfile().subscribe({
       next: profile => this.vendorSocket.connect(profile.id),

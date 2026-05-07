@@ -22,6 +22,7 @@ export class VentasListComponent implements OnInit {
 
   sucursales: Sucursal[] = [];
   cajeros: Array<{ id: number; nombre: string }> = [];
+  roles: Array<{ value: string; label: string }> = [];
   metodoPagoTipos = [
     { value: '', label: 'Todos' },
     { value: 'efectivo', label: 'Efectivo' },
@@ -36,6 +37,7 @@ export class VentasListComponent implements OnInit {
     sucursal_id: null as number | null,
     status: '',
     cajero_id: null as number | null,
+    rol: '',
     metodo_pago_tipo: '',
   };
   resumen = { total_ventas: '0', total_cobrado: '0', cantidad_ventas: 0 };
@@ -66,6 +68,7 @@ export class VentasListComponent implements OnInit {
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status:      this.filters.status || undefined,
       cajero_id:   this.filters.cajero_id ?? undefined,
+      rol: this.filters.rol || undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
       page:        this.pageIndex + 1,
       page_size:   this.pageSize,
@@ -83,6 +86,7 @@ export class VentasListComponent implements OnInit {
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status: this.filters.status || undefined,
       cajero_id: this.filters.cajero_id ?? undefined,
+      rol: this.filters.rol || undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
     }).subscribe({
       next: res => (this.resumen = res),
@@ -93,15 +97,26 @@ export class VentasListComponent implements OnInit {
     this.posService.getTurnos(periodoApi).subscribe({
       next: turnos => {
         const map = new Map<number, string>();
+        const roleSet = new Set<string>();
+        const rolesTmp: Array<{ value: string; label: string }> = [];
         for (const t of turnos || []) {
           const id = t?.usuario;
           if (!id) continue;
-          const nombre = t?.usuario_nombre || t?.usuario_email || `Usuario ${id}`;
+          const nombreBase = t?.usuario_nombre || t?.usuario_email || `Usuario ${id}`;
+          const nombre = t?.usuario_rol_nombre ? `${nombreBase} — ${t.usuario_rol_nombre}` : nombreBase;
           if (!map.has(id)) map.set(id, nombre);
+          if (t?.usuario_rol_nombre && !roleSet.has(t.usuario_rol_nombre)) {
+            roleSet.add(t.usuario_rol_nombre);
+            rolesTmp.push({ value: t.usuario_rol_nombre, label: t.usuario_rol_nombre });
+          } else if (!t?.usuario_rol_nombre && !roleSet.has('owner')) {
+            roleSet.add('owner');
+            rolesTmp.push({ value: 'owner', label: 'Propietario' });
+          }
         }
         this.cajeros = Array.from(map.entries())
           .map(([id, nombre]) => ({ id, nombre }))
           .sort((a, b) => a.nombre.localeCompare(b.nombre));
+        this.roles = rolesTmp.sort((a, b) => a.label.localeCompare(b.label));
       },
       error: () => {},
     });
@@ -110,6 +125,19 @@ export class VentasListComponent implements OnInit {
   onPage(e: PageEvent): void {
     this.pageIndex = e.pageIndex;
     this.pageSize = e.pageSize;
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.filters = {
+      periodo: 'hoy',
+      sucursal_id: null,
+      status: '',
+      cajero_id: null,
+      rol: '',
+      metodo_pago_tipo: '',
+    };
+    this.pageIndex = 0;
     this.load();
   }
 
@@ -165,7 +193,10 @@ export class VentasListComponent implements OnInit {
   productosResumen(v: VentaPOS): string {
     if (!v.items?.length) return '—';
     return v.items
-      .map(i => `${i.product_name || 'Producto'} x${i.cantidad}`)
+      .map(i => {
+        const variant = i.variant_detail ? ` (${i.variant_detail})` : '';
+        return `${i.product_name || 'Producto'}${variant} x${i.cantidad}`;
+      })
       .join(', ');
   }
 }

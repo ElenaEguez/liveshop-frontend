@@ -88,8 +88,29 @@
         </div>
       </div>
       <div class="total-row">
-        <span>Total</span>
+        <span>Subtotal</span>
+        <strong>Bs {{ getOrderSubtotal() | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total-row" *ngIf="getOrderDiscount() > 0">
+        <span>Descuento</span>
+        <strong style="color:#2e7d32">- Bs {{ getOrderDiscount() | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total-row">
+        <span>Total final</span>
         <strong>Bs {{ order.total_amount | number:'1.2-2' }}</strong>
+      </div>
+    </section>
+
+    <!-- Receipt -->
+    <section class="detail-section" *ngIf="order.qr_image && normalizeStatus(order.payment_method) !== 'efectivo'">
+      <h3 class="section-title">
+        <mat-icon>qr_code_2</mat-icon> QR de pago
+      </h3>
+      <div class="receipt-link">
+        <img [src]="order.qr_image"
+             alt="QR de pago"
+             class="receipt-img"
+             onerror="this.style.display='none'">
       </div>
     </section>
 
@@ -136,6 +157,9 @@
   <mat-dialog-actions class="detail-actions">
     <button mat-stroked-button (click)="close()" [disabled]="loading">
       Cerrar
+    </button>
+    <button mat-stroked-button (click)="printOrder()" [disabled]="loading">
+      Imprimir
     </button>
 
     <span class="actions-spacer"></span>

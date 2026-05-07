@@ -46,8 +46,10 @@ export class OrderListComponent implements OnInit {
   };
 
   readonly deliveryLabels: Record<string, string> = {
-    pickup: 'Recoger',
-    delivery: 'Domicilio'
+    pickup: 'Envio en Tienda',
+    delivery: 'Envio a Domicilio',
+    envio_scz: 'Envio Santa Cruz',
+    envio_nacional: 'Envio a Domicilio'
   };
 
   readonly statusLabels: Record<string, string> = {

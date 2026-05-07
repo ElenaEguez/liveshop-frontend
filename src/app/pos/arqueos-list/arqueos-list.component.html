@@ -34,10 +34,20 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Cajero</mat-label>
+      <mat-label>Usuario</mat-label>
       <mat-select [(ngModel)]="selectedCajero" (ngModelChange)="onCajeroChange()">
         <mat-option [value]="null">Todos</mat-option>
-        <mat-option *ngFor="let c of cajeros" [value]="c.id">{{ c.nombre }}</mat-option>
+        <mat-option *ngFor="let c of cajeros" [value]="c.id">
+          {{ c.nombre }}<span *ngIf="c.rol"> — {{ c.rol }}</span>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Rol</mat-label>
+      <mat-select [(ngModel)]="selectedRol" (ngModelChange)="onRolChange()">
+        <mat-option [value]="null">Todos</mat-option>
+        <mat-option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -58,6 +68,11 @@
             [class.active]="mostrarTotales"
             (click)="mostrarTotales = !mostrarTotales">
       <mat-icon>bar_chart</mat-icon>
+    </button>
+
+    <button mat-stroked-button type="button" (click)="clearFilters()">
+      <mat-icon>filter_alt_off</mat-icon>
+      Limpiar filtros
     </button>
   </div>
 
@@ -89,7 +104,7 @@
     </div>
 
     <div class="totales-col">
-      <h3 class="totales-title"><mat-icon>person</mat-icon> Totales por cajero</h3>
+      <h3 class="totales-title"><mat-icon>person</mat-icon> Totales por usuario</h3>
       <div class="totales-empty" *ngIf="totalesPorCajero.length === 0">Sin ventas en el período</div>
       <div class="cajero-block" *ngFor="let c of totalesPorCajero">
         <div class="cajero-header">
@@ -135,9 +150,10 @@
       </ng-container>
 
       <ng-container matColumnDef="cajero">
-        <th mat-header-cell *matHeaderCellDef>Cajero</th>
+        <th mat-header-cell *matHeaderCellDef>Usuario / Rol</th>
         <td mat-cell *matCellDef="let t" class="cajero-cell">
           {{ t.usuario_nombre || t.usuario_email || '—' }}
+          <small *ngIf="t.usuario_rol_nombre" style="display:block;color:#6b7280">{{ t.usuario_rol_nombre }}</small>
         </td>
       </ng-container>
 
@@ -243,7 +259,13 @@
 
       <div class="turno-card-row"><span>Caja</span><strong>{{ t.caja_nombre || '—' }}</strong></div>
       <div class="turno-card-row"><span>Sucursal</span><strong>{{ t.sucursal_nombre || '—' }}</strong></div>
-      <div class="turno-card-row"><span>Cajero</span><strong>{{ t.usuario_nombre || t.usuario_email || '—' }}</strong></div>
+      <div class="turno-card-row">
+        <span>Usuario</span>
+        <strong>
+          {{ t.usuario_nombre || t.usuario_email || '—' }}
+          <small *ngIf="t.usuario_rol_nombre" style="display:block;color:#6b7280">{{ t.usuario_rol_nombre }}</small>
+        </strong>
+      </div>
       <div class="turno-card-row"><span>Fondo inicial</span><strong>Bs. {{ t.monto_apertura | number:'1.2-2' }}</strong></div>
       <div class="turno-card-row"><span>Ventas</span><strong>Bs. {{ t.total_ventas | number:'1.2-2' }}</strong></div>
       <div class="turno-card-row">

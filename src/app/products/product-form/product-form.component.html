@@ -215,6 +215,9 @@
     <!-- SECCIÓN: Imágenes -->
     <div *ngIf="!viewOnly" class="form-section">
       <h3 class="section-title">Imágenes</h3>
+      <p style="margin:0 0 10px;color:#6b7280;font-size:.82rem;">
+        Máximo {{ maxImages }} imágenes por producto.
+      </p>
 
       <div *ngIf="existingImages.length" class="images-grid">
         <div *ngFor="let img of existingImages; let i = index" class="image-thumb">

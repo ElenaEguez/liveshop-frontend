@@ -198,6 +198,7 @@ export class InventoryListComponent implements OnInit {
     this.dialog.open(KardexDialogComponent, {
       width: '900px',
       maxWidth: '95vw',
+      maxHeight: '92vh',
       data: { productId: item.product, productName: item.product_name },
     });
   }

@@ -5,7 +5,8 @@ import { environment } from '../../environments/environment';
 
 // ── Legacy vendor summary (still used by WebSocket reconnect) ───────────────
 export interface VentaMetodoPago {
-  monto: number;
+  monto?: number;
+  total?: number;
   cantidad: number;
 }
 
@@ -47,6 +48,7 @@ export interface SalesByPeriod {
 }
 
 export interface SalesDashboardData {
+  canal?: 'todos' | 'live' | 'tienda' | 'web';
   period_label: string;
   total_orders: number;
   total_revenue: string;

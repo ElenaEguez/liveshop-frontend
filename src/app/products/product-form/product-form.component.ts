@@ -19,6 +19,7 @@ export const SELL_BY_OPTIONS = [
   styleUrls: ['./product-form.component.scss']
 })
 export class ProductFormComponent implements OnInit, OnDestroy {
+  readonly maxImages = 3;
   productForm: FormGroup;
   categories: Category[] = [];
   selectedFiles: File[] = [];
@@ -196,11 +197,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
     for (let i = 0; i < files.length; i++) {
+      const totalImages = this.existingImages.length + this.selectedFiles.length;
+      if (totalImages >= this.maxImages) {
+        this.snackBar.open(`Solo puedes tener hasta ${this.maxImages} imágenes por producto.`, 'Cerrar', { duration: 3500 });
+        break;
+      }
       const file = files[i];
       const blobUrl = URL.createObjectURL(file);
       this.selectedFiles.push(file);
       this.selectedFilePreviews.push(this.sanitizer.bypassSecurityTrustUrl(blobUrl));
     }
+    if (event?.target) event.target.value = '';
   }
 
   removeFile(index: number): void {
@@ -290,6 +297,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     });
 
     this.selectedFiles.forEach(file => formData.append('images', file));
+    formData.append('keep_images', JSON.stringify(this.existingImages));
 
     const request = this.isEdit
       ? this.productService.updateProduct(this.data.product!.id!, formData)

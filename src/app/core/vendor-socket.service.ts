@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface VendorEvent {
-  type: 'payment_submitted' | 'payment_confirmed' | 'payment_rejected' | 'new_order';
+  type: string;
   data: Record<string, unknown>;
 }
 

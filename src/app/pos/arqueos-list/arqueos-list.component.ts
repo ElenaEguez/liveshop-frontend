@@ -6,7 +6,8 @@ import {
   TotalCajero, TotalMetodo,
 } from '../pos.service';
 
-interface CajeroOpcion { id: number; nombre: string; }
+interface CajeroOpcion { id: number; nombre: string; rol?: string | null; }
+interface RolOpcion { value: string; label: string; }
 
 @Component({
   selector: 'app-arqueos-list',
@@ -26,8 +27,10 @@ export class ArqueosListComponent implements OnInit {
   // Filtros
   sucursales: Sucursal[] = [];
   cajeros: CajeroOpcion[] = [];
+  roles: RolOpcion[] = [];
   selectedSucursal: number | null = null;
   selectedCajero: number | null = null;
+  selectedRol: string | null = null;
   selectedMetodoPagoTipo: string | null = null;
 
   // Totales
@@ -61,13 +64,14 @@ export class ArqueosListComponent implements OnInit {
         list.push({
           id: t.usuario,
           nombre: t.usuario_nombre || t.usuario_email || `Usuario ${t.usuario}`,
+          rol: t.usuario_rol_nombre || null,
         });
       }
     }
     for (const c of totales) {
       if (!seen.has(c.id)) {
         seen.add(c.id);
-        list.push({ id: c.id, nombre: c.nombre });
+        list.push({ id: c.id, nombre: c.nombre, rol: null });
       }
     }
 
@@ -82,12 +86,32 @@ export class ArqueosListComponent implements OnInit {
     this.load();
   }
 
+  private buildRoles(turnos: TurnoCaja[]): RolOpcion[] {
+    const seen = new Set<string>();
+    const out: RolOpcion[] = [];
+    for (const t of turnos) {
+      if (t.usuario_rol_nombre) {
+        const key = `role_name:${t.usuario_rol_nombre}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push({ value: t.usuario_rol_nombre, label: t.usuario_rol_nombre });
+        }
+      } else if (t.usuario && t.usuario_email) {
+        if (!seen.has('owner')) {
+          seen.add('owner');
+          out.push({ value: 'owner', label: 'Propietario' });
+        }
+      }
+    }
+    return out.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
   load(p = 1): void {
     this.loading = true;
     this.page = p;
     this.posService.getArqueos(
       this.periodo, p, 20, this.semana,
-      this.selectedCajero, this.selectedSucursal, this.selectedMetodoPagoTipo,
+      this.selectedCajero, this.selectedRol, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         this.turnos            = res.results;
@@ -96,8 +120,12 @@ export class ArqueosListComponent implements OnInit {
         this.totalesPorCajero  = res.totales_por_cajero ?? [];
         this.totalesPorMetodo  = res.totales_por_metodo ?? [];
         this.cajeros = this.buildCajeros(this.turnos, this.totalesPorCajero);
+        this.roles = this.buildRoles(this.turnos);
         if (this.selectedCajero && !this.cajeros.some(c => c.id === this.selectedCajero)) {
           this.selectedCajero = null;
+        }
+        if (this.selectedRol && !this.roles.some(r => r.value === this.selectedRol)) {
+          this.selectedRol = null;
         }
         this.loading = false;
       },
@@ -122,7 +150,17 @@ export class ArqueosListComponent implements OnInit {
 
   onSucursalChange(): void { this.selectedCajero = null; this.load(1); }
   onCajeroChange(): void   { this.load(1); }
+  onRolChange(): void      { this.load(1); }
   onMetodoPagoChange(): void { this.load(1); }
+
+  clearFilters(): void {
+    this.selectedSucursal = null;
+    this.selectedCajero = null;
+    this.selectedRol = null;
+    this.selectedMetodoPagoTipo = null;
+    this.semana = null;
+    this.load(1);
+  }
 
   toggleExpand(t: TurnoCaja): void {
     this.expandedTurnoId = this.expandedTurnoId === t.id ? null : t.id;
@@ -173,7 +211,7 @@ export class ArqueosListComponent implements OnInit {
     // Descarga todos los registros del período
     this.posService.getArqueos(
       this.periodo, 1, 1000, this.semana,
-      this.selectedCajero, this.selectedSucursal, this.selectedMetodoPagoTipo,
+      this.selectedCajero, this.selectedRol, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         const rows = res.results.map(t => ({

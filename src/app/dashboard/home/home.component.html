@@ -116,13 +116,13 @@
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Pedidos Live (online)</p>
-            <h2 class="stat-value">{{ salesData.total_orders }}</h2>
+            <h2 class="stat-value">{{ liveOrders }}</h2>
           </div>
           <div class="stat-icon-bg" style="background:#eff6ff;">
             <mat-icon style="color:#3b82f6;">live_tv</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Bs.&nbsp;{{ salesData.total_revenue | number:'1.2-2' }}</p>
+        <p class="stat-footer">Bs.&nbsp;{{ liveRevenue | number:'1.2-2' }}</p>
       </div>
 
       <!-- Ventas POS (tienda física) -->

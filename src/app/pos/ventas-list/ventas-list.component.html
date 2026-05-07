@@ -43,11 +43,24 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
+        <mat-label>Rol</mat-label>
+        <mat-select [(ngModel)]="filters.rol" (ngModelChange)="load()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
         <mat-label>Tipo de pago</mat-label>
         <mat-select [(ngModel)]="filters.metodo_pago_tipo" (ngModelChange)="load()">
           <mat-option *ngFor="let m of metodoPagoTipos" [value]="m.value">{{ m.label }}</mat-option>
         </mat-select>
       </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="clearFilters()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar filtros
+      </button>
     </div>
   </mat-card>
 
@@ -109,8 +122,11 @@
       </ng-container>
 
       <ng-container matColumnDef="cajero">
-        <mat-header-cell *matHeaderCellDef>Cajero</mat-header-cell>
-        <mat-cell *matCellDef="let v">{{ v.usuario_nombre || v.usuario || '—' }}</mat-cell>
+        <mat-header-cell *matHeaderCellDef>Usuario / Rol</mat-header-cell>
+        <mat-cell *matCellDef="let v">
+          {{ v.usuario_nombre || v.usuario || '—' }}
+          <small *ngIf="v.usuario_rol_nombre" style="display:block;color:#6b7280">{{ v.usuario_rol_nombre }}</small>
+        </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="status">

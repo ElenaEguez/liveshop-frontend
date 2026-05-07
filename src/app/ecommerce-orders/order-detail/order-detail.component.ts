@@ -18,8 +18,10 @@ export class OrderDetailComponent implements OnInit {
   internalNote = '';
 
   readonly deliveryLabels: Record<string, string> = {
-    pickup: 'Recoger en tienda',
-    delivery: 'Envío a domicilio'
+    pickup: 'Envio en Tienda',
+    delivery: 'Envio a Domicilio',
+    envio_scz: 'Envio Santa Cruz',
+    envio_nacional: 'Envio a Domicilio'
   };
 
   readonly statusLabels: Record<string, string> = {
@@ -49,7 +51,7 @@ export class OrderDetailComponent implements OnInit {
       this.order.status = this.normalizeStatus(this.order.status) as EcomOrderStatus;
     }
     if (this.order?.delivery_method) {
-      this.order.delivery_method = this.normalizeStatus(this.order.delivery_method) as 'pickup' | 'delivery';
+      this.order.delivery_method = this.normalizeStatus(this.order.delivery_method) as 'pickup' | 'delivery' | 'envio_nacional' | 'envio_scz';
     }
     if (this.order?.payment_method) {
       this.order.payment_method = this.normalizeStatus(this.order.payment_method) as 'tigo_money' | 'banco_union' | 'efectivo';
@@ -116,5 +118,20 @@ export class OrderDetailComponent implements OnInit {
 
   close(): void {
     this.dialogRef.close(false);
+  }
+
+  printOrder(): void {
+    window.print();
+  }
+
+  getOrderSubtotal(): number {
+    const items = this.order?.items || [];
+    return items.reduce((sum, item) => sum + Number(item.subtotal || 0), 0);
+  }
+
+  getOrderDiscount(): number {
+    const subtotal = this.getOrderSubtotal();
+    const total = Number(this.order?.total_amount || 0);
+    return Math.max(subtotal - total, 0);
   }
 }
