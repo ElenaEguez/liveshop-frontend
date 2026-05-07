@@ -13,6 +13,7 @@ export interface Product {
   images: string[];
   is_active: boolean;
   variants: Variant[];
+  inventory_distribution?: ProductInventoryDistribution[];
   purchase_cost?: number | null;
   shipping_cost?: number | null;
   profit_margin_percent?: number | null;
@@ -22,6 +23,13 @@ export interface Product {
   is_active_live?: boolean;
   is_active_pos?: boolean;
   is_active_web?: boolean;
+}
+
+export interface ProductInventoryDistribution {
+  inventory_id?: number;
+  almacen_id: number | null;
+  almacen_nombre?: string;
+  quantity: number;
 }
 
 export interface Variant {
@@ -114,5 +122,9 @@ export class ProductService {
     let params = new HttpParams();
     if (talla) params = params.set('talla', talla);
     return this.http.get<{ colores: ProductVariant[] }>(`${this.apiUrl}/${productId}/variantes/colores/`, { params });
+  }
+
+  getAlmacenes(): Observable<Array<{ id: number; nombre: string; sucursal?: number }>> {
+    return this.http.get<Array<{ id: number; nombre: string; sucursal?: number }>>(`${environment.apiUrl}/branches/almacenes/`);
   }
 }

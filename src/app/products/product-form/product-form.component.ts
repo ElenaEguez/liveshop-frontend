@@ -4,7 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Inject } from '@angular/core';
-import { Product, Category, Variant, ProductService } from '../products.service';
+import { Product, Category, Variant, ProductService, ProductInventoryDistribution } from '../products.service';
 
 export const SELL_BY_OPTIONS = [
   { value: 'unidad', label: 'UNIDAD' },
@@ -22,6 +22,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   readonly maxImages = 3;
   productForm: FormGroup;
   categories: Category[] = [];
+  almacenes: Array<{ id: number; nombre: string; sucursal?: number }> = [];
   selectedFiles: File[] = [];
   selectedFilePreviews: SafeUrl[] = [];
   existingImages: string[] = [];
@@ -64,6 +65,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       internal_code:        [data.product?.internal_code ?? ''],
       sell_by:              this.fb.group(sellByGroup),
       variants:             this.fb.array(data.product?.variants?.map(v => this.createVariant(v)) || []),
+      inventory_distribution: this.fb.array((data.product?.inventory_distribution || []).map(d => this.createDistribution(d))),
     });
 
     if (this.viewOnly) {
@@ -73,6 +75,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCategories();
+    this.loadAlmacenes();
+    if (!this.distribution.length) {
+      this.distribution.push(this.createDistribution({ almacen_id: null, quantity: Number(this.productForm.get('stock')?.value || 0) }));
+    }
     if (!this.viewOnly) {
       this.setupPriceSync();
     }
@@ -134,6 +140,13 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   compareById(a: any, b: any): boolean {
     return Number(a) === Number(b);
+  }
+
+  loadAlmacenes(): void {
+    this.productService.getAlmacenes().subscribe({
+      next: (rows) => this.almacenes = rows || [],
+      error: () => { this.almacenes = []; }
+    });
   }
 
   // ── Barcode / Internal code generators ──────────────────────────────────────
@@ -244,6 +257,49 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     return this.productForm.get('variants') as FormArray;
   }
 
+  get distribution(): FormArray {
+    return this.productForm.get('inventory_distribution') as FormArray;
+  }
+
+  createDistribution(row?: ProductInventoryDistribution): FormGroup {
+    return this.fb.group({
+      almacen_id: [row?.almacen_id ?? null],
+      quantity: [row?.quantity ?? 0, [Validators.required, Validators.min(0)]],
+    });
+  }
+
+  addDistribution(): void {
+    this.distribution.push(this.createDistribution());
+  }
+
+  removeDistribution(index: number): void {
+    this.distribution.removeAt(index);
+    if (!this.distribution.length) {
+      this.distribution.push(this.createDistribution({ almacen_id: null, quantity: Number(this.productForm.get('stock')?.value || 0) }));
+    }
+  }
+
+  get sumaDistribucion(): number {
+    return this.distribution.controls.reduce((sum, ctrl) => sum + (Number(ctrl.get('quantity')?.value) || 0), 0);
+  }
+
+  get distribucionInvalida(): boolean {
+    const stockTotal = Number(this.productForm.get('stock')?.value) || 0;
+    return this.sumaDistribucion !== stockTotal;
+  }
+
+  get distribucionConAlmacenesDuplicados(): boolean {
+    const seen = new Set<number>();
+    for (const ctrl of this.distribution.controls) {
+      const almacenId = ctrl.get('almacen_id')?.value;
+      if (almacenId == null) continue;
+      const key = Number(almacenId);
+      if (seen.has(key)) return true;
+      seen.add(key);
+    }
+    return false;
+  }
+
   get sumaStockVariantes(): number {
     if (!this.variants || this.variants.length === 0) return 0;
     return this.variants.controls.reduce((sum, ctrl) => sum + (Number(ctrl.get('stock')?.value) || 0), 0);
@@ -251,7 +307,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   get stockVariantesInvalido(): boolean {
     const stockTotal = Number(this.productForm.get('stock')?.value) || 0;
-    return this.sumaStockVariantes > stockTotal;
+    if (!this.variants.length) return false;
+    return this.sumaStockVariantes !== stockTotal;
   }
 
   addVariant(): void {
@@ -268,8 +325,22 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.stockVariantesInvalido) {
       this.snackBar.open(
-        `La suma de variantes (${this.sumaStockVariantes} uds.) supera el Stock Total (${this.productForm.get('stock')?.value} uds.).`,
+        `La suma de variantes (${this.sumaStockVariantes} uds.) debe ser igual al Stock Total (${this.productForm.get('stock')?.value} uds.).`,
         'Cerrar', { duration: 5000, panelClass: ['snack-error'] }
+      );
+      return;
+    }
+    if (this.distribucionInvalida) {
+      this.snackBar.open(
+        `La distribución por almacén (${this.sumaDistribucion} uds.) debe ser igual al Stock Total (${this.productForm.get('stock')?.value} uds.).`,
+        'Cerrar', { duration: 5000, panelClass: ['snack-error'] }
+      );
+      return;
+    }
+    if (this.distribucionConAlmacenesDuplicados) {
+      this.snackBar.open(
+        'No puedes repetir el mismo almacén en más de una fila de distribución.',
+        'Cerrar', { duration: 4500, panelClass: ['snack-error'] }
       );
       return;
     }
@@ -280,6 +351,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     Object.keys(val).forEach(key => {
       if (key === 'variants') {
+        formData.append(key, JSON.stringify(val[key]));
+      } else if (key === 'inventory_distribution') {
         formData.append(key, JSON.stringify(val[key]));
       } else if (key === 'sell_by') {
         const sellByArr = Object.keys(val[key]).filter(k => val[key][k]);
