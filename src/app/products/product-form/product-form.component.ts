@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -23,7 +23,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   productForm: FormGroup;
   categories: Category[] = [];
   almacenes: Array<{ id: number; nombre: string; sucursal?: number }> = [];
-  selectedPrimaryWarehouseId: number | null = null;
+  selectedPrimaryWarehouseControl = new FormControl<number | null>(null);
   selectedFiles: File[] = [];
   selectedFilePreviews: SafeUrl[] = [];
   existingImages: string[] = [];
@@ -81,7 +81,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       this.distribution.push(this.createDistribution({ almacen_id: null, quantity: Number(this.productForm.get('stock')?.value || 0) }));
     }
     const firstWithWarehouse = this.distribution.controls.find(c => c.get('almacen_id')?.value != null);
-    this.selectedPrimaryWarehouseId = firstWithWarehouse ? Number(firstWithWarehouse.get('almacen_id')?.value) : null;
+    this.selectedPrimaryWarehouseControl.setValue(firstWithWarehouse ? Number(firstWithWarehouse.get('almacen_id')?.value) : null);
     if (!this.viewOnly) {
       this.setupPriceSync();
     }
@@ -287,11 +287,12 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   applyPrimaryWarehouseToTotalStock(): void {
-    if (this.selectedPrimaryWarehouseId == null) return;
+    const selectedPrimaryWarehouseId = this.selectedPrimaryWarehouseControl.value;
+    if (selectedPrimaryWarehouseId == null) return;
     const stockTotal = Number(this.productForm.get('stock')?.value) || 0;
     while (this.distribution.length) this.distribution.removeAt(0);
     this.distribution.push(this.createDistribution({
-      almacen_id: this.selectedPrimaryWarehouseId,
+      almacen_id: selectedPrimaryWarehouseId,
       quantity: stockTotal
     }));
   }

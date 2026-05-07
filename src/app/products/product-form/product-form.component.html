@@ -52,14 +52,14 @@
       <div *ngIf="!viewOnly" style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-top:6px;">
         <mat-form-field appearance="outline" style="min-width:260px;flex:1;">
           <mat-label>Almacén principal</mat-label>
-          <mat-select [(ngModel)]="selectedPrimaryWarehouseId" [ngModelOptions]="{standalone: true}">
+          <mat-select [formControl]="selectedPrimaryWarehouseControl">
             <mat-option [value]="null">Seleccionar almacén</mat-option>
             <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
           </mat-select>
         </mat-form-field>
         <button type="button" mat-stroked-button color="primary"
                 (click)="applyPrimaryWarehouseToTotalStock()"
-                [disabled]="selectedPrimaryWarehouseId == null"
+                [disabled]="selectedPrimaryWarehouseControl.value == null"
                 style="height:56px;">
           Aplicar stock total
         </button>
