@@ -25,7 +25,7 @@ export class ProductListComponent implements OnInit {
   tallaControl     = new FormControl('');
   colorControl     = new FormControl('');
 
-  displayedColumns: string[] = ['name', 'price', 'stock', 'category', 'status', 'actions'];
+  displayedColumns: string[] = ['name', 'price', 'stock', 'warehouse', 'category', 'status', 'actions'];
 
   constructor(
     private productService: ProductService,
@@ -139,5 +139,13 @@ export class ProductListComponent implements OnInit {
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : 'Sin categoría';
+  }
+
+  getWarehouseDistribution(product: Product): string[] {
+    const rows = product.inventory_distribution || [];
+    if (!rows.length) return [];
+    return rows
+      .filter(r => Number(r.quantity || 0) > 0)
+      .map(r => `${r.almacen_nombre || 'Sin almacén'}: ${r.quantity} uds.`);
   }
 }

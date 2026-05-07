@@ -23,6 +23,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   productForm: FormGroup;
   categories: Category[] = [];
   almacenes: Array<{ id: number; nombre: string; sucursal?: number }> = [];
+  selectedPrimaryWarehouseId: number | null = null;
   selectedFiles: File[] = [];
   selectedFilePreviews: SafeUrl[] = [];
   existingImages: string[] = [];
@@ -79,6 +80,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (!this.distribution.length) {
       this.distribution.push(this.createDistribution({ almacen_id: null, quantity: Number(this.productForm.get('stock')?.value || 0) }));
     }
+    const firstWithWarehouse = this.distribution.controls.find(c => c.get('almacen_id')?.value != null);
+    this.selectedPrimaryWarehouseId = firstWithWarehouse ? Number(firstWithWarehouse.get('almacen_id')?.value) : null;
     if (!this.viewOnly) {
       this.setupPriceSync();
     }
@@ -281,6 +284,16 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   get sumaDistribucion(): number {
     return this.distribution.controls.reduce((sum, ctrl) => sum + (Number(ctrl.get('quantity')?.value) || 0), 0);
+  }
+
+  applyPrimaryWarehouseToTotalStock(): void {
+    if (this.selectedPrimaryWarehouseId == null) return;
+    const stockTotal = Number(this.productForm.get('stock')?.value) || 0;
+    while (this.distribution.length) this.distribution.removeAt(0);
+    this.distribution.push(this.createDistribution({
+      almacen_id: this.selectedPrimaryWarehouseId,
+      quantity: stockTotal
+    }));
   }
 
   get distribucionInvalida(): boolean {
