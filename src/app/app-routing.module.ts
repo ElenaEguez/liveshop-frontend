@@ -86,6 +86,15 @@ const routes: Routes = [
         data: { modulo: 'pos' }
       },
       {
+        path: 'devoluciones',
+        loadChildren: () =>
+          import('./devoluciones/devoluciones.module').then(
+            (m) => m.DevolucionesModule
+          ),
+        canActivate: [AuthGuard, ModuloGuard],
+        data: { modulo: 'pos', accion: 'operar' },
+      },
+      {
         path: 'almacen',
         loadChildren: () => import('./warehouse/warehouse.module').then(m => m.WarehouseModule),
         canActivate: [ModuloGuard],

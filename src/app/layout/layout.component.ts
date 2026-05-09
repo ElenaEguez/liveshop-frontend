@@ -35,6 +35,7 @@ export class LayoutComponent implements OnInit {
     { label: 'Dashboard',  icon: 'dashboard',      route: '/dashboard',     permission: 'dashboard'    },
     { label: 'Vender',         icon: 'point_of_sale',  route: '/vendor/pos',        permission: 'pos'       },
     { label: 'Ventas POS',    icon: 'receipt',        route: '/vendor/ventas',     permission: 'pos'       },
+    { label: 'Devoluciones', icon: 'assignment_return', route: '/devoluciones', permission: 'pos' },
     { label: 'Arqueos Caja',  icon: 'calculate',      route: '/vendor/arqueos',    permission: 'pos'       },
     { label: 'Almacén',       icon: 'warehouse',      route: '/almacen',         permission: 'warehouse' },
     { label: 'Transferencias', icon: 'swap_horiz',   route: '/almacen/transferencias', permission: 'warehouse' },
@@ -57,6 +58,9 @@ export class LayoutComponent implements OnInit {
   private moduloApiForItem(item: NavItem): string | null {
     if (item.route === '/compras/proveedores') {
       return 'compras';
+    }
+    if (item.route === '/devoluciones') {
+      return 'pos';
     }
     const map: Partial<Record<NavPermission, string>> = {
       dashboard: 'reportes',

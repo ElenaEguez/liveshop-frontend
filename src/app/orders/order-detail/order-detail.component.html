@@ -6,6 +6,12 @@
         style="margin-left:auto; padding:4px 12px; border-radius:20px; font-size:0.82rem; font-weight:600;">
     {{ getStatusLabel(order.status) }}
   </span>
+  <button mat-icon-button
+          class="dialog-close-btn"
+          [mat-dialog-close]="true"
+          aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
 </h2>
 
 <mat-dialog-content class="order-detail-content">

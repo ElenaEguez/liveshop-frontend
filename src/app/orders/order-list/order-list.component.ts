@@ -173,7 +173,10 @@ export class OrderListComponent implements OnInit, OnDestroy {
   openDetail(order: Order): void {
     const dialogRef = this.dialog.open(OrderDetailComponent, {
       width: 'min(96vw, 760px)',
+      maxWidth: '95vw',
       maxHeight: '90vh',
+      disableClose: false,
+      panelClass: 'dialog-lg',
       autoFocus: false,
       data: { order }
     });

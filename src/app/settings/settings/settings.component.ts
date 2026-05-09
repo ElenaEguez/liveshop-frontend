@@ -149,7 +149,15 @@ export class SettingsComponent implements OnInit {
   // ── Métodos de pago ───────────────────────────────────────────────────────
 
   abrirMetodoDialog(m?: MetodoPago): void {
-    const ref = this.dialog.open(MetodoPagoDialogComponent, { width: '420px', data: { metodo: m }, disableClose: true });
+    const ref = this.dialog.open(MetodoPagoDialogComponent, {
+      width: '420px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
+      data: { metodo: m },
+      disableClose: true
+    });
     ref.afterClosed().subscribe(r => { if (r) { this.snack.open('Guardado.', 'OK', { duration: 2000 }); this.svc.getMetodosPago().subscribe(l => this.metodosPago = l); } });
   }
 
@@ -196,6 +204,10 @@ export class SettingsComponent implements OnInit {
   abrirSucursalDialog(suc?: Sucursal): void {
     const ref = this.dialog.open(SucursalDialogComponent, {
       width: '440px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { sucursal: suc },
       disableClose: true,
     });
@@ -284,7 +296,15 @@ export class SettingsComponent implements OnInit {
   // ── Cupones ───────────────────────────────────────────────────────────────
 
   abrirCuponDialog(c?: Cupon): void {
-    const ref = this.dialog.open(CuponDialogComponent, { width: '480px', data: c || null, disableClose: true });
+    const ref = this.dialog.open(CuponDialogComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
+      data: c || null,
+      disableClose: true
+    });
     ref.afterClosed().subscribe(r => { if (r) { this.snack.open('Guardado.', 'OK', { duration: 2000 }); this.svc.getCupones().subscribe(l => this.cupones = l); } });
   }
 

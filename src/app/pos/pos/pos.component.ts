@@ -248,6 +248,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.turnoActivo) return;
     const ref = this.dialog.open(CerrarCajaDialogComponent, {
       width: '460px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { turnoId: this.turnoActivo.id },
     });
     ref.afterClosed().subscribe(result => {
@@ -261,6 +266,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   abrirMovimientoDialog(tipo: 'ingreso' | 'retiro'): void {
     const ref = this.dialog.open(MovimientoCajaDialogComponent, {
       width: '360px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      panelClass: 'dialog-sm',
       data: { tipo },
     });
     ref.afterClosed().subscribe(result => {
@@ -321,6 +331,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   openScannerConfig(): void {
     const ref = this.dialog.open(ScannerConfigDialogComponent, {
       width: '520px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
       panelClass: 'scanner-dialog',
     });
     ref.afterClosed().subscribe((barcode: string | undefined) => {
@@ -554,6 +568,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cobrando = false;
         const ref = this.dialog.open(TicketPreviewDialogComponent, {
           width: '420px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+          autoFocus: false,
+          panelClass: 'dialog-sm',
           data: { venta, vendorName: this.vendorName, moneda: this.moneda, ticketConfig: this.ticketConfig, vendorQrImage: this.vendorQrImage, showNuevaVenta: true },
           disableClose: true,
         });

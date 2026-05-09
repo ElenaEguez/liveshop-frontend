@@ -1,14 +1,15 @@
-<div style="padding:0;">
+<div mat-dialog-title>
+  <span>Editar Stock</span>
+  <button mat-icon-button
+          class="dialog-close-btn"
+          [mat-dialog-close]="false"
+          aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
-  <div style="display:flex; align-items:center; justify-content:space-between;
-              padding:20px 24px 16px; border-bottom:1px solid #f3f4f6;">
-    <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:#111827;">Editar Stock</h2>
-    <button mat-icon-button (click)="cancel()" style="color:#6b7280;">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-
-  <div style="padding:24px; display:flex; flex-direction:column; gap:16px;">
+<mat-dialog-content>
+  <div style="display:flex; flex-direction:column; gap:16px;">
 
     <!-- Producto (solo lectura) -->
     <div style="background:#f9fafb; border-radius:8px; padding:12px;">
@@ -50,14 +51,12 @@
     </form>
 
   </div>
+</mat-dialog-content>
 
-  <div style="display:flex; justify-content:flex-end; gap:12px;
-              padding:16px 24px; border-top:1px solid #f3f4f6;">
-    <button mat-stroked-button (click)="cancel()" [disabled]="saving">Cancelar</button>
-    <button mat-raised-button color="primary" (click)="save()"
-            [disabled]="form.invalid || saving">
-      {{ saving ? 'Guardando...' : 'Actualizar' }}
-    </button>
-  </div>
-
-</div>
+<mat-dialog-actions>
+  <button mat-stroked-button [mat-dialog-close]="false" [disabled]="saving">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="save()"
+          [disabled]="form.invalid || saving">
+    {{ saving ? 'Guardando...' : 'Actualizar' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,274 @@
+<div class="devolucion-container">
+
+  <div class="page-header">
+    <h2>Nueva Devolución</h2>
+    <button mat-button (click)="onVerHistorial()">
+      <mat-icon>history</mat-icon> Ver historial
+    </button>
+  </div>
+
+  <mat-card class="exito-card" *ngIf="devolucionCreada">
+    <mat-card-content>
+      <div class="exito-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <h3>Devolución procesada</h3>
+      <p>
+        <strong>Ticket original:</strong>
+        {{ devolucionCreada.venta_ticket }}
+      </p>
+      <p>
+        <strong>Tipo:</strong>
+        {{ devolucionCreada.tipo_resolucion === 'cambio'
+           ? 'Cambio de producto'
+           : 'Devolución de dinero' }}
+      </p>
+      <p *ngIf="devolucionCreada.tipo_resolucion === 'devolucion_dinero'">
+        <strong>Monto a devolver:</strong>
+        Bs. {{ devolucionCreada.monto_devuelto | number:'1.2-2' }}
+      </p>
+      <p>
+        <strong>Procesado por:</strong>
+        {{ devolucionCreada.procesado_por_nombre }}
+      </p>
+      <div class="exito-actions">
+        <button mat-raised-button color="primary" (click)="onNuevaBusqueda()">
+          <mat-icon>add</mat-icon> Nueva devolución
+        </button>
+        <button mat-button (click)="onVerHistorial()">
+          Ver historial
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="!devolucionCreada">
+    <mat-card-title>Buscar venta</mat-card-title>
+    <mat-card-content>
+      <div class="busqueda-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Número de ticket</mat-label>
+          <input matInput [(ngModel)]="busquedaTicket"
+                 placeholder="Ej: 000001"
+                 (keyup.enter)="onBuscarPorTicket()">
+          <mat-icon matSuffix>receipt</mat-icon>
+        </mat-form-field>
+        <button mat-raised-button color="primary"
+                (click)="onBuscarPorTicket()"
+                [disabled]="buscando || !busquedaTicket.trim()">
+          Buscar
+        </button>
+
+        <span class="o-separator">o</span>
+
+        <mat-form-field appearance="outline">
+          <mat-label>ID de venta</mat-label>
+          <input matInput [(ngModel)]="busquedaId"
+                 type="number"
+                 (keyup.enter)="onBuscarPorId()">
+        </mat-form-field>
+        <button mat-raised-button
+                (click)="onBuscarPorId()"
+                [disabled]="buscando || !busquedaId.trim()">
+          Buscar
+        </button>
+      </div>
+
+      <mat-spinner diameter="32" *ngIf="buscando"
+                   style="margin:16px auto">
+      </mat-spinner>
+
+      <mat-error *ngIf="errorBusqueda">
+        {{ errorBusqueda }}
+      </mat-error>
+    </mat-card-content>
+  </mat-card>
+
+  <ng-container *ngIf="venta && !devolucionCreada">
+
+    <mat-card class="venta-info-card">
+      <mat-card-content>
+        <div class="venta-info-grid">
+          <div>
+            <label>Ticket</label>
+            <strong>{{ venta.numero_ticket }}</strong>
+          </div>
+          <div>
+            <label>Cliente</label>
+            <span>
+              {{ venta.cliente.nombre || 'Sin nombre' }}
+              <span *ngIf="venta.cliente.telefono">
+                · {{ venta.cliente.telefono }}
+              </span>
+            </span>
+          </div>
+          <div>
+            <label>Total</label>
+            <strong>
+              Bs. {{ venta.total | number:'1.2-2' }}
+            </strong>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <span>
+              {{ venta.created_at | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+          <div>
+            <label>Estado</label>
+            <mat-chip color="primary" selected>
+              {{ venta.status }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-title>
+        Selecciona los ítems a devolver
+      </mat-card-title>
+      <mat-card-content>
+        <div class="item-devolucion"
+             *ngFor="let item of venta.items"
+             [class.seleccionado]="item.seleccionado"
+             [class.agotado]="item.cantidad_disponible === 0">
+
+          <mat-checkbox
+            [checked]="item.seleccionado!"
+            [disabled]="item.cantidad_disponible === 0"
+            (change)="onItemCheckboxChange(item, $event.checked)">
+          </mat-checkbox>
+
+          <div class="item-info">
+            <strong>{{ item.producto_nombre }}</strong>
+            <div class="item-variante"
+                 *ngIf="item.variante_detalle">
+              <span class="color-dot"
+                    [style.background]="item.variante_detalle.color_hex">
+              </span>
+              {{ item.variante_detalle.talla }} /
+              {{ item.variante_detalle.color }}
+            </div>
+            <small class="item-precio">
+              Bs. {{ item.precio_unitario | number:'1.2-2' }}
+              c/u
+            </small>
+          </div>
+
+          <div class="item-cantidades">
+            <span class="cant-label">
+              Vendido: {{ item.cantidad }}
+            </span>
+            <span class="cant-label" *ngIf="item.cantidad_devuelta > 0">
+              Ya devuelto: {{ item.cantidad_devuelta }}
+            </span>
+            <span class="cant-label disponible">
+              Disponible: {{ item.cantidad_disponible }}
+            </span>
+          </div>
+
+          <mat-form-field appearance="outline"
+                          style="width:90px"
+                          *ngIf="item.seleccionado">
+            <mat-label>A devolver</mat-label>
+            <input matInput type="number"
+                   [(ngModel)]="item.cantidad_a_devolver"
+                   [min]="1"
+                   [max]="item.cantidad_disponible ?? 0">
+          </mat-form-field>
+
+          <span *ngIf="!item.seleccionado && item.cantidad_disponible === 0"
+                class="badge-agotado">
+            Ya devuelto
+          </span>
+
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card *ngIf="itemsSeleccionados.length > 0">
+      <mat-card-title>Tipo de resolución</mat-card-title>
+      <mat-card-content>
+
+        <mat-radio-group [(ngModel)]="tipoResolucion"
+                         class="radio-group">
+          <mat-radio-button value="cambio">
+            <div class="radio-option">
+              <mat-icon>swap_horiz</mat-icon>
+              <div>
+                <strong>Cambio de producto</strong>
+                <p>El cliente recibe otro producto</p>
+              </div>
+            </div>
+          </mat-radio-button>
+          <mat-radio-button value="devolucion_dinero">
+            <div class="radio-option">
+              <mat-icon>payments</mat-icon>
+              <div>
+                <strong>Devolución de dinero</strong>
+                <p>
+                  Se devuelve
+                  Bs. {{ montoEstimado | number:'1.2-2' }}
+                </p>
+              </div>
+            </div>
+          </mat-radio-button>
+        </mat-radio-group>
+
+        <mat-form-field appearance="outline"
+                        class="full-width"
+                        style="margin-top:16px">
+          <mat-label>Motivo (opcional)</mat-label>
+          <textarea matInput [(ngModel)]="motivo"
+                    rows="2"
+                    placeholder="Ej: producto defectuoso, talla incorrecta...">
+          </textarea>
+        </mat-form-field>
+
+        <div class="resumen-devolucion">
+          <h4>Resumen</h4>
+          <div *ngFor="let i of itemsSeleccionados" class="resumen-item">
+            <span>
+              {{ i.producto_nombre }}
+              <small *ngIf="i.variante_detalle">
+                ({{ i.variante_detalle.talla }}/
+                {{ i.variante_detalle.color }})
+              </small>
+            </span>
+            <span>
+              {{ i.cantidad_a_devolver }} uds ×
+              Bs. {{ i.precio_unitario | number:'1.2-2' }}
+            </span>
+          </div>
+          <div class="resumen-total">
+            <strong>Total a devolver:</strong>
+            <strong>
+              Bs. {{ montoEstimado | number:'1.2-2' }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button (click)="onNuevaBusqueda()">
+            Cancelar
+          </button>
+          <button mat-raised-button color="warn"
+                  (click)="onConfirmar()"
+                  [disabled]="!puedeConfirmar">
+            <mat-spinner diameter="18"
+                         *ngIf="procesando"
+                         style="display:inline-block;margin-right:8px">
+            </mat-spinner>
+            <mat-icon *ngIf="!procesando">
+              assignment_return
+            </mat-icon>
+            {{ procesando ? 'Procesando...' : 'Confirmar devolución' }}
+          </button>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+  </ng-container>
+</div>

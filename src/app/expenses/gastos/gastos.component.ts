@@ -116,13 +116,24 @@ export class GastosComponent implements OnInit {
   }
 
   nuevoGasto(): void {
-    const ref = this.dialog.open(GastoDialogComponent, { width: '460px', disableClose: true });
+    const ref = this.dialog.open(GastoDialogComponent, {
+      width: '460px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
+      disableClose: true
+    });
     ref.afterClosed().subscribe(r => { if (r) { this.snack.open('Gasto registrado.', 'OK', { duration: 2000 }); this.load(); } });
   }
 
   verGastos(row: CatRow): void {
     this.dialog.open(HistorialGastosDialogComponent, {
       width: '760px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-lg',
       data: { categoria: row.categoria, periodo: this.activePeriodo, fecha: this.activeFecha },
     });
   }

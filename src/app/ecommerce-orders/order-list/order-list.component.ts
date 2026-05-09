@@ -147,11 +147,13 @@ export class OrderListComponent implements OnInit {
       next: (freshOrder) => {
         const ref = this.dialog.open(OrderDetailComponent, {
           width: '860px',
-          maxWidth: '98vw',
+          maxWidth: '95vw',
           height: 'auto',
-          maxHeight: '95vh',
+          maxHeight: '90vh',
+          autoFocus: false,
+          disableClose: false,
           data: { order: freshOrder },
-          panelClass: 'detail-panel'
+          panelClass: ['detail-panel', 'dialog-lg']
         });
 
         ref.afterClosed().subscribe(changed => {

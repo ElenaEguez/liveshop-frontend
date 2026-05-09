@@ -1,10 +1,17 @@
-<div class="modal-wrapper">
-
-  <h2 class="modal-title">
+<div mat-dialog-title class="modal-title">
+  <span class="title-left">
     <mat-icon>manage_accounts</mat-icon>
     {{ isEdit ? 'Editar rol' : 'Nuevo rol' }}
-  </h2>
+  </span>
+  <button mat-icon-button
+          class="dialog-close-btn"
+          [mat-dialog-close]="null"
+          aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
+<mat-dialog-content>
   <form [formGroup]="form" class="modal-form">
 
     <mat-form-field appearance="outline" class="full-width">
@@ -34,15 +41,14 @@
     </div>
 
   </form>
+</mat-dialog-content>
 
-  <div class="modal-actions">
-    <button mat-button (click)="onCancel()">Cancelar</button>
-    <button mat-raised-button color="primary"
-            (click)="onSubmit()"
-            [disabled]="form.invalid || saving">
-      <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
-      {{ saving ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Crear rol') }}
-    </button>
-  </div>
-
-</div>
+<mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="null">Cancelar</button>
+  <button mat-raised-button color="primary"
+          (click)="onSubmit()"
+          [disabled]="form.invalid || saving">
+    <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block; margin-right:6px;"></mat-spinner>
+    {{ saving ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Crear rol') }}
+  </button>
+</mat-dialog-actions>

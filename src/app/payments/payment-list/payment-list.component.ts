@@ -117,8 +117,12 @@ export class PaymentListComponent implements OnInit, OnDestroy {
     if (!url) return;
     this.dialog.open(PaymentReceiptDialogComponent, {
       data: { url },
+      width: '640px',
       maxWidth: '92vw',
-      maxHeight: '96vh'
+      maxHeight: '90vh',
+      autoFocus: false,
+      disableClose: false,
+      panelClass: 'dialog-lg'
     });
   }
 
@@ -126,6 +130,11 @@ export class PaymentListComponent implements OnInit, OnDestroy {
   openVerify(payment: Payment): void {
     const dialogRef = this.dialog.open(PaymentVerifyComponent, {
       width: '640px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      disableClose: false,
+      panelClass: 'dialog-lg',
       data: { payment }
     });
     dialogRef.afterClosed().subscribe((updated: boolean) => {

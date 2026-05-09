@@ -53,7 +53,11 @@ export class TeamListComponent implements OnInit {
   openInvite(): void {
     const ref = this.dialog.open(TeamInviteDialogComponent, {
       width: '460px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
       disableClose: true,
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { roles: this.roles }
     });
     ref.afterClosed().subscribe(result => {
@@ -92,7 +96,11 @@ export class TeamListComponent implements OnInit {
   openRoleDialog(role?: CustomRole): void {
     const ref = this.dialog.open(RoleDialogComponent, {
       width: '480px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
       disableClose: true,
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { role }
     });
     ref.afterClosed().subscribe(result => {

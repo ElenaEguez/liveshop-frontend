@@ -145,6 +145,11 @@ export class VentasListComponent implements OnInit {
     this.dialog.open(TicketPreviewDialogComponent, {
       data: { venta, vendorName: '', moneda: 'Bs.', showNuevaVenta: false },
       width: '420px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      panelClass: 'dialog-sm',
     });
   }
 
@@ -152,6 +157,11 @@ export class VentasListComponent implements OnInit {
     this.dialog.open(TicketPreviewDialogComponent, {
       data: { venta, vendorName: '', moneda: 'Bs.', showNuevaVenta: false },
       width: '420px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      panelClass: 'dialog-sm',
     });
   }
 
@@ -171,6 +181,10 @@ export class VentasListComponent implements OnInit {
   cobrarCredito(venta: VentaPOS): void {
     const ref = this.dialog.open(CobrarCreditoDialogComponent, {
       width: '500px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { venta, moneda: 'Bs.' },
       disableClose: true,
     });

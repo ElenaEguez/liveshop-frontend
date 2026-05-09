@@ -1,19 +1,16 @@
-.modal-wrapper {
-  padding: 24px;
-  min-width: 380px;
-  max-width: 480px;
-}
-
 .modal-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 20px;
-  font-size: 1.15rem;
-  font-weight: 600;
+  justify-content: space-between;
 }
 
-.modal-form { display: flex; flex-direction: column; gap: 12px; }
+.title-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-form { display: flex; flex-direction: column; gap: 12px; min-width: 320px; }
 
 .full-width { width: 100%; }
 
@@ -48,9 +45,4 @@
   color: #6b7280;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
-}
+mat-dialog-content { min-width: 320px; }

@@ -211,6 +211,11 @@ export class InventoryListComponent implements OnInit {
   openEditStock(item: Inventory): void {
     const dialogRef = this.dialog.open(EditStockDialogComponent, {
       width: '400px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      panelClass: 'dialog-sm',
+      autoFocus: false,
       data: { inventory: item }
     });
     dialogRef.afterClosed().subscribe((updated: boolean) => {

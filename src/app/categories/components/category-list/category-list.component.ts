@@ -35,6 +35,10 @@ export class CategoryListComponent implements OnInit {
   openForm(category?: Category): void {
     const dialogRef = this.dialog.open(CategoryFormDialogComponent, {
       width: '480px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
       data: { category }
     });
     dialogRef.afterClosed().subscribe((saved: boolean) => {

@@ -1,0 +1,33 @@
+.historial-container {
+  padding: 16px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+}
+
+mat-table {
+  width: 100%;
+}
+
+mat-cell,
+mat-header-cell {
+  padding: 8px 12px;
+}
