@@ -1,0 +1,168 @@
+<div class="form-container">
+  <div class="form-header">
+    <button mat-icon-button type="button" (click)="onVolver()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Nueva Transferencia</h2>
+  </div>
+
+  <form [formGroup]="form">
+    <mat-card class="section-card">
+      <mat-card-title>Almacenes</mat-card-title>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Almacén origen</mat-label>
+            <mat-select formControlName="almacen_origen">
+              <mat-option *ngFor="let a of almacenes"
+                          [value]="a.id">
+                {{ a.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Almacén destino</mat-label>
+            <mat-select formControlName="almacen_destino">
+              <mat-option *ngFor="let a of almacenes"
+                          [value]="a.id">
+                {{ a.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notas</mat-label>
+          <textarea matInput formControlName="notas"
+                    rows="2"></textarea>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="section-card">
+      <mat-card-title>Productos a transferir</mat-card-title>
+      <mat-card-content>
+        <div [formGroup]="itemForm" class="item-form">
+          <div class="producto-search">
+            <mat-form-field appearance="outline"
+                            class="search-field">
+              <mat-label>Buscar producto</mat-label>
+              <input matInput formControlName="busqueda"
+                     (input)="onBusqueda(itemForm.value.busqueda)"
+                     autocomplete="off">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <div class="search-results"
+                 *ngIf="productosFiltrados.length > 0">
+              <div class="search-item"
+                   *ngFor="let p of productosFiltrados"
+                   (click)="onSeleccionarProducto(p)">
+                <span class="producto-name">{{ p.name }}</span>
+                <span class="producto-sku">{{ p.sku }}</span>
+              </div>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline"
+                          *ngIf="variantesDisponibles.length > 0">
+            <mat-label>Variante</mat-label>
+            <mat-select formControlName="variante">
+              <mat-option [value]="null">Sin variante</mat-option>
+              <mat-option *ngFor="let v of variantesDisponibles"
+                          [value]="v.id">
+                <span class="color-dot"
+                      [style.background]="v.color_hex"></span>
+                {{ v.talla }} / {{ v.color }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline"
+                          class="cantidad-field">
+            <mat-label>Cantidad</mat-label>
+            <input matInput type="number"
+                   formControlName="cantidad" min="1">
+          </mat-form-field>
+
+          <button mat-raised-button color="primary"
+                  type="button"
+                  (click)="onAgregarItem()"
+                  [disabled]="!productoSeleccionado">
+            <mat-icon>add</mat-icon> Agregar
+          </button>
+        </div>
+
+        <mat-table [dataSource]="items"
+                   *ngIf="items.length > 0">
+          <ng-container matColumnDef="producto">
+            <mat-header-cell *matHeaderCellDef>
+              Producto
+            </mat-header-cell>
+            <mat-cell *matCellDef="let i">
+              {{ i.producto_nombre }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="variante">
+            <mat-header-cell *matHeaderCellDef>
+              Variante
+            </mat-header-cell>
+            <mat-cell *matCellDef="let i">
+              <ng-container *ngIf="i.variante_detalle">
+                <span class="color-dot"
+                      [style.background]="
+                        i.variante_detalle.color_hex">
+                </span>
+                {{ i.variante_detalle.talla }} /
+                {{ i.variante_detalle.color }}
+              </ng-container>
+              <span *ngIf="!i.variante_detalle">—</span>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="cantidad">
+            <mat-header-cell *matHeaderCellDef>
+              Cantidad
+            </mat-header-cell>
+            <mat-cell *matCellDef="let i">
+              {{ i.cantidad }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="eliminar">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let i; let idx = index">
+              <button mat-icon-button color="warn"
+                      type="button"
+                      (click)="onEliminar(idx)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="columnas">
+          </mat-header-row>
+          <mat-row
+            *matRowDef="let r; columns: columnas;">
+          </mat-row>
+        </mat-table>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="form-actions">
+      <button mat-button type="button" (click)="onVolver()">
+        Cancelar
+      </button>
+      <button mat-raised-button color="primary"
+              type="button"
+              (click)="onGuardar()"
+              [disabled]="guardando || items.length === 0">
+        <mat-icon>swap_horiz</mat-icon>
+        Crear transferencia
+      </button>
+    </div>
+  </form>
+</div>

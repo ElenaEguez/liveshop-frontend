@@ -49,64 +49,6 @@
         </div>
       </div>
 
-      <div *ngIf="!viewOnly" style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-top:6px;">
-        <mat-form-field appearance="outline" style="min-width:260px;flex:1;">
-          <mat-label>Almacén principal</mat-label>
-          <mat-select [formControl]="selectedPrimaryWarehouseControl">
-            <mat-option [value]="null">Seleccionar almacén</mat-option>
-            <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button type="button" mat-stroked-button color="primary"
-                (click)="applyPrimaryWarehouseToTotalStock()"
-                [disabled]="selectedPrimaryWarehouseControl.value == null"
-                style="height:56px;">
-          Aplicar stock total
-        </button>
-      </div>
-
-      <div class="form-section" formArrayName="inventory_distribution" style="margin-top:10px;">
-        <div class="section-header">
-          <h3 class="section-title">Distribución por almacén</h3>
-          <button *ngIf="!viewOnly" type="button" mat-stroked-button color="primary"
-                  (click)="addDistribution()" class="add-btn">
-            <mat-icon>add</mat-icon> Agregar fila
-          </button>
-        </div>
-        <p style="margin:0 0 8px;color:#6b7280;font-size:.82rem;">
-          La suma distribuida debe coincidir con el stock total.
-        </p>
-        <div *ngFor="let d of distribution.controls; let i = index" [formGroupName]="i" class="variant-card">
-          <div class="variant-grid" style="grid-template-columns:1fr 120px;">
-            <mat-form-field appearance="outline">
-              <mat-label>Almacén</mat-label>
-              <mat-select formControlName="almacen_id">
-                <mat-option [value]="null">Sin almacén</mat-option>
-                <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Cantidad</mat-label>
-              <input matInput type="number" formControlName="quantity">
-            </mat-form-field>
-          </div>
-          <button *ngIf="!viewOnly" type="button" mat-icon-button color="warn"
-                  (click)="removeDistribution(i)" class="remove-btn"
-                  matTooltip="Eliminar fila">
-            <mat-icon>remove_circle_outline</mat-icon>
-          </button>
-        </div>
-        <div *ngIf="distribucionInvalida"
-             style="display:flex;align-items:center;gap:4px;color:#e53935;font-size:13px;margin-top:8px;">
-          <mat-icon style="font-size:16px;width:16px;height:16px;">warning</mat-icon>
-          La distribución por almacén ({{ sumaDistribucion }}) debe igualar el Stock Total ({{ productForm.get('stock')?.value }}).
-        </div>
-        <div *ngIf="distribucionConAlmacenesDuplicados"
-             style="display:flex;align-items:center;gap:4px;color:#e53935;font-size:13px;margin-top:8px;">
-          <mat-icon style="font-size:16px;width:16px;height:16px;">warning</mat-icon>
-          No puedes repetir el mismo almacén en más de una fila.
-        </div>
-      </div>
     </div>
 
     <!-- SECCIÓN: Precios -->
@@ -323,7 +265,7 @@
   <div class="modal-actions">
     <button mat-button (click)="onCancel()">{{ viewOnly ? 'Cerrar' : 'Cancelar' }}</button>
     <button *ngIf="!viewOnly" mat-raised-button color="primary"
-            [disabled]="productForm.invalid || stockVariantesInvalido || distribucionInvalida || distribucionConAlmacenesDuplicados"
+            [disabled]="productForm.invalid || stockVariantesInvalido"
             (click)="onSubmit()">
       {{ isEdit ? 'Guardar Cambios' : 'Crear Producto' }}
     </button>

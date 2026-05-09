@@ -1,0 +1,90 @@
+<div class="list-container">
+  <div class="header-actions">
+    <h2>Transferencias entre almacenes</h2>
+    <button mat-raised-button color="primary"
+            (click)="onNueva()">
+      <mat-icon>swap_horiz</mat-icon> Nueva transferencia
+    </button>
+  </div>
+
+  <div *ngIf="cargando" class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <mat-table *ngIf="!cargando"
+             [dataSource]="transferencias">
+
+    <ng-container matColumnDef="origen">
+      <mat-header-cell *matHeaderCellDef>Origen</mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        {{ t.almacen_origen_nombre }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="destino">
+      <mat-header-cell *matHeaderCellDef>Destino</mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        {{ t.almacen_destino_nombre }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        <mat-chip-list *ngIf="t.estado">
+          <mat-chip [color]="getColor(t.estado)" selected>
+            {{ t.estado }}
+          </mat-chip>
+        </mat-chip-list>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="items">
+      <mat-header-cell *matHeaderCellDef>Ítems</mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        {{ t.items?.length || 0 }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        {{ t.created_at | date:'dd/MM/yyyy' }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let t">
+        <button mat-icon-button (click)="onVer(t.id!)"
+                matTooltip="Ver detalle">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button color="primary"
+                *ngIf="t.estado === 'pendiente'"
+                (click)="onConfirmar(t, $event)"
+                matTooltip="Confirmar">
+          <mat-icon>check_circle</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                *ngIf="t.estado === 'pendiente'"
+                (click)="onCancelar(t, $event)"
+                matTooltip="Cancelar">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row
+      *matHeaderRowDef="columnas"></mat-header-row>
+    <mat-row
+      *matRowDef="let r; columns: columnas;"
+      (click)="onVer(r.id!)"
+      class="clickable-row"></mat-row>
+  </mat-table>
+
+  <p *ngIf="!cargando && transferencias.length === 0"
+     class="empty-state">
+    No hay transferencias registradas.
+  </p>
+</div>

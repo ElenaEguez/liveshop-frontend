@@ -7,6 +7,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LayoutModule } from './layout/layout.module';
+import { SharedModule } from './shared/shared.module';
 
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { JwtInterceptor } from './jwt.interceptor';
@@ -22,6 +23,7 @@ const socketConfig: SocketIoConfig = { url: environment.apiUrl.replace('/api/v1'
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    SharedModule,
     AppRoutingModule,
     LayoutModule,
     SocketIoModule.forRoot(socketConfig)

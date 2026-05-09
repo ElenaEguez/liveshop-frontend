@@ -7,9 +7,6 @@
       <button mat-stroked-button (click)="descargarXLSX()">
         <mat-icon>download</mat-icon> Descargar CSV
       </button>
-      <button mat-raised-button color="primary" (click)="abrirAjuste()">
-        <mat-icon>add</mat-icon> Nuevo Ajuste
-      </button>
     </div>
   </div>
 
@@ -172,4 +169,62 @@
                    (page)="onPage($event)">
     </mat-paginator>
   </mat-card>
+
+  <mat-expansion-panel class="stock-panel">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>inventory_2</mat-icon>
+        Stock por variante
+      </mat-panel-title>
+      <mat-panel-description>
+        {{ stockVariantes.length }} registros
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <mat-table [dataSource]="stockVariantes" class="stock-variante-table">
+      <ng-container matColumnDef="producto">
+        <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          {{ row.producto_nombre }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="variante">
+        <mat-header-cell *matHeaderCellDef>Variante</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <ng-container *ngIf="row.variante; else sinVar">
+            <span class="color-dot" [style.background]="row.variante.color_hex">
+            </span>
+            {{ row.variante.talla }} / {{ row.variante.color }}
+          </ng-container>
+          <ng-template #sinVar>—</ng-template>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="disponible">
+        <mat-header-cell *matHeaderCellDef>Disponible</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <strong [class.stock-bajo]="row.disponible <= 3">
+            {{ row.disponible }}
+          </strong>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="reservado">
+        <mat-header-cell *matHeaderCellDef>Reservado</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.reserved }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="[
+        'producto','variante','disponible','reservado']">
+      </mat-header-row>
+      <mat-row *matRowDef="let r; columns: [
+        'producto','variante','disponible','reservado']">
+      </mat-row>
+    </mat-table>
+
+    <p *ngIf="stockVariantes.length === 0" class="empty-state">
+      No hay stock registrado en este almacén.
+    </p>
+  </mat-expansion-panel>
 </div>

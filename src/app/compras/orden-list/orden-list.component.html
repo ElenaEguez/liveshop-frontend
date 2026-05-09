@@ -1,0 +1,35 @@
+<div class="orden-list">
+  <div class="header">
+    <h2>Órdenes de compra</h2>
+    <button mat-raised-button color="primary" (click)="irNueva()">
+      <mat-icon>add</mat-icon>
+      Nueva orden
+    </button>
+  </div>
+
+  <mat-card>
+    <mat-card-content>
+      <table class="table" *ngIf="ordenes.length > 0">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Proveedor</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of ordenes" [routerLink]="['/compras', o.id]">
+            <td>{{ o.numero }}</td>
+            <td>{{ o.proveedor_data?.nombre || '—' }}</td>
+            <td>{{ o.fecha }}</td>
+            <td>{{ o.estado }}</td>
+            <td>Bs. {{ o.total || 0 | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="!cargando && ordenes.length === 0">Sin órdenes registradas.</p>
+    </mat-card-content>
+  </mat-card>
+</div>

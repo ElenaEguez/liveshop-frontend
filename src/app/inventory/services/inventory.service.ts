@@ -80,6 +80,20 @@ export class InventoryService {
     return this.http.patch<Inventory>(`${this.apiUrl}${id}/`, body);
   }
 
+  ajustarStock(id: number, body: { cantidad: number; nota: string }): Observable<any> {
+    return this.http.patch(
+      `${environment.apiUrl}/products/inventory/${id}/adjust/`,
+      body
+    );
+  }
+
+  ajustarVariante(id: number, body: { cantidad: number; nota: string }): Observable<any> {
+    return this.http.patch(
+      `${environment.apiUrl}/products/variants/${id}/adjust-stock/`,
+      body
+    );
+  }
+
   getVariantes(productId: number): Observable<ProductVariant[]> {
     return this.http.get<ProductVariant[]>(`${this.productsUrl}/${productId}/variantes/`);
   }

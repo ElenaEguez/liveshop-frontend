@@ -1,0 +1,22 @@
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+.detail-page {
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.sub { margin: 0; color: #666; font-size: 14px; }
+.flex-spacer { flex: 1; }
+.meta-card {
+  margin-bottom: 16px;
+}

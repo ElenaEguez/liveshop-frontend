@@ -36,3 +36,19 @@
 
 .positive { color: #2e7d32; font-weight: 600; }
 .negative { color: #c62828; font-weight: 600; }
+
+.color-dot {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,.15);
+}
+.stock-bajo { color: #e53935; }
+.stock-panel { margin-top: 16px; }
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 24px;
+}

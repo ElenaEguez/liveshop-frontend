@@ -1,0 +1,76 @@
+<div class="list-container">
+  <div class="header-actions">
+    <h2>Conteos físicos</h2>
+    <button mat-raised-button color="primary"
+            (click)="onNuevo()">
+      <mat-icon>fact_check</mat-icon> Nuevo conteo
+    </button>
+  </div>
+
+  <div *ngIf="cargando" class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <mat-table *ngIf="!cargando" [dataSource]="conteos">
+
+    <ng-container matColumnDef="almacen">
+      <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+      <mat-cell *matCellDef="let c">
+        {{ c.almacen_nombre }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+      <mat-cell *matCellDef="let c">
+        {{ c.fecha | date:'dd/MM/yyyy' }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let c">
+        <mat-chip-list *ngIf="c.estado">
+          <mat-chip [color]="getColor(c.estado)" selected>
+            {{ c.estado }}
+          </mat-chip>
+        </mat-chip-list>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="diferencias">
+      <mat-header-cell *matHeaderCellDef>
+        Diferencias
+      </mat-header-cell>
+      <mat-cell *matCellDef="let c">
+        <span *ngIf="c.items_con_diferencia! > 0"
+              class="badge-diferencia">
+          {{ c.items_con_diferencia }} ítems
+        </span>
+        <span *ngIf="!c.items_con_diferencia">—</span>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let c">
+        <button mat-icon-button (click)="onVer(c.id!)"
+                matTooltip="Ver detalle">
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="columnas">
+    </mat-header-row>
+    <mat-row
+      *matRowDef="let r; columns: columnas;"
+      (click)="onVer(r.id!)"
+      class="clickable-row"></mat-row>
+  </mat-table>
+
+  <p *ngIf="!cargando && conteos.length === 0"
+     class="empty-state">
+    No hay conteos registrados.
+  </p>
+</div>

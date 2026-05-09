@@ -3,10 +3,17 @@
   <!-- Header -->
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
     <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Inventario</h1>
-    <span style="background:#fef2f2; color:#db0000; padding:6px 14px; border-radius:20px;
-                 font-size:0.875rem; font-weight:600;">
-      {{ totalCount }} productos
-    </span>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button mat-icon-button
+              (click)="onImprimir()"
+              matTooltip="Imprimir inventario">
+        <mat-icon>print</mat-icon>
+      </button>
+      <span style="background:#fef2f2; color:#db0000; padding:6px 14px; border-radius:20px;
+                   font-size:0.875rem; font-weight:600;">
+        {{ totalCount }} productos
+      </span>
+    </div>
   </div>
 
   <!-- Filtros -->
@@ -75,6 +82,19 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="variante">
+        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Variante</th>
+        <td mat-cell *matCellDef="let item">
+          <ng-container *ngIf="item.variante; else sinVariante">
+            <span class="color-swatch"
+                  [style.background]="item.variante.color_hex">
+            </span>
+            {{ item.variante.talla }} / {{ item.variante.color }}
+          </ng-container>
+          <ng-template #sinVariante>—</ng-template>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="quantity">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Stock Total</th>
         <td mat-cell *matCellDef="let item">
@@ -128,18 +148,6 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="margin">
-        <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Margen / ud.</th>
-        <td mat-cell *matCellDef="let item">
-          <ng-container *ngIf="getMargin(item) !== null; else noMargin">
-            <span [style.color]="getMargin(item)! < 0 ? '#dc2626' : '#166534'" style="font-weight:600;">
-              Bs. {{ getMargin(item)! | number:'1.2-2' }}
-            </span>
-          </ng-container>
-          <ng-template #noMargin><span style="color:#9ca3af;">—</span></ng-template>
-        </td>
-      </ng-container>
-
       <!-- Columna Variantes -->
       <ng-container matColumnDef="variantes">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Variantes</th>
@@ -160,10 +168,38 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151;">Acciones</th>
         <td mat-cell *matCellDef="let item">
+          <button mat-icon-button
+                  (click)="onActivarAjuste('inventory', item.id)"
+                  matTooltip="Ajustar stock"
+                  *ngIf="ajusteActivo?.id !== item.id">
+            <mat-icon>edit</mat-icon>
+          </button>
           <button mat-icon-button (click)="openEditStock(item)"
                   matTooltip="Editar stock" style="color:#db0000;">
             <mat-icon>edit</mat-icon>
           </button>
+          <div class="ajuste-inline"
+               *ngIf="ajusteActivo?.id === item.id &&
+                      ajusteActivo?.tipo === 'inventory'">
+            <mat-form-field appearance="outline" style="width:90px">
+              <mat-label>Cantidad</mat-label>
+              <input matInput type="number"
+                     [(ngModel)]="ajusteCantidad"
+                     placeholder="+5 o -2">
+            </mat-form-field>
+            <mat-form-field appearance="outline" style="width:150px">
+              <mat-label>Motivo</mat-label>
+              <input matInput [(ngModel)]="ajusteNota">
+            </mat-form-field>
+            <button mat-flat-button color="primary"
+                    (click)="onAplicarAjuste()"
+                    [disabled]="ajusteCantidad === 0">
+              Aplicar
+            </button>
+            <button mat-button (click)="onCancelarAjuste()">
+              Cancelar
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -211,6 +247,34 @@
                     <td style="color:#6b7280; font-size:0.8rem;">{{ v.sku || '—' }}</td>
                     <td style="font-weight:600;">
                       {{ v.stock_extra }} uds.
+                      <button mat-icon-button
+                              (click)="onActivarAjuste('variant', v.id)"
+                              matTooltip="Ajustar stock variante"
+                              *ngIf="ajusteActivo?.id !== v.id">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <div class="ajuste-inline"
+                           *ngIf="ajusteActivo?.id === v.id &&
+                                  ajusteActivo?.tipo === 'variant'">
+                        <mat-form-field appearance="outline" style="width:90px">
+                          <mat-label>Cantidad</mat-label>
+                          <input matInput type="number"
+                                 [(ngModel)]="ajusteCantidad"
+                                 placeholder="+5 o -2">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" style="width:150px">
+                          <mat-label>Motivo</mat-label>
+                          <input matInput [(ngModel)]="ajusteNota">
+                        </mat-form-field>
+                        <button mat-flat-button color="primary"
+                                (click)="onAplicarAjuste()"
+                                [disabled]="ajusteCantidad === 0">
+                          Aplicar
+                        </button>
+                        <button mat-button (click)="onCancelarAjuste()">
+                          Cancelar
+                        </button>
+                      </div>
                     </td>
                     <td>
                       <span [style.background]="v.stock_extra <= 0 ? '#fef9c3' : (v.stock_extra <= 5 ? '#fee2e2' : '#dcfce7')"

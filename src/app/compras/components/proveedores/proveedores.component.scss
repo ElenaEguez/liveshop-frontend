@@ -1,0 +1,76 @@
+.proveedores-container { padding: 16px; }
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.proveedor-card {
+  margin-bottom: 12px;
+  mat-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+.proveedor-info { flex: 1; }
+.chip-inactivo {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.proveedor-datos {
+  display: flex;
+  gap: 16px;
+  color: #666;
+  font-size: 13px;
+  margin: 6px 0;
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+.proveedor-acciones {
+  display: flex;
+  flex-direction: column;
+}
+.notas {
+  color: #888;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+.form-card {
+  margin-top: 24px;
+}
+.proveedor-form {
+  display: flex;
+  flex-direction: column;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  mat-form-field {
+    flex: 1;
+    min-width: 180px;
+  }
+}
+.full-width {
+  width: 100%;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 32px;
+}

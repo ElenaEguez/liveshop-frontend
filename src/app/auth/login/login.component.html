@@ -7,7 +7,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Correo Electrónico</mat-label>
-          <input matInput type="email" formControlName="email" required>
+          <input matInput type="email" formControlName="email" required autocomplete="username">
           <mat-error *ngIf="email?.invalid && email?.touched">
             <span *ngIf="email?.errors?.['required']">El correo electrónico es obligatorio.</span>
             <span *ngIf="email?.errors?.['email']">Ingrese un correo electrónico válido.</span>
@@ -16,7 +16,7 @@
 
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Contraseña</mat-label>
-          <input matInput type="password" formControlName="password" required>
+          <input matInput type="password" formControlName="password" required autocomplete="current-password">
           <mat-error *ngIf="password?.invalid && password?.touched">
             La contraseña es obligatoria.
           </mat-error>

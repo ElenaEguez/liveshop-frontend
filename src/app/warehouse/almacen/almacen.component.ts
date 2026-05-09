@@ -1,9 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ChangeDetectorRef } from '@angular/core';
 import { WarehouseService, KardexMovimiento } from '../warehouse.service';
-import { KardexAjusteDialogComponent } from '../kardex-ajuste-dialog/kardex-ajuste-dialog.component';
 
 @Component({
   selector: 'app-almacen',
@@ -22,6 +20,7 @@ export class AlmacenComponent implements OnInit {
   sucursales: any[] = [];
   almacenes: any[] = [];
   inventories: any[] = [];
+  stockVariantes: any[] = [];
   productQuery = '';
 
   filters = {
@@ -41,13 +40,15 @@ export class AlmacenComponent implements OnInit {
 
   constructor(
     private svc: WarehouseService,
-    private dialog: MatDialog,
-    private snack: MatSnackBar,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.svc.getSucursales().subscribe(s => this.sucursales = s);
-    this.svc.getAlmacenes().subscribe(a => this.almacenes = a);
+    this.svc.getAlmacenes().subscribe(a => {
+      this.almacenes = a;
+      this.actualizarStockVariantes();
+    });
     this.svc.getInventories().subscribe(i => this.inventories = i);
     this.load();
   }
@@ -112,6 +113,7 @@ export class AlmacenComponent implements OnInit {
       next: res => {
         this.movimientos = res.results;
         this.totalCount = res.count;
+        this.actualizarStockVariantes();
         this.loading = false;
       },
       error: () => { this.loading = false; },
@@ -127,16 +129,6 @@ export class AlmacenComponent implements OnInit {
   resetPage(): void {
     this.pageIndex = 0;
     this.load();
-  }
-
-  abrirAjuste(): void {
-    const ref = this.dialog.open(KardexAjusteDialogComponent, { width: '480px', disableClose: true });
-    ref.afterClosed().subscribe(result => {
-      if (result) {
-        this.snack.open('Ajuste registrado.', 'OK', { duration: 3000 });
-        this.load();
-      }
-    });
   }
 
   descargarXLSX(): void {
@@ -183,5 +175,12 @@ export class AlmacenComponent implements OnInit {
       entrada: 'ENTRADA', salida: 'SALIDA', ajuste: 'AJUSTE', transferencia: 'TRANSF.'
     };
     return map[tipo] || tipo.toUpperCase();
+  }
+
+  private actualizarStockVariantes(): void {
+    const selectedAlmacen = this.almacenes.find((a: any) => a.id === this.filters.almacen_id);
+    const datos = selectedAlmacen || {};
+    this.stockVariantes = datos.stock_por_variante || [];
+    this.cdr.markForCheck();
   }
 }

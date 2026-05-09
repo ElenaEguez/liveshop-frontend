@@ -5,10 +5,11 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { PermissionsService } from '../shared/permissions.service';
+import { PermisosService } from '../core/services/permisos.service';
 import { VendorProfileService } from '../my-store/services/vendor-profile.service';
 import { EcommerceOrdersService } from '../ecommerce-orders/ecommerce-orders.service';
 
-type NavPermission = 'always' | 'products' | 'categories' | 'inventory' | 'live_sessions' | 'my_store' | 'orders' | 'payments' | 'team' | 'dashboard' | 'pos' | 'warehouse' | 'expenses' | 'settings' | 'ecommerce_orders';
+type NavPermission = 'always' | 'products' | 'categories' | 'inventory' | 'live_sessions' | 'my_store' | 'orders' | 'payments' | 'team' | 'dashboard' | 'pos' | 'warehouse' | 'expenses' | 'settings' | 'ecommerce_orders' | 'compras';
 
 interface NavItem {
   label: string;
@@ -36,7 +37,11 @@ export class LayoutComponent implements OnInit {
     { label: 'Ventas POS',    icon: 'receipt',        route: '/vendor/ventas',     permission: 'pos'       },
     { label: 'Arqueos Caja',  icon: 'calculate',      route: '/vendor/arqueos',    permission: 'pos'       },
     { label: 'Almacén',       icon: 'warehouse',      route: '/almacen',         permission: 'warehouse' },
+    { label: 'Transferencias', icon: 'swap_horiz',   route: '/almacen/transferencias', permission: 'warehouse' },
+    { label: 'Conteo físico', icon: 'fact_check',    route: '/almacen/conteos', permission: 'inventory' },
     { label: 'Gastos',        icon: 'receipt_long',   route: '/gastos',          permission: 'expenses'  },
+    { label: 'Compras',       icon: 'shopping_basket', route: '/compras',        permission: 'compras'   },
+    { label: 'Proveedores',   icon: 'business',         route: '/compras/proveedores', permission: 'compras' },
     { label: 'Configuración', icon: 'settings',       route: '/configuracion',   permission: 'settings'  },
     { label: 'Productos',     icon: 'inventory_2',    route: '/products',        permission: 'products'  },
     { label: 'Categorías', icon: 'category',       route: '/categories',    permission: 'categories'   },
@@ -49,27 +54,68 @@ export class LayoutComponent implements OnInit {
     { label: 'Pedidos Web', icon: 'shopping_bag',  route: '/ecommerce-orders', permission: 'ecommerce_orders' },
   ];
 
+  private moduloApiForItem(item: NavItem): string | null {
+    if (item.route === '/compras/proveedores') {
+      return 'compras';
+    }
+    const map: Partial<Record<NavPermission, string>> = {
+      dashboard: 'reportes',
+      pos: 'pos',
+      warehouse: 'inventario',
+      inventory: 'inventario',
+      expenses: 'reportes',
+      compras: 'compras',
+      settings: 'configuracion',
+      products: 'productos',
+      categories: 'productos',
+      live_sessions: 'livestream',
+      orders: 'pedidos',
+      payments: 'pagos',
+      my_store: 'configuracion',
+      team: 'configuracion',
+      ecommerce_orders: 'reportes',
+    };
+    return map[item.permission] ?? null;
+  }
+
+  /**
+   * Mientras cargan permisos API, JWT (PermissionsService) ya filtró con legacyOk;
+   * puede() solo aplica cuando hay snapshot de MisPermisos.
+   */
+  private seeModuleViaApi(moduloApi: string): boolean {
+    if (this.permisosService.permisos) {
+      return this.permisosService.puede(moduloApi);
+    }
+    return true;
+  }
+
   get navItems(): NavItem[] {
     const p = this.permissions;
     return this.allNavItems.filter(item => {
+      let legacyOk: boolean;
       switch (item.permission) {
-        case 'always':       return true;
-        case 'products':     return p.canViewProducts();
-        case 'categories':   return p.canViewCategories();
-        case 'inventory':    return p.canViewInventory();
-        case 'live_sessions':return p.canViewLiveSessions();
-        case 'orders':       return p.canViewOrders();
-        case 'payments':     return p.canConfirmPayments();
-        case 'my_store':     return p.canViewMyStore();
-        case 'team':         return p.canManageTeam();
-        case 'dashboard':    return p.canViewDashboard();
-        case 'pos':          return p.canUsePOS();
-        case 'warehouse':    return p.canUseWarehouse();
-        case 'expenses':     return p.canUseExpenses();
-        case 'settings':        return p.canUseSettings();
-        case 'ecommerce_orders': return p.canViewMyStore() || p.canViewOrders();
-        default:                 return true;
+        case 'always':       legacyOk = true; break;
+        case 'products':     legacyOk = p.canViewProducts(); break;
+        case 'categories':   legacyOk = p.canViewCategories(); break;
+        case 'inventory':    legacyOk = p.canViewInventory(); break;
+        case 'live_sessions':legacyOk = p.canViewLiveSessions(); break;
+        case 'orders':       legacyOk = p.canViewOrders(); break;
+        case 'payments':     legacyOk = p.canConfirmPayments(); break;
+        case 'my_store':     legacyOk = p.canViewMyStore(); break;
+        case 'team':         legacyOk = p.canManageTeam(); break;
+        case 'dashboard':    legacyOk = p.canViewDashboard(); break;
+        case 'pos':          legacyOk = p.canUsePOS(); break;
+        case 'warehouse':    legacyOk = p.canUseWarehouse(); break;
+        case 'expenses':     legacyOk = p.canUseExpenses(); break;
+        case 'compras':      legacyOk = p.canViewCompras(); break;
+        case 'settings':     legacyOk = p.canUseSettings(); break;
+        case 'ecommerce_orders': legacyOk = p.canViewMyStore() || p.canViewOrders(); break;
+        default:                 legacyOk = true;
       }
+      if (!legacyOk) return false;
+      const mk = this.moduloApiForItem(item);
+      if (!mk) return true;
+      return this.seeModuleViaApi(mk);
     });
   }
 
@@ -78,6 +124,7 @@ export class LayoutComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     public permissions: PermissionsService,
+    public permisosService: PermisosService,
     private vendorProfileService: VendorProfileService,
     private ecomOrdersService: EcommerceOrdersService
   ) {}
@@ -106,6 +153,10 @@ export class LayoutComponent implements OnInit {
       } catch {
         // keep default
       }
+    }
+
+    if (this.authService.isAuthenticated()) {
+      this.permisosService.cargarPermisos().subscribe({ error: () => {} });
     }
 
     // Load pending ecommerce orders count

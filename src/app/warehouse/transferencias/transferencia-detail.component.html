@@ -1,0 +1,68 @@
+<div *ngIf="cargando" class="loading-center">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<div class="detail-page" *ngIf="!cargando && t">
+  <div class="detail-header">
+    <button mat-icon-button type="button" (click)="volver()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h2>Transferencia #{{ t.id }}</h2>
+      <p class="sub">
+        {{ t.almacen_origen_nombre }} → {{ t.almacen_destino_nombre }}
+      </p>
+    </div>
+    <mat-chip-list *ngIf="t.estado">
+      <mat-chip [color]="estadoColor(t.estado)" selected>{{ t.estado }}</mat-chip>
+    </mat-chip-list>
+    <span class="flex-spacer"></span>
+    <button mat-stroked-button color="primary"
+            *ngIf="t.estado === 'pendiente'"
+            type="button" (click)="confirmar()">
+      <mat-icon>check_circle</mat-icon>
+      Confirmar
+    </button>
+    <button mat-stroked-button color="warn"
+            *ngIf="t.estado === 'pendiente'"
+            type="button" (click)="cancelar()">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+  </div>
+
+  <mat-card class="meta-card">
+    <mat-card-content>
+      <p *ngIf="t.creado_por_nombre"><strong>Creada por:</strong> {{ t.creado_por_nombre }}</p>
+      <p *ngIf="t.created_at"><strong>Fecha:</strong> {{ t.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p *ngIf="t.notas"><strong>Notas:</strong> {{ t.notas }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="t.items?.length">
+    <mat-card-title>Ítems</mat-card-title>
+    <mat-card-content>
+      <mat-table [dataSource]="t.items">
+        <ng-container matColumnDef="producto">
+          <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.producto_nombre }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="variante">
+          <mat-header-cell *matHeaderCellDef>Variante</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <span *ngIf="row.variante_detalle">
+              {{ row.variante_detalle.talla }} / {{ row.variante_detalle.color }}
+            </span>
+            <span *ngIf="!row.variante_detalle">—</span>
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="cantidad">
+          <mat-header-cell *matHeaderCellDef>Cantidad</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.cantidad }}</mat-cell>
+        </ng-container>
+        <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: columnas;"></mat-row>
+      </mat-table>
+    </mat-card-content>
+  </mat-card>
+</div>

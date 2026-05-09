@@ -1,0 +1,303 @@
+<div class="orden-form-container">
+
+  <div class="form-header">
+    <button mat-icon-button (click)="onVolver()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>{{ modoEdicion ? 'Editar' : 'Nueva' }} Orden de Compra</h2>
+  </div>
+
+  <form [formGroup]="form">
+
+    <mat-card class="section-card">
+      <mat-card-title>Datos generales</mat-card-title>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Proveedor</mat-label>
+            <mat-select formControlName="proveedor">
+              <mat-option [value]="null">Sin proveedor</mat-option>
+              <mat-option *ngFor="let p of proveedores" [value]="p.id">
+                {{ p.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-icon-button
+                  type="button"
+                  (click)="onIrProveedores()"
+                  matTooltip="Gestionar proveedores"
+                  style="margin-left: 8px; vertical-align: middle">
+            <mat-icon>add_business</mat-icon>
+          </button>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Almacén por defecto</mat-label>
+            <mat-select formControlName="almacen">
+              <mat-option [value]="null">Sin almacén</mat-option>
+              <mat-option *ngFor="let a of almacenes" [value]="a.id">
+                {{ a.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha</mat-label>
+            <input matInput type="date" formControlName="fecha">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Entrega estimada</mat-label>
+            <input matInput type="date" formControlName="fecha_entrega">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notas</mat-label>
+          <textarea matInput formControlName="notas" rows="2"></textarea>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="section-card">
+      <mat-card-title>Agregar producto</mat-card-title>
+      <mat-card-content>
+        <div class="item-form" [formGroup]="itemForm">
+          <div class="form-row">
+            <div class="producto-search full-width">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Buscar producto</mat-label>
+                <input matInput formControlName="busqueda"
+                       (input)="onBusquedaChange(itemForm.value.busqueda)"
+                       autocomplete="off">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+              <div class="search-results"
+                   *ngIf="productosFiltrados.length > 0">
+                <div class="search-item"
+                     *ngFor="let p of productosFiltrados"
+                     (click)="onSeleccionarProducto(p)">
+                  <span class="producto-name">{{ p.name }}</span>
+                  <span class="producto-sku">{{ p.sku }}</span>
+                  <span class="producto-cost">
+                    Costo: Bs. {{ p.purchase_cost | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline"
+                            *ngIf="variantesDisponibles.length > 0">
+              <mat-label>Variante</mat-label>
+              <mat-select formControlName="variante">
+                <mat-option [value]="null">Sin variante</mat-option>
+                <mat-option *ngFor="let v of variantesDisponibles"
+                            [value]="v.id">
+                  <span class="color-dot"
+                        [style.background]="v.color_hex"></span>
+                  {{ v.talla }} / {{ v.color }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Almacén destino</mat-label>
+              <mat-select formControlName="almacen">
+                <mat-option [value]="null">Usar el de cabecera</mat-option>
+                <mat-option *ngFor="let a of almacenes" [value]="a.id">
+                  {{ a.nombre }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Cantidad</mat-label>
+              <input matInput type="number"
+                     formControlName="cantidad" min="1">
+            </mat-form-field>
+          </div>
+
+          <mat-card class="costos-card">
+            <mat-card-subtitle>Cálculo de costos</mat-card-subtitle>
+            <mat-card-content>
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Costo mercadería (Bs.)</mat-label>
+                  <input matInput type="number"
+                         formControlName="costo_mercaderia" min="0">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Flete unitario (Bs.)</mat-label>
+                  <input matInput type="number"
+                         formControlName="flete_unitario" min="0">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Costo total unitario (Bs.)</mat-label>
+                  <input matInput type="number"
+                         formControlName="costo_unitario_total"
+                         readonly>
+                  <mat-hint>Costo + flete</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>% Ganancia</mat-label>
+                  <input matInput type="number"
+                         formControlName="porcentaje_ganancia" min="0">
+                  <span matSuffix>%</span>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Precio venta sugerido (Bs.)</mat-label>
+                  <input matInput type="number"
+                         formControlName="precio_venta_sugerido"
+                         readonly>
+                  <mat-hint>Calculado automáticamente</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Precio real pagado (Bs.)</mat-label>
+                  <input matInput type="number"
+                         formControlName="precio_unitario" min="0">
+                  <mat-hint>Para el subtotal de la orden</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="subtotal-preview" *ngIf="subtotalItem > 0">
+                Subtotal ítem: <strong>Bs. {{ subtotalItem | number:'1.2-2' }}</strong>
+                &nbsp;|&nbsp;
+                Precio venta sugerido: <strong>Bs. {{ precioVentaSugerido | number:'1.2-2' }}</strong>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción / notas del ítem</mat-label>
+            <input matInput formControlName="descripcion">
+          </mat-form-field>
+
+          <button mat-raised-button color="primary"
+                  type="button"
+                  (click)="onAgregarItem()"
+                  [disabled]="!productoSeleccionado">
+            <mat-icon>add</mat-icon> Agregar ítem
+          </button>
+        </div>
+
+        <mat-table [dataSource]="items" class="items-table"
+                   *ngIf="items.length > 0">
+
+          <ng-container matColumnDef="producto">
+            <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              <div>
+                <div>{{ item.producto_nombre }}</div>
+                <small *ngIf="item.variante_detalle"
+                       class="variante-info">
+                  <span class="color-dot"
+                        [style.background]="item.variante_detalle.color_hex"></span>
+                  {{ item.variante_detalle.talla }} /
+                  {{ item.variante_detalle.color }}
+                </small>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="almacen">
+            <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              {{ getAlmacenNombre(item.almacen) }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="cantidad">
+            <mat-header-cell *matHeaderCellDef>Cant.</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              {{ item.cantidad }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="costo_total">
+            <mat-header-cell *matHeaderCellDef>Costo unit.</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              Bs. {{ item.costo_unitario_total | number:'1.2-2' }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="precio_venta">
+            <mat-header-cell *matHeaderCellDef>P. venta sug.</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              Bs. {{ item.precio_venta_sugerido | number:'1.2-2' }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="subtotal">
+            <mat-header-cell *matHeaderCellDef>Subtotal</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              Bs. {{ item.subtotal | number:'1.2-2' }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="eliminar">
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let item; let i = index">
+              <button mat-icon-button color="warn" type="button"
+                      (click)="onEliminarItem(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="[
+            'producto','almacen','cantidad',
+            'costo_total','precio_venta','subtotal','eliminar']">
+          </mat-header-row>
+          <mat-row *matRowDef="let row; columns: [
+            'producto','almacen','cantidad',
+            'costo_total','precio_venta','subtotal','eliminar']">
+          </mat-row>
+        </mat-table>
+
+        <div class="totales" *ngIf="items.length > 0">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>Bs. {{ subtotal | number:'1.2-2' }}</span>
+          </div>
+          <div class="total-row">
+            <span>Descuento:</span>
+            <mat-form-field appearance="outline"
+                            class="descuento-field">
+              <input matInput type="number"
+                     formControlName="descuento" min="0">
+            </mat-form-field>
+          </div>
+          <div class="total-row total-final">
+            <span>Total:</span>
+            <span>Bs. {{ total | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="form-actions">
+      <button mat-button type="button" (click)="onVolver()">
+        Cancelar
+      </button>
+      <button mat-raised-button type="button"
+              (click)="onGuardarBorrador()"
+              [disabled]="guardando">
+        <mat-icon>save</mat-icon> Guardar borrador
+      </button>
+      <button mat-raised-button color="primary" type="button"
+              (click)="onEnviarPendiente()"
+              [disabled]="guardando || items.length === 0">
+        <mat-icon>send</mat-icon> Enviar a pendiente
+      </button>
+    </div>
+  </form>
+</div>

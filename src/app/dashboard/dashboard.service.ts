@@ -98,7 +98,7 @@ export interface SalesDashboardParams {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private vendorDashboardUrl = `${environment.apiUrl}/vendors/dashboard`;
+  private vendorDashboardUrl = `${environment.apiUrl}/vendors/dashboard/`;
   private salesDashboardUrl  = `${environment.apiUrl}/orders/dashboard/`;
 
   constructor(private http: HttpClient) {}

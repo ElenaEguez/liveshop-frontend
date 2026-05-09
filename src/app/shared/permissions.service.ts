@@ -36,6 +36,8 @@ export class PermissionsService {
   canUseExpenses():  boolean { return this.perm('expenses') || this.isVendorOwner(); }
   canUseSettings():  boolean { return this.isVendorOwner(); }
 
+  canViewCompras(): boolean { return this.perm('compras'); }
+
   /** True if any catalog sub-module is permitted */
   canManageCatalog(): boolean {
     return this.canViewProducts() || this.canViewCategories()

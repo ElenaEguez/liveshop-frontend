@@ -1,0 +1,85 @@
+<div *ngIf="orden as o" class="orden-detail">
+  <div class="header">
+    <button mat-icon-button (click)="volver()"><mat-icon>arrow_back</mat-icon></button>
+    <h2>Orden {{ o.numero }}</h2>
+    <span class="spacer"></span>
+    <button mat-button (click)="editar()" [disabled]="o.estado === 'recibida'">Editar</button>
+    <button mat-raised-button color="primary" (click)="confirmar()" [disabled]="o.estado !== 'pendiente'">Confirmar</button>
+    <button mat-stroked-button color="warn" (click)="cancelar()" [disabled]="o.estado === 'recibida' || o.estado === 'cancelada'">Cancelar</button>
+  </div>
+
+  <mat-card>
+    <mat-card-content>
+      <p><strong>Proveedor:</strong> {{ o.proveedor_data?.nombre || '—' }}</p>
+      <p><strong>Fecha:</strong> {{ o.fecha }}</p>
+      <p><strong>Estado:</strong> {{ o.estado }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-content>
+      <mat-table [dataSource]="o.items || []">
+        <ng-container matColumnDef="producto">
+          <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+          <mat-cell *matCellDef="let i">
+            <div>
+              <div>{{ i.producto_nombre }}</div>
+              <small *ngIf="i.variante_detalle" class="variante-info">
+                <span class="color-dot"
+                      [style.background]="i.variante_detalle.color_hex"></span>
+                {{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}
+              </small>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="almacen">
+          <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+          <mat-cell *matCellDef="let i">{{ i.almacen || '—' }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidad">
+          <mat-header-cell *matHeaderCellDef>Cant.</mat-header-cell>
+          <mat-cell *matCellDef="let i">{{ i.cantidad }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="costo_unit">
+          <mat-header-cell *matHeaderCellDef>Costo unit.</mat-header-cell>
+          <mat-cell *matCellDef="let i">
+            <div>Bs. {{ i.costo_unitario_total | number:'1.2-2' }}</div>
+            <small class="text-muted">
+              Merc: {{ i.costo_mercaderia | number:'1.2-2' }} +
+              Flete: {{ i.flete_unitario | number:'1.2-2' }}
+            </small>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="precio_venta">
+          <mat-header-cell *matHeaderCellDef>P. venta sug.</mat-header-cell>
+          <mat-cell *matCellDef="let i">
+            <span class="precio-venta">
+              Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }}
+            </span>
+            <small>({{ i.porcentaje_ganancia }}%)</small>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="subtotal">
+          <mat-header-cell *matHeaderCellDef>Subtotal</mat-header-cell>
+          <mat-cell *matCellDef="let i">
+            Bs. {{ i.subtotal | number:'1.2-2' }}
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="[
+          'producto','almacen','cantidad',
+          'costo_unit','precio_venta','subtotal']">
+        </mat-header-row>
+        <mat-row *matRowDef="let r; columns: [
+          'producto','almacen','cantidad',
+          'costo_unit','precio_venta','subtotal']">
+        </mat-row>
+      </mat-table>
+    </mat-card-content>
+  </mat-card>
+</div>

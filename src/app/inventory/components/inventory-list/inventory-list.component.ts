@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -33,18 +34,22 @@ export class InventoryListComponent implements OnInit {
 
   searchControl = new FormControl('');
 
-  displayedColumns = ['product_name', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'purchase_cost', 'margin', 'variantes', 'actions'];
+  displayedColumns = ['product_name', 'variante', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'purchase_cost', 'variantes', 'actions'];
 
   // Variant expansion state
   expandedProductId: number | null = null;
   itemVariants: Record<number, ProductVariant[]> = {};
   loadingVariants: Record<number, boolean> = {};
+  ajusteActivo: { tipo: 'inventory' | 'variant'; id: number } | null = null;
+  ajusteCantidad = 0;
+  ajusteNota = '';
 
   constructor(
     private inventoryService: InventoryService,
     private productService: ProductService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -213,9 +218,106 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
-  getMargin(item: Inventory): number | null {
-    if (item.purchase_cost === null || item.purchase_cost === undefined) return null;
-    return item.product_price - item.purchase_cost;
+  onActivarAjuste(tipo: 'inventory' | 'variant', id: number): void {
+    this.ajusteActivo = { tipo, id };
+    this.ajusteCantidad = 0;
+    this.ajusteNota = '';
+  }
+
+  onCancelarAjuste(): void {
+    this.ajusteActivo = null;
+  }
+
+  onAplicarAjuste(): void {
+    if (!this.ajusteActivo || this.ajusteCantidad === 0) return;
+
+    const body = {
+      cantidad: this.ajusteCantidad,
+      nota: this.ajusteNota || 'Ajuste manual'
+    };
+
+    const op = this.ajusteActivo.tipo === 'inventory'
+      ? this.inventoryService.ajustarStock(this.ajusteActivo.id, body)
+      : this.inventoryService.ajustarVariante(this.ajusteActivo.id, body);
+
+    op.subscribe({
+      next: (res) => {
+        if (this.ajusteActivo!.tipo === 'inventory') {
+          const item = this.inventory.find((i: any) => i.id === this.ajusteActivo!.id);
+          if (item) {
+            item.quantity = res.stock_nuevo;
+            item.available_quantity = (res.stock_nuevo ?? 0) - (item.reserved_quantity ?? 0);
+          }
+        } else {
+          Object.values(this.itemVariants).forEach((rows) => {
+            const v = rows.find((it: any) => it.id === this.ajusteActivo!.id);
+            if (v) v.stock_extra = res.stock_nuevo;
+          });
+        }
+        this.ajusteActivo = null;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        alert(err.error?.error || 'Error al aplicar ajuste');
+      }
+    });
+  }
+
+  onImprimir(): void {
+    const filas = (this.inventory || []).map((item: any) => {
+      const v = item.variante;
+      const variante = v ? ` — ${v.talla} / ${v.color}` : '';
+      return `
+      <tr>
+        <td>${item.producto_nombre || item.product_name || item.product?.name || ''}</td>
+        <td>${variante || '—'}</td>
+        <td style="text-align:center">
+          ${item.quantity ?? item.stock_extra ?? 0}
+        </td>
+      </tr>`;
+    }).join('');
+
+    const ventana = window.open('', '_blank', 'width=600,height=500');
+    if (!ventana) return;
+    ventana.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Reporte de Inventario</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { margin-bottom: 4px; }
+        p  { color: #666; font-size: 13px; margin: 0 0 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f5f5f5; text-align: left;
+             padding: 8px; border-bottom: 2px solid #ddd; }
+        td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        tr:last-child td { border-bottom: none; }
+        @media print {
+          button { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Reporte de Inventario</h2>
+      <p>Generado: ${new Date().toLocaleString('es-BO')}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Variante</th>
+            <th>Stock disponible</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+      <br>
+      <button onclick="window.print()">Imprimir</button>
+    </body>
+    </html>
+  `);
+    ventana.document.close();
   }
 
   get totalStockValue(): number {

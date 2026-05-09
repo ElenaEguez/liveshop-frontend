@@ -1,0 +1,31 @@
+.list-container {
+  padding: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+.clickable-row { cursor: pointer; }
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: #888;
+}
+.badge-diferencia {
+  background: #ffebee;
+  color: #c62828;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
