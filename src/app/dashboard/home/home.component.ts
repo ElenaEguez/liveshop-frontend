@@ -191,6 +191,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadSalesDashboard();
   }
 
+  resetFilters(): void {
+    const now = new Date();
+    this.selectedPeriod = 'month';
+    this.selectedMonth = now.getMonth() + 1;
+    this.selectedYear = now.getFullYear();
+    this.selectedDate = now.toISOString().slice(0, 10);
+    this.selectedCategoryId = null;
+    this.selectedCanal = 'todos';
+    this.loadSalesDashboard();
+  }
+
   loadMovimientos(page = 1): void {
     this.movLoading = true;
     this.movPage = page;
@@ -256,22 +267,43 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (this.tableFilterTalla) {
+      const talla = this.escapeRegExp(this.tableFilterTalla);
       data = data.filter(p =>
         (p.variantes ?? []).some(v =>
-          v.variante?.match(new RegExp(`Talla\\s+${this.tableFilterTalla}`, 'i'))
+          v.variante?.match(new RegExp(`Talla\\s+${talla}`, 'i'))
         )
       );
     }
 
     if (this.tableFilterColor) {
+      const color = this.escapeRegExp(this.tableFilterColor);
       data = data.filter(p =>
         (p.variantes ?? []).some(v =>
-          v.variante?.match(new RegExp(`Color\\s+${this.tableFilterColor}`, 'i'))
+          v.variante?.match(new RegExp(`Color\\s+${color}`, 'i'))
         )
       );
     }
 
     this.tableDataSource.data = data;
+    this.paginator?.firstPage();
+  }
+
+  resetTableFilters(): void {
+    this.tableFilterCategory = '';
+    this.tableFilterTalla = '';
+    this.tableFilterColor = '';
+    this.applyTableFilter();
+  }
+
+  get pagedProductRows(): SalesByProduct[] {
+    const data = this.tableDataSource.data;
+    const pageSize = this.paginator?.pageSize || 10;
+    const pageIndex = this.paginator?.pageIndex || 0;
+    return data.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
+  }
+
+  private escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // ── Variant expansion ─────────────────────────────────────────────────────

@@ -11,7 +11,7 @@
 
 .kd-content {
   width: 100%;
-  max-width: 820px;
+  max-width: 960px;
   /* Limita altura y permite scroll interno para que el modal no quede cortado */
   max-height: 82vh;
   overflow-y: auto;
@@ -34,6 +34,7 @@
 
 .kd-summary {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 12px;
   font-size: 0.85rem;
@@ -59,7 +60,7 @@
   /* Altura dinámica más flexible para evitar recorte del modal */
   max-height: calc(82vh - 220px);
   min-height: 120px;
-  overflow-y: auto;
+  overflow: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
 }
@@ -76,6 +77,7 @@
 
 .kd-table {
   width: 100%;
+  min-width: 980px;
 
   th {
     background: #f9fafb;
@@ -88,12 +90,48 @@
   td {
     padding: 10px 12px;
     border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    font-size: 0.84rem;
   }
+}
+
+.kd-table .mat-column-fecha {
+  min-width: 112px;
+}
+
+.kd-table .mat-column-motivo {
+  min-width: 180px;
+}
+
+.kd-table .mat-column-variante {
+  min-width: 130px;
+}
+
+.kd-table .mat-column-cantidad,
+.kd-table .mat-column-stock {
+  min-width: 96px;
+}
+
+.kd-table .mat-column-documento,
+.kd-table .mat-column-usuario {
+  min-width: 120px;
 }
 
 .kd-chip {
   padding: 3px 10px;
   border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.kd-variant {
+  display: inline-flex;
+  align-items: center;
+  max-width: 160px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
   font-size: 0.78rem;
   font-weight: 600;
 }

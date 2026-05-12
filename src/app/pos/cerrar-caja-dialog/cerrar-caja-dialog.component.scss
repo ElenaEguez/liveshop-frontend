@@ -7,8 +7,7 @@
 }
 
 .dlg-content {
-  min-width: 420px;
-  max-height: 70vh;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -160,4 +159,61 @@
   display: block;
   margin: 4px 0 0;
   font-size: 13px;
+}
+
+mat-dialog-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .dlg-title {
+    font-size: 16px;
+  }
+
+  .dlg-content {
+    gap: 10px;
+    padding: 6px 0 !important;
+  }
+
+  .arqueo-row,
+  .otros-row,
+  .result-box {
+    gap: 8px;
+  }
+
+  .arqueo-row {
+    padding: 8px 10px;
+  }
+
+  .arqueo-label {
+    min-width: 0;
+  }
+
+  .arqueo-val {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .result-box {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .result-icon {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .result-label {
+    font-size: 14px;
+  }
+
+  .result-amount {
+    font-size: 18px;
+  }
+
+  mat-dialog-actions button {
+    margin-right: 0 !important;
+  }
 }

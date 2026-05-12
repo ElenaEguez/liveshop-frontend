@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -7,7 +6,6 @@ import { PageEvent } from '@angular/material/paginator';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Inventory, InventoryService } from '../../services/inventory.service';
 import { Category, ProductVariant, ProductService } from '../../../products/products.service';
-import { EditStockDialogComponent } from '../edit-stock-dialog/edit-stock-dialog.component';
 import { KardexDialogComponent } from '../kardex-dialog/kardex-dialog.component';
 
 @Component({
@@ -34,22 +32,18 @@ export class InventoryListComponent implements OnInit {
 
   searchControl = new FormControl('');
 
-  displayedColumns = ['product_name', 'variante', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'purchase_cost', 'variantes', 'actions'];
+  displayedColumns = ['product_name', 'talla', 'color', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'variantes'];
 
   // Variant expansion state
   expandedProductId: number | null = null;
   itemVariants: Record<number, ProductVariant[]> = {};
   loadingVariants: Record<number, boolean> = {};
-  ajusteActivo: { tipo: 'inventory' | 'variant'; id: number } | null = null;
-  ajusteCantidad = 0;
-  ajusteNota = '';
 
   constructor(
     private inventoryService: InventoryService,
     private productService: ProductService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -208,74 +202,14 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
-  openEditStock(item: Inventory): void {
-    const dialogRef = this.dialog.open(EditStockDialogComponent, {
-      width: '400px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      disableClose: false,
-      panelClass: 'dialog-sm',
-      autoFocus: false,
-      data: { inventory: item }
-    });
-    dialogRef.afterClosed().subscribe((updated: boolean) => {
-      if (updated) this.loadInventory();
-    });
-  }
-
-  onActivarAjuste(tipo: 'inventory' | 'variant', id: number): void {
-    this.ajusteActivo = { tipo, id };
-    this.ajusteCantidad = 0;
-    this.ajusteNota = '';
-  }
-
-  onCancelarAjuste(): void {
-    this.ajusteActivo = null;
-  }
-
-  onAplicarAjuste(): void {
-    if (!this.ajusteActivo || this.ajusteCantidad === 0) return;
-
-    const body = {
-      cantidad: this.ajusteCantidad,
-      nota: this.ajusteNota || 'Ajuste manual'
-    };
-
-    const op = this.ajusteActivo.tipo === 'inventory'
-      ? this.inventoryService.ajustarStock(this.ajusteActivo.id, body)
-      : this.inventoryService.ajustarVariante(this.ajusteActivo.id, body);
-
-    op.subscribe({
-      next: (res) => {
-        if (this.ajusteActivo!.tipo === 'inventory') {
-          const item = this.inventory.find((i: any) => i.id === this.ajusteActivo!.id);
-          if (item) {
-            item.quantity = res.stock_nuevo;
-            item.available_quantity = (res.stock_nuevo ?? 0) - (item.reserved_quantity ?? 0);
-          }
-        } else {
-          Object.values(this.itemVariants).forEach((rows) => {
-            const v = rows.find((it: any) => it.id === this.ajusteActivo!.id);
-            if (v) v.stock_extra = res.stock_nuevo;
-          });
-        }
-        this.ajusteActivo = null;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        alert(err.error?.error || 'Error al aplicar ajuste');
-      }
-    });
-  }
-
   onImprimir(): void {
     const filas = (this.inventory || []).map((item: any) => {
       const v = item.variante;
-      const variante = v ? ` — ${v.talla} / ${v.color}` : '';
       return `
       <tr>
         <td>${item.producto_nombre || item.product_name || item.product?.name || ''}</td>
-        <td>${variante || '—'}</td>
+        <td>${v?.talla || '—'}</td>
+        <td>${v?.color || '—'}</td>
         <td style="text-align:center">
           ${item.quantity ?? item.stock_extra ?? 0}
         </td>
@@ -311,7 +245,8 @@ export class InventoryListComponent implements OnInit {
         <thead>
           <tr>
             <th>Producto</th>
-            <th>Variante</th>
+            <th>Talla</th>
+            <th>Color</th>
             <th>Stock disponible</th>
           </tr>
         </thead>
@@ -327,20 +262,6 @@ export class InventoryListComponent implements OnInit {
 
   get totalStockValue(): number {
     return this.inventory.reduce((sum, i) => sum + i.quantity * i.product_price, 0);
-  }
-
-  get totalCostValue(): number {
-    return this.inventory
-      .filter(i => i.purchase_cost !== null && i.purchase_cost !== undefined)
-      .reduce((sum, i) => sum + i.quantity * i.purchase_cost!, 0);
-  }
-
-  get hasCostData(): boolean {
-    return this.inventory.some(i => i.purchase_cost !== null && i.purchase_cost !== undefined);
-  }
-
-  get totalMargin(): number {
-    return this.totalStockValue - this.totalCostValue;
   }
 
   getAvailableBg(qty: number): string {

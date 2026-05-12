@@ -21,6 +21,7 @@ export interface KardexMovimiento {
   usuario: number | null;
   usuario_email: string | null;
   usuario_nombre: string | null;
+  variant_name: string | null;
   notas: string;
   created_at: string;
 }

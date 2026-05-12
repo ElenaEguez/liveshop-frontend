@@ -12,3 +12,91 @@
   display: inline-block;
   margin-right: 6px;
 }
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.summary-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-grid span {
+  color: #6b7280;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-grid strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.estado-chip {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b91c1c !important;
+}
+
+.detail-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.detail-table {
+  width: 100%;
+  min-width: 920px;
+}
+
+.detail-table mat-header-row {
+  background: #f9fafb;
+}
+
+.detail-table mat-header-cell {
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.detail-table mat-cell,
+.detail-table mat-header-cell {
+  padding: 12px 14px;
+}
+
+.detail-table .mat-column-producto {
+  min-width: 190px;
+}
+
+.detail-table .mat-column-costo_unit,
+.detail-table .mat-column-precio_venta,
+.detail-table .mat-column-subtotal {
+  min-width: 150px;
+}
+
+.detail-table .mat-column-cantidad {
+  max-width: 90px;
+}
+
+.text-muted,
+.variante-info {
+  color: #6b7280;
+  font-size: 0.76rem;
+}
+
+.precio-venta {
+  display: block;
+  color: #b91c1c;
+  font-weight: 700;
+}

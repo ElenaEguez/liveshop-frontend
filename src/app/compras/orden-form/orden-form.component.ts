@@ -27,6 +27,7 @@ export class OrdenFormComponent implements OnInit {
   itemForm!: FormGroup;
 
   ordenId: number | null = null;
+  ordenNumero = '';
   guardando = false;
   modoEdicion = false;
 
@@ -58,18 +59,14 @@ export class OrdenFormComponent implements OnInit {
     const hoy = new Date().toISOString().substring(0, 10);
     this.form = this.fb.group({
       proveedor: [null],
-      almacen: [null],
-      sucursal: [null],
       fecha: [hoy, Validators.required],
-      fecha_entrega: [null],
-      notas: [''],
-      descuento: [0],
+      factura_compra: [''],
     });
 
     this.itemForm = this.fb.group({
       busqueda: [''],
       variante: [null],
-      almacen: [null],
+      almacen: [null, Validators.required],
       descripcion: [''],
       cantidad: [1, [Validators.required, Validators.min(1)]],
       costo_mercaderia: [0, [Validators.required, Validators.min(0)]],
@@ -134,11 +131,10 @@ export class OrdenFormComponent implements OnInit {
   onSeleccionarProducto(producto: ProductoLookup): void {
     this.productoSeleccionado = producto;
     this.variantesDisponibles = producto.variantes || [];
-    const costo = producto.purchase_cost || 0;
     this.itemForm.patchValue({
       busqueda: producto.name,
-      costo_mercaderia: costo,
-      precio_unitario: costo,
+      costo_mercaderia: 0,
+      precio_unitario: 0,
       variante: null,
     });
     this.productosFiltrados = [];
@@ -212,7 +208,18 @@ export class OrdenFormComponent implements OnInit {
   }
 
   get total(): number {
-    return Math.max(0, this.subtotal - +(this.form.value.descuento || 0));
+    return this.subtotal;
+  }
+
+  get cantidadTotal(): number {
+    return this.items.reduce((s, i) => s + this.toNum(i.cantidad, 0), 0);
+  }
+
+  get totalCostos(): number {
+    return this.items.reduce(
+      (s, i) => s + this.toNum(i.cantidad, 0) * this.toNum(i.costo_unitario_total, 0),
+      0
+    );
   }
 
   getAlmacenNombre(id: number | null | undefined): string {
@@ -229,6 +236,11 @@ export class OrdenFormComponent implements OnInit {
   private buildPayload(estado: string): Partial<OrdenCompra> {
     return {
       ...this.form.value,
+      sucursal: null,
+      almacen: null,
+      fecha_entrega: null,
+      notas: '',
+      descuento: 0,
       estado: estado as any,
       items: this.items.map(i => ({
         producto: i.producto,
@@ -277,17 +289,14 @@ export class OrdenFormComponent implements OnInit {
   private cargarOrden(id: number): void {
     this.comprasService.getOrden(id).subscribe({
       next: (orden) => {
+        this.ordenNumero = orden.numero || '';
         const prov = orden.proveedor != null && typeof orden.proveedor === 'object'
           ? (orden.proveedor as Proveedor).id
           : orden.proveedor;
         this.form.patchValue({
           proveedor: prov ?? null,
-          almacen: orden.almacen,
-          sucursal: orden.sucursal,
           fecha: orden.fecha,
-          fecha_entrega: orden.fecha_entrega,
-          notas: orden.notas,
-          descuento: this.toNum(orden.descuento, 0),
+          factura_compra: orden.factura_compra || '',
         });
         this.items = (orden.items || []).map(i => {
           const cantidad = this.toNum(i.cantidad, 1);

@@ -252,7 +252,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       maxHeight: '90vh',
       disableClose: false,
       autoFocus: false,
-      panelClass: 'dialog-md',
+      panelClass: ['dialog-md', 'responsive-dialog', 'pos-caja-dialog'],
       data: { turnoId: this.turnoActivo.id },
     });
     ref.afterClosed().subscribe(result => {

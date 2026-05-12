@@ -42,7 +42,7 @@ export class KardexDialogComponent implements OnInit {
     { value: 'transferencia', label: 'Transferencia' },
   ];
 
-  displayedColumns = ['fecha', 'tipo', 'motivo', 'cantidad', 'stock', 'documento', 'usuario'];
+  displayedColumns = ['fecha', 'tipo', 'motivo', 'variante', 'cantidad', 'stock', 'documento', 'usuario'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: KardexDialogData,

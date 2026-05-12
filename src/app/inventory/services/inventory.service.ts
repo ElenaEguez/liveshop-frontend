@@ -42,6 +42,12 @@ export interface Inventory {
   available_quantity: number;
   purchase_cost: number | null;
   almacen: number | null;
+  variante?: {
+    id: number;
+    talla: string;
+    color: string;
+    color_hex: string;
+  } | null;
   vendido?: number;
 }
 
@@ -74,10 +80,8 @@ export class InventoryService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  updateStock(id: number, quantity: number, purchase_cost?: number | null): Observable<Inventory> {
-    const body: Record<string, unknown> = { quantity };
-    if (purchase_cost !== undefined) body['purchase_cost'] = purchase_cost;
-    return this.http.patch<Inventory>(`${this.apiUrl}${id}/`, body);
+  updateStock(id: number, quantity: number): Observable<Inventory> {
+    return this.http.patch<Inventory>(`${this.apiUrl}${id}/`, { quantity });
   }
 
   ajustarStock(id: number, body: { cantidad: number; nota: string }): Observable<any> {

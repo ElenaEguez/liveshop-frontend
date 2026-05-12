@@ -29,8 +29,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   viewOnly = false;
   sellByOptions = SELL_BY_OPTIONS;
 
-  private syncingPrices = false;
-
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
@@ -50,10 +48,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
-      price:                [data.product?.price ?? '', [Validators.required, Validators.min(0)]],
-      purchase_cost:        [data.product?.purchase_cost ?? null, [Validators.min(0)]],
-      shipping_cost:        [data.product?.shipping_cost ?? null, [Validators.min(0)]],
-      profit_margin_percent:[data.product?.profit_margin_percent ?? null, [Validators.min(0), Validators.max(9999)]],
       stock:                [data.product?.stock ?? '', [Validators.required, Validators.min(0)]],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
@@ -73,48 +67,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCategories();
-    if (!this.viewOnly) {
-      this.setupPriceSync();
-    }
-  }
-
-  private setupPriceSync(): void {
-    const costCtrl     = this.productForm.get('purchase_cost')!;
-    const shippingCtrl = this.productForm.get('shipping_cost')!;
-    const marginCtrl   = this.productForm.get('profit_margin_percent')!;
-    const priceCtrl    = this.productForm.get('price')!;
-
-    // cost, shipping or margin → recalculate price
-    const recalcPrice = () => {
-      if (this.syncingPrices) return;
-      const c = parseFloat(costCtrl.value) || 0;
-      const s = parseFloat(shippingCtrl.value) || 0;
-      const m = parseFloat(marginCtrl.value);
-      const totalCost = c + s;
-      if (isFinite(totalCost) && isFinite(m) && totalCost >= 0 && m >= 0) {
-        this.syncingPrices = true;
-        priceCtrl.setValue(+(totalCost * (1 + m / 100)).toFixed(2), { emitEvent: false });
-        this.syncingPrices = false;
-      }
-    };
-
-    costCtrl.valueChanges.subscribe(recalcPrice);
-    shippingCtrl.valueChanges.subscribe(recalcPrice);
-    marginCtrl.valueChanges.subscribe(recalcPrice);
-
-    // price → recalculate margin (if total cost is set)
-    priceCtrl.valueChanges.subscribe(() => {
-      if (this.syncingPrices) return;
-      const p = parseFloat(priceCtrl.value);
-      const c = parseFloat(costCtrl.value) || 0;
-      const s = parseFloat(shippingCtrl.value) || 0;
-      const totalCost = c + s;
-      if (isFinite(p) && totalCost > 0 && p >= 0) {
-        this.syncingPrices = true;
-        marginCtrl.setValue(+((p / totalCost - 1) * 100).toFixed(2), { emitEvent: false });
-        this.syncingPrices = false;
-      }
-    });
   }
 
   // ── Category ────────────────────────────────────────────────────────────────
@@ -162,7 +114,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   printBarcodeLabel(): void {
     const barcode = this.productForm.get('barcode')?.value || '';
     const name    = this.productForm.get('name')?.value || '';
-    const price   = this.productForm.get('price')?.value || '';
     if (!barcode) {
       this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
       return;
@@ -176,13 +127,11 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         .prod-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
         .barcode-font { font-family: "Libre Barcode 39 Text", monospace; font-size: 52px; line-height: 1; margin: 4px 0; }
         .barcode-num { font-size: 11px; letter-spacing: 2px; color: #333; }
-        .price { font-size: 18px; font-weight: bold; margin-top: 8px; }
         @media print { @page { margin: 0.5cm; } }
       </style></head><body>
       <div class="prod-name">${name}</div>
       <div class="barcode-font">*${barcode}*</div>
       <div class="barcode-num">${barcode}</div>
-      <div class="price">Bs. ${price}</div>
       <script>window.onload = function(){ window.print(); window.close(); };<\/script>
       </body></html>`);
     w.document.close();
@@ -285,9 +234,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       } else if (key === 'sell_by') {
         const sellByArr = Object.keys(val[key]).filter(k => val[key][k]);
         formData.append(key, JSON.stringify(sellByArr));
-      } else if (key === 'purchase_cost' || key === 'shipping_cost' || key === 'profit_margin_percent') {
-        const v = val[key];
-        formData.append(key, v !== null && v !== undefined ? String(v) : '');
       } else if (key === 'barcode') {
         formData.append(key, val[key] ?? '');
       } else if (key === 'is_active' || key === 'is_active_live' || key === 'is_active_pos' || key === 'is_active_web') {

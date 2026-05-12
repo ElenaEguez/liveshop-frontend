@@ -5,79 +5,96 @@
   ══════════════════════════════════════════════════════════════════════════ -->
   <div class="filter-bar">
 
-    <mat-button-toggle-group
-      [(ngModel)]="selectedPeriod"
-      class="period-toggle"
-      aria-label="Período">
-      <mat-button-toggle value="day">Hoy</mat-button-toggle>
-      <mat-button-toggle value="week">Esta semana</mat-button-toggle>
-      <mat-button-toggle value="month">Este mes</mat-button-toggle>
-      <mat-button-toggle value="year">Este año</mat-button-toggle>
-    </mat-button-toggle-group>
+    <div class="filter-group filter-group-period">
+      <span class="filter-group-label">Período</span>
+      <mat-button-toggle-group
+        [(ngModel)]="selectedPeriod"
+        class="period-toggle"
+        aria-label="Período">
+        <mat-button-toggle value="day">Hoy</mat-button-toggle>
+        <mat-button-toggle value="week">Semana</mat-button-toggle>
+        <mat-button-toggle value="month">Mes</mat-button-toggle>
+        <mat-button-toggle value="year">Año</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
 
-    <!-- Date picker — solo cuando period='day' -->
-    <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod === 'day'">
-      <mat-label>Fecha</mat-label>
-      <input matInput type="date" [(ngModel)]="selectedDate">
-    </mat-form-field>
+    <div class="filter-group filter-group-date">
+      <span class="filter-group-label">Fecha</span>
 
-    <!-- Month selector (hidden when period = year or day) -->
-    <mat-form-field appearance="outline" class="filter-field"
-                    *ngIf="selectedPeriod !== 'year' && selectedPeriod !== 'day'">
-      <mat-label>Mes</mat-label>
-      <mat-select [(ngModel)]="selectedMonth">
-        <mat-option *ngFor="let m of months; let i = index" [value]="i + 1">
-          {{ m }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+      <!-- Date picker — solo cuando period='day' -->
+      <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod === 'day'">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" [(ngModel)]="selectedDate">
+      </mat-form-field>
 
-    <!-- Year selector — hidden for 'day' -->
-    <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod !== 'day'">
-      <mat-label>Año</mat-label>
-      <mat-select [(ngModel)]="selectedYear">
-        <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <!-- Month selector (hidden when period = year or day) -->
+      <mat-form-field appearance="outline" class="filter-field"
+                      *ngIf="selectedPeriod !== 'year' && selectedPeriod !== 'day'">
+        <mat-label>Mes</mat-label>
+        <mat-select [(ngModel)]="selectedMonth">
+          <mat-option *ngFor="let m of months; let i = index" [value]="i + 1">
+            {{ m }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <!-- Category selector -->
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Categoría</mat-label>
-      <mat-select [(ngModel)]="selectedCategoryId">
-        <mat-option [value]="null">Todas las categorías</mat-option>
-        <mat-option *ngFor="let cat of categories" [value]="cat.id">
-          {{ cat.name }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+      <!-- Year selector — hidden for 'day' -->
+      <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod !== 'day'">
+        <mat-label>Año</mat-label>
+        <mat-select [(ngModel)]="selectedYear">
+          <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-    <!-- Filtro por canal de venta -->
-    <mat-button-toggle-group
-      [(ngModel)]="selectedCanal"
-      class="canal-toggle"
-      aria-label="Canal de venta">
-      <mat-button-toggle value="todos">
-        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">bar_chart</mat-icon>
-        Todos
-      </mat-button-toggle>
-      <mat-button-toggle value="live">
-        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">live_tv</mat-icon>
-        Live
-      </mat-button-toggle>
-      <mat-button-toggle value="tienda">
-        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">storefront</mat-icon>
-        Tienda
-      </mat-button-toggle>
-      <mat-button-toggle value="web">
-        <mat-icon style="font-size:16px;width:16px;height:16px;margin-right:4px;">shopping_bag</mat-icon>
-        Web
-      </mat-button-toggle>
-    </mat-button-toggle-group>
+    <div class="filter-group filter-group-commerce">
+      <span class="filter-group-label">Alcance</span>
 
-    <button mat-raised-button color="primary" (click)="applyFilters()" [disabled]="loading">
-      <mat-icon>filter_alt</mat-icon>
-      Aplicar filtros
-    </button>
+      <!-- Category selector -->
+      <mat-form-field appearance="outline" class="filter-field filter-field-category">
+        <mat-label>Categoría</mat-label>
+        <mat-select [(ngModel)]="selectedCategoryId">
+          <mat-option [value]="null">Todas las categorías</mat-option>
+          <mat-option *ngFor="let cat of categories" [value]="cat.id">
+            {{ cat.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro por canal de venta -->
+      <mat-button-toggle-group
+        [(ngModel)]="selectedCanal"
+        class="canal-toggle"
+        aria-label="Canal de venta">
+        <mat-button-toggle value="todos">
+          <mat-icon>bar_chart</mat-icon>
+          Todos
+        </mat-button-toggle>
+        <mat-button-toggle value="live">
+          <mat-icon>live_tv</mat-icon>
+          Live
+        </mat-button-toggle>
+        <mat-button-toggle value="tienda">
+          <mat-icon>storefront</mat-icon>
+          Tienda
+        </mat-button-toggle>
+        <mat-button-toggle value="web">
+          <mat-icon>shopping_bag</mat-icon>
+          Web
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="filter-actions">
+      <button mat-raised-button color="primary" (click)="applyFilters()" [disabled]="loading">
+        <mat-icon>filter_alt</mat-icon>
+        Aplicar filtros
+      </button>
+      <button mat-stroked-button type="button" (click)="resetFilters()" [disabled]="loading">
+        <mat-icon>restart_alt</mat-icon>
+        Limpiar
+      </button>
+    </div>
 
   </div>
 
@@ -399,10 +416,17 @@
               <mat-option *ngFor="let c of colorOptions" [value]="c">{{ c }}</mat-option>
             </mat-select>
           </mat-form-field>
+
+          <button mat-stroked-button type="button" class="table-reset-btn"
+                  (click)="resetTableFilters()"
+                  [disabled]="!tableFilterCategory && !tableFilterTalla && !tableFilterColor">
+            <mat-icon>restart_alt</mat-icon>
+            Limpiar
+          </button>
         </div>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper responsive-table-wrapper">
         <mat-table [dataSource]="tableDataSource" matSort multiTemplateDataRows class="products-table">
 
           <!-- Expand button -->
@@ -504,6 +528,59 @@
         </mat-table>
       </div>
 
+      <div class="mobile-card-list sales-mobile-list">
+        <div *ngFor="let row of pagedProductRows" class="mobile-data-card">
+          <div class="mobile-card-header">
+            <div>
+              <div class="mobile-card-title">{{ row.product_name }}</div>
+              <div class="mobile-card-subtitle">{{ row.category || 'Sin categoría' }}</div>
+            </div>
+            <button *ngIf="getVariantes(row).length > 0"
+                    mat-icon-button
+                    (click)="toggleVariants(row)"
+                    [matTooltip]="expandedProductId === row.product_id ? 'Ocultar variantes' : 'Ver variantes'">
+              <mat-icon>{{ expandedProductId === row.product_id ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          </div>
+
+          <div class="mobile-card-grid">
+            <div class="mobile-card-metric">
+              <span>Unidades</span>
+              <strong>{{ row.units_sold }}</strong>
+            </div>
+            <div class="mobile-card-metric">
+              <span>Ingresos</span>
+              <strong>Bs.&nbsp;{{ row.revenue | number:'1.2-2' }}</strong>
+            </div>
+            <div class="mobile-card-metric">
+              <span>Costo</span>
+              <strong *ngIf="row.cost != null">Bs.&nbsp;{{ row.cost | number:'1.2-2' }}</strong>
+              <strong *ngIf="row.cost == null" class="null-cell">—</strong>
+            </div>
+            <div class="mobile-card-metric">
+              <span>Margen</span>
+              <strong *ngIf="row.margin != null"
+                      [style.color]="+row.margin >= 0 ? '#16a34a' : '#dc2626'">
+                Bs.&nbsp;{{ row.margin | number:'1.2-2' }}
+              </strong>
+              <strong *ngIf="row.margin == null" class="null-cell">—</strong>
+            </div>
+          </div>
+
+          <div *ngIf="expandedProductId === row.product_id && getVariantes(row).length > 0"
+               class="mobile-variant-list">
+            <div *ngFor="let v of getVariantes(row)" class="mobile-variant-row">
+              <span>{{ v.variante }}</span>
+              <strong>{{ v.units_sold }} uds. · Bs.&nbsp;{{ (v.revenue || '0') | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="tableDataSource.data.length === 0" class="mobile-empty-state">
+          No hay datos de ventas para el período y filtros seleccionados.
+        </div>
+      </div>
+
       <mat-paginator
         [pageSize]="10"
         [pageSizeOptions]="[5, 10, 25, 50]"
@@ -539,7 +616,7 @@
 
     <div class="mov-loading" *ngIf="movLoading"><mat-spinner diameter="36"></mat-spinner></div>
 
-    <div class="table-wrapper" *ngIf="!movLoading">
+    <div class="table-wrapper responsive-table-wrapper" *ngIf="!movLoading">
       <mat-table [dataSource]="movimientos" class="mov-table">
 
         <ng-container matColumnDef="fecha">
@@ -588,6 +665,38 @@
           </td>
         </tr>
       </mat-table>
+    </div>
+
+    <div class="mobile-card-list cash-mobile-list" *ngIf="!movLoading">
+      <div *ngFor="let m of movimientos" class="mobile-data-card cash-mobile-card">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">{{ m.caja }}</div>
+            <div class="mobile-card-subtitle">{{ m.fecha | date:'dd-MM-yyyy HH:mm:ss' }}</div>
+          </div>
+          <span class="mov-badge" [ngClass]="movTipoBadgeClass(m.tipo)">{{ m.tipo }}</span>
+        </div>
+
+        <div class="mobile-label-row">
+          <span>Usuario</span>
+          <strong>{{ m.usuario }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Detalle</span>
+          <strong>{{ m.detalle }}</strong>
+        </div>
+        <div class="mobile-label-row mobile-total-row">
+          <span>Monto</span>
+          <strong [class.mov-ingreso]="m.tipo !== 'EGRESO'"
+                  [class.mov-egreso]="m.tipo === 'EGRESO'">
+            Bs {{ m.monto | number:'1.2-2' }}
+          </strong>
+        </div>
+      </div>
+
+      <div *ngIf="movimientos.length === 0" class="mobile-empty-state">
+        Sin movimientos en este período.
+      </div>
     </div>
 
     <!-- Paginación manual -->

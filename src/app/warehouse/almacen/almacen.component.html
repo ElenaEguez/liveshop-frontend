@@ -2,7 +2,10 @@
 
   <!-- Toolbar -->
   <div class="page-toolbar">
-    <h1><mat-icon>warehouse</mat-icon> Almacén / Kardex</h1>
+    <div>
+      <h1><mat-icon>warehouse</mat-icon> Almacén / Kardex</h1>
+      <p class="page-subtitle">Historial detallado de lo que ingresó o salió del stock.</p>
+    </div>
     <div class="toolbar-actions">
       <button mat-stroked-button (click)="descargarXLSX()">
         <mat-icon>download</mat-icon> Descargar CSV
@@ -97,14 +100,24 @@
         <mat-cell *matCellDef="let m">{{ m.created_at | date:'dd/MM/yy HH:mm' }}</mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="documento">
+        <mat-header-cell *matHeaderCellDef>Código / Documento</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.documento_ref || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="producto">
+        <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+        <mat-cell *matCellDef="let m"><strong>{{ m.product_name }}</strong></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="variante">
+        <mat-header-cell *matHeaderCellDef>Variante</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.variant_name || '—' }}</mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="almacen">
         <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
         <mat-cell *matCellDef="let m">{{ m.almacen_nombre || '—' }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="motivo">
-        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.motivo }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="tipo">
@@ -114,23 +127,18 @@
         </mat-cell>
       </ng-container>
 
-      <ng-container matColumnDef="documento">
-        <mat-header-cell *matHeaderCellDef>Documento</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.documento_ref || '—' }}</mat-cell>
+      <ng-container matColumnDef="motivo">
+        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.motivo }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="cantidad">
         <mat-header-cell *matHeaderCellDef>Cantidad</mat-header-cell>
         <mat-cell *matCellDef="let m">
-          <span [class.positive]="m.cantidad > 0" [class.negative]="m.cantidad < 0">
-            {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
+          <span [class.positive]="m.tipo === 'entrada'" [class.negative]="m.tipo === 'salida'">
+            {{ m.tipo === 'entrada' ? '+' : m.tipo === 'salida' ? '-' : '' }}{{ m.cantidad }}
           </span>
         </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="producto">
-        <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
-        <mat-cell *matCellDef="let m"><strong>{{ m.product_name }}</strong></mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="stock_anterior">
@@ -141,11 +149,6 @@
       <ng-container matColumnDef="stock_actual">
         <mat-header-cell *matHeaderCellDef>St. Actual</mat-header-cell>
         <mat-cell *matCellDef="let m"><strong>{{ m.stock_actual }}</strong></mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="costo_promedio">
-        <mat-header-cell *matHeaderCellDef>Costo Prom.</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.costo_promedio ? ('Bs. ' + m.costo_promedio) : '—' }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="usuario">

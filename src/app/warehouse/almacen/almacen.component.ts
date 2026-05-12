@@ -33,9 +33,8 @@ export class AlmacenComponent implements OnInit {
   };
 
   displayedColumns = [
-    'fecha', 'almacen', 'motivo', 'tipo',
-    'documento', 'cantidad', 'producto',
-    'stock_anterior', 'stock_actual', 'costo_promedio', 'usuario',
+    'fecha', 'documento', 'producto', 'variante', 'almacen',
+    'tipo', 'motivo', 'cantidad', 'stock_anterior', 'stock_actual', 'usuario',
   ];
 
   constructor(
@@ -134,19 +133,21 @@ export class AlmacenComponent implements OnInit {
   descargarXLSX(): void {
     // CSV download (Excel-compatible)
     const headers = [
-      'Fecha', 'Producto', 'Almacén', 'Tipo', 'Motivo',
-      'Cantidad', 'Stock Anterior', 'Stock Actual', 'Costo Promedio', 'Notas'
+      'Fecha', 'Documento', 'Producto', 'Variante', 'Almacén', 'Tipo', 'Motivo',
+      'Cantidad', 'Stock Anterior', 'Stock Actual', 'Usuario', 'Notas'
     ];
     const rows = this.movimientos.map(m => [
       new Date(m.created_at).toLocaleString('es-BO'),
+      m.documento_ref,
       m.product_name,
+      m.variant_name || '',
       m.almacen_nombre || '',
       m.tipo,
       m.motivo,
       m.cantidad,
       m.stock_anterior,
       m.stock_actual,
-      m.costo_promedio || '',
+      m.usuario_nombre || m.usuario_email || '',
       m.notas,
     ]);
 

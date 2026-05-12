@@ -25,10 +25,6 @@ export class EditStockDialogComponent implements OnInit {
       quantity: [
         this.data.inventory.quantity,
         [Validators.required, Validators.min(this.data.inventory.reserved_quantity)]
-      ],
-      purchase_cost: [
-        this.data.inventory.purchase_cost,
-        [Validators.min(0)]
       ]
     });
   }
@@ -36,8 +32,8 @@ export class EditStockDialogComponent implements OnInit {
   save(): void {
     if (this.form.invalid) return;
     this.saving = true;
-    const { quantity, purchase_cost } = this.form.value;
-    this.inventoryService.updateStock(this.data.inventory.id, quantity, purchase_cost).subscribe({
+    const { quantity } = this.form.value;
+    this.inventoryService.updateStock(this.data.inventory.id, quantity).subscribe({
       next: () => {
         this.snackBar.open('Stock actualizado', 'Cerrar', { duration: 3000 });
         this.dialogRef.close(true);

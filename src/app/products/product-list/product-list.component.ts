@@ -25,7 +25,7 @@ export class ProductListComponent implements OnInit {
   tallaControl     = new FormControl('');
   colorControl     = new FormControl('');
 
-  displayedColumns: string[] = ['name', 'price', 'stock', 'category', 'status', 'actions'];
+  displayedColumns: string[] = ['name', 'stock', 'category', 'status', 'actions'];
 
   constructor(
     private productService: ProductService,

@@ -17,6 +17,36 @@
 }
 
 /* Detail row */
+.inventory-table-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  overflow-x: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  min-width: 980px;
+}
+
+.inventory-table th,
+.inventory-table td {
+  white-space: nowrap;
+}
+
+.inventory-table .mat-column-product_name {
+  min-width: 220px;
+}
+
+.inventory-table .mat-column-talla,
+.inventory-table .mat-column-color {
+  min-width: 120px;
+}
+
+.inventory-table .mat-column-variantes {
+  width: 112px;
+}
+
 .detail-row {
   height: 0 !important;
 }

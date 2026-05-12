@@ -10,12 +10,47 @@
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 14px;
   background: #fff;
   border-radius: 12px;
   padding: 16px 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.filter-group-label {
+  width: 100%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.filter-group-period {
+  min-width: 260px;
+}
+
+.filter-group-date {
+  min-width: 280px;
+}
+
+.filter-group-commerce {
+  flex: 1 1 360px;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .period-toggle {
@@ -38,6 +73,13 @@
   align-items: center;
 }
 
+.canal-toggle mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 4px;
+}
+
 .filter-field {
   min-width: 140px;
   max-width: 200px;
@@ -49,6 +91,10 @@
 .filter-field .mat-form-field-wrapper {
   padding-bottom: 0;
   margin-bottom: 0;
+}
+
+.filter-field-category {
+  min-width: 190px;
 }
 
 /* ── Loading overlay ────────────────────────────────────────────────────────── */
@@ -335,6 +381,16 @@
   min-width: 150px;
 }
 
+.table-reset-btn {
+  height: 40px;
+}
+
+.table-reset-btn mat-icon {
+  font-size: 18px !important;
+  height: 18px !important;
+  width: 18px !important;
+}
+
 .table-wrapper {
   overflow-x: auto;
   border-radius: 8px;
@@ -365,6 +421,58 @@
 
 .null-cell {
   color: #d1d5db;
+}
+
+.sales-mobile-list,
+.cash-mobile-list {
+  gap: 12px;
+  flex-direction: column;
+}
+
+.mobile-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mobile-card-metric {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.mobile-card-metric span {
+  display: block;
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.mobile-card-metric strong {
+  color: #111827;
+  font-size: 0.92rem;
+}
+
+.mobile-variant-list {
+  margin-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-variant-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.mobile-variant-row strong {
+  white-space: nowrap;
 }
 
 .no-data-cell {
@@ -516,6 +624,17 @@
 .mov-ingreso { color: #15803d; }
 .mov-egreso  { color: #b91c1c; }
 
+.cash-mobile-card {
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-total-row {
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
 .mov-pagination {
   display: flex;
   align-items: center;
@@ -529,4 +648,110 @@
   color: #374151;
   min-width: 60px;
   text-align: center;
+}
+
+@media (max-width: 900px) {
+  .filter-bar {
+    align-items: stretch;
+  }
+
+  .filter-group,
+  .filter-actions {
+    width: 100%;
+  }
+
+  .filter-group-period,
+  .filter-group-date,
+  .filter-group-commerce {
+    min-width: 0;
+  }
+
+  .filter-field {
+    flex: 1 1 160px;
+    max-width: none;
+  }
+
+  .canal-toggle,
+  .period-toggle {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-root {
+    gap: 16px;
+  }
+
+  .filter-bar,
+  .section-card,
+  .mov-caja-card {
+    padding: 16px;
+  }
+
+  .filter-actions button {
+    flex: 1 1 140px;
+  }
+
+  .table-header-row,
+  .mov-header {
+    align-items: stretch;
+  }
+
+  .table-filters,
+  .mov-period-btns,
+  .quick-actions-row {
+    width: 100%;
+  }
+
+  .table-cat-filter {
+    flex: 1 1 130px;
+    min-width: 0;
+  }
+
+  .table-reset-btn,
+  .mov-period-btn,
+  .xlsx-btn {
+    flex: 1 1 auto;
+  }
+
+  .products-table,
+  .mov-table {
+    display: none;
+  }
+
+  .table-wrapper {
+    display: none;
+  }
+
+  .mobile-card-list {
+    display: flex;
+  }
+
+  .mobile-card-header {
+    align-items: flex-start;
+  }
+
+  .mobile-card-title {
+    font-size: 0.95rem;
+  }
+
+  .mobile-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-variant-row,
+  .mobile-label-row {
+    align-items: flex-start;
+  }
+
+  .mobile-variant-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mobile-label-row strong {
+    max-width: 62%;
+    overflow-wrap: anywhere;
+  }
 }

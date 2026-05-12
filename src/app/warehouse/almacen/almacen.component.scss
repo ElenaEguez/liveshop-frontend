@@ -6,6 +6,12 @@
   .toolbar-actions { display: flex; gap: 8px; }
 }
 
+.page-subtitle {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
 .filter-card { margin-bottom: 16px;
   .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .filter-label { font-size: 13px; color: #666; white-space: nowrap; }
@@ -15,14 +21,17 @@
   mat-form-field { min-width: 130px; margin: 0; }
 }
 
-.table-card { position: relative; padding: 0; overflow: hidden; }
+.table-card { position: relative; padding: 0; overflow-x: auto; }
 
 .loading-shade {
   position: absolute; inset: 0; background: rgba(255,255,255,.7);
   display: flex; align-items: center; justify-content: center; z-index: 5;
 }
 
-.kardex-table { width: 100%; }
+.kardex-table {
+  min-width: 1120px;
+  width: 100%;
+}
 
 .no-data { text-align: center; padding: 32px; color: #888; }
 

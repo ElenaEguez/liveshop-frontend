@@ -45,6 +45,7 @@ export interface OrdenCompra {
   numero?: string;
   proveedor?: number | null;
   proveedor_data?: Proveedor | null;
+  factura_compra?: string;
   sucursal?: number | null;
   almacen?: number | null;
   fecha: string;
@@ -54,6 +55,7 @@ export interface OrdenCompra {
   subtotal?: number;
   descuento?: number;
   total?: number;
+  cantidad_total?: number;
   items: OrdenCompraItem[];
   created_at?: string;
 }
@@ -61,7 +63,8 @@ export interface OrdenCompra {
 export interface ProductoLookup {
   id: number;
   name: string;
-  purchase_cost: number;
+  barcode?: string | null;
+  internal_code?: string;
   sku: string;
   variantes?: VarianteDetalle[];
 }
@@ -121,7 +124,8 @@ export class ComprasService {
         (rows || []).map((p: any) => ({
           id: p.id,
           name: p.name,
-          purchase_cost: Number(p.purchase_cost ?? 0),
+          barcode: p.barcode || null,
+          internal_code: p.internal_code || '',
           sku: p.sku || '',
           variantes: Array.isArray(p.variants)
             ? p.variants.map((v: any) => ({

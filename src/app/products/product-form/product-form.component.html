@@ -51,55 +51,6 @@
 
     </div>
 
-    <!-- SECCIÓN: Precios -->
-    <div class="form-section">
-      <h3 class="section-title">Precios</h3>
-      <div class="price-hint">Los campos se sincronizan automáticamente. El precio de venta se calcula sobre (Costo de compra + Flete) × (1 + % Ganancia).</div>
-
-      <div class="form-grid-2" style="margin-bottom: 12px;">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Costo de compra (Bs.)</mat-label>
-          <input matInput type="number" formControlName="purchase_cost"
-                 placeholder="0.00" min="0" step="0.01">
-          <span matPrefix>Bs.&nbsp;</span>
-          <mat-error *ngIf="productForm.get('purchase_cost')?.hasError('min')">
-            No puede ser negativo
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Costo de flete / importación (Bs.)</mat-label>
-          <input matInput type="number" formControlName="shipping_cost"
-                 placeholder="0.00" min="0" step="0.01">
-          <span matPrefix>Bs.&nbsp;</span>
-          <mat-error *ngIf="productForm.get('shipping_cost')?.hasError('min')">
-            No puede ser negativo
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-grid-2">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>% de Ganancia</mat-label>
-          <input matInput type="number" formControlName="profit_margin_percent"
-                 placeholder="0.00" min="0" step="0.01">
-          <span matSuffix>&nbsp;%</span>
-          <mat-error *ngIf="productForm.get('profit_margin_percent')?.hasError('min')">
-            No puede ser negativo
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Precio de venta (Bs.)</mat-label>
-          <input matInput type="number" formControlName="price" placeholder="0.00">
-          <span matPrefix>Bs.&nbsp;</span>
-          <mat-error *ngIf="productForm.get('price')?.hasError('required')">
-            El precio es requerido
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
     <!-- SECCIÓN: Códigos -->
     <div class="form-section">
       <h3 class="section-title">Códigos</h3>
