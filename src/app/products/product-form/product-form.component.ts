@@ -48,7 +48,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
-      stock:                [data.product?.stock ?? '', [Validators.required, Validators.min(0)]],
+      stock:                [0],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
       is_active_live:       [data.product?.is_active_live ?? true],
@@ -181,7 +181,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       size:      [variant?.size      || ''],
       color:     [variant?.color     || ''],
       color_hex: [variant?.color_hex || ''],
-      stock:     [variant?.stock || 0, [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -194,19 +193,15 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   get sumaStockVariantes(): number {
-    if (!this.variants || this.variants.length === 0) return 0;
-    return this.variants.controls.reduce((sum, ctrl) => sum + (Number(ctrl.get('stock')?.value) || 0), 0);
+    return 0;
   }
 
   get stockVariantesInvalido(): boolean {
-    const stockTotal = Number(this.productForm.get('stock')?.value) || 0;
-    if (!this.variants.length) return false;
-    return this.sumaStockVariantes !== stockTotal;
+    return false;
   }
 
   addVariant(): void {
-    const defaultStock = this.variants.length === 0 ? (this.productForm.get('stock')?.value || 0) : 0;
-    this.variants.push(this.createVariant({ stock: defaultStock }));
+    this.variants.push(this.createVariant());
   }
 
   removeVariant(index: number): void {
@@ -242,6 +237,11 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         formData.append(key, val[key]);
       }
     });
+    // Compatibilidad con servidores que aun requieren price en el serializer.
+    // El precio oficial se actualiza desde Compras, no desde este formulario.
+    if (!formData.has('price')) {
+      formData.append('price', '0');
+    }
 
     this.selectedFiles.forEach(file => formData.append('images', file));
     formData.append('keep_images', JSON.stringify(this.existingImages));
@@ -252,8 +252,25 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     request.subscribe(
       () => this.dialogRef.close(true),
-      error => console.error('Error saving product:', error)
+      error => {
+        console.error('Error saving product:', error);
+        this.snackBar.open(this.getSaveErrorMessage(error), 'Cerrar', {
+          duration: 6000,
+          panelClass: ['snack-error']
+        });
+      }
     );
+  }
+
+  private getSaveErrorMessage(error: any): string {
+    const detail = error?.error;
+    if (!detail) return 'No se pudo guardar el producto.';
+    if (typeof detail === 'string') return detail;
+    if (detail.detail) return detail.detail;
+    const firstKey = Object.keys(detail)[0];
+    const firstValue = firstKey ? detail[firstKey] : null;
+    const message = Array.isArray(firstValue) ? firstValue.join(' ') : firstValue;
+    return message ? `${firstKey}: ${message}` : 'No se pudo guardar el producto.';
   }
 
   onCancel(): void {
