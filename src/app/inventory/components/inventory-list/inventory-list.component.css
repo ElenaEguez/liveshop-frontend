@@ -43,59 +43,8 @@
   min-width: 120px;
 }
 
-.inventory-table .mat-column-variantes {
-  width: 112px;
-}
-
-.detail-row {
-  height: 0 !important;
-}
-
-.detail-row td {
-  border-bottom: none !important;
-  padding: 0 !important;
-}
-
-.variant-detail-row {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 2px solid #e2e8f0;
-  overflow: hidden;
-}
-
-/* Variant sub-table */
-.variant-subtable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.variant-subtable thead tr {
-  background: #f1f5f9;
-}
-
-.variant-subtable th {
-  padding: 8px 16px;
-  text-align: left;
-  font-weight: 600;
-  color: #475569;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.variant-subtable td {
-  padding: 10px 16px;
-  border-bottom: 1px solid #e2e8f0;
-  color: #374151;
-}
-
-.variant-subtable tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.variant-subtable tbody tr:hover {
-  background: #f8fafc;
+.inventory-table .mat-column-acciones {
+  width: 72px;
 }
 
 /* Talla chip */

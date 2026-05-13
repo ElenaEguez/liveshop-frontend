@@ -1,0 +1,78 @@
+<div class="supervision-page">
+  <div class="header">
+    <button mat-icon-button type="button" (click)="onVolverListaConteos()" matTooltip="Ir a todos los conteos">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1>Control de conteo físico</h1>
+      <p class="sub">
+        Conteos <strong>cerrados</strong> pendientes de su decisión: revise las diferencias,
+        apruebe para aplicar los ajustes al inventario o cancele el conteo.
+      </p>
+    </div>
+  </div>
+
+  <mat-card class="info-card" *ngIf="!puedeOperar()">
+    <mat-card-content>
+      <mat-icon color="warn">lock</mat-icon>
+      Su usuario no tiene permiso de <strong>almacén</strong> para aprobar o cancelar conteos.
+      Pida al administrador el rol con permiso «Almacén / transferencias».
+    </mat-card-content>
+  </mat-card>
+
+  <div class="loading" *ngIf="cargando">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <mat-card *ngIf="!cargando">
+    <mat-card-content>
+      <mat-table [dataSource]="conteos">
+        <ng-container matColumnDef="almacen">
+          <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+          <mat-cell *matCellDef="let c">{{ c.almacen_nombre }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="fecha">
+          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+          <mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="creador">
+          <mat-header-cell *matHeaderCellDef>Registrado por</mat-header-cell>
+          <mat-cell *matCellDef="let c">{{ c.creado_por_nombre || '—' }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="items">
+          <mat-header-cell *matHeaderCellDef>Ítems</mat-header-cell>
+          <mat-cell *matCellDef="let c">{{ c.items?.length || 0 }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="diferencias">
+          <mat-header-cell *matHeaderCellDef>Diferencias</mat-header-cell>
+          <mat-cell *matCellDef="let c">
+            <span [class.hay-dif]="(c.items_con_diferencia || 0) > 0">
+              {{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.
+            </span>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let c">
+            <button mat-stroked-button color="primary" type="button" (click)="onRevisar(c.id!)">
+              <mat-icon>visibility</mat-icon>
+              Revisar y decidir
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: columnas;"></mat-row>
+      </mat-table>
+
+      <p *ngIf="conteos.length === 0" class="empty">
+        No hay conteos pendientes de aprobación. Los conteos cerrados aparecerán aquí hasta que se aprueben o cancelen.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

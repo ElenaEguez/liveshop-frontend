@@ -5,7 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent } from '@angular/material/paginator';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Inventory, InventoryService } from '../../services/inventory.service';
-import { Category, ProductVariant, ProductService } from '../../../products/products.service';
+import { Category, ProductService } from '../../../products/products.service';
 import { KardexDialogComponent } from '../kardex-dialog/kardex-dialog.component';
 
 @Component({
@@ -32,12 +32,7 @@ export class InventoryListComponent implements OnInit {
 
   searchControl = new FormControl('');
 
-  displayedColumns = ['product_name', 'talla', 'color', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'variantes'];
-
-  // Variant expansion state
-  expandedProductId: number | null = null;
-  itemVariants: Record<number, ProductVariant[]> = {};
-  loadingVariants: Record<number, boolean> = {};
+  displayedColumns = ['product_name', 'talla', 'color', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'acciones'];
 
   constructor(
     private inventoryService: InventoryService,
@@ -79,7 +74,6 @@ export class InventoryListComponent implements OnInit {
           ...item,
           available_quantity: item.available_quantity ?? (item.quantity - item.reserved_quantity)
         }));
-        this.expandedProductId = null;
       },
       error: () => this.snackBar.open('Error al cargar el inventario', 'Cerrar', { duration: 3000 })
     });
@@ -155,43 +149,6 @@ export class InventoryListComponent implements OnInit {
     return !!(this.selectedCategoryId || this.selectedSucursalId || this.selectedAlmacenId ||
               this.selectedTalla || this.selectedColor || this.searchControl.value);
   }
-
-  // ── Variant expansion ────────────────────────────────────────────────────────
-
-  toggleVariants(item: Inventory): void {
-    if (this.expandedProductId === item.product) {
-      this.expandedProductId = null;
-      return;
-    }
-    this.expandedProductId = item.product;
-    if (!this.itemVariants[item.product]) {
-      this.loadingVariants[item.product] = true;
-      this.inventoryService.getVariantes(item.product).subscribe({
-        next: variants => {
-          this.itemVariants[item.product] = variants;
-          this.loadingVariants[item.product] = false;
-        },
-        error: () => {
-          this.itemVariants[item.product] = [];
-          this.loadingVariants[item.product] = false;
-        }
-      });
-    }
-  }
-
-  isExpanded(item: Inventory): boolean {
-    return this.expandedProductId === item.product;
-  }
-
-  getVariants(item: Inventory): ProductVariant[] {
-    return this.itemVariants[item.product] ?? [];
-  }
-
-  isLoadingVariants(item: Inventory): boolean {
-    return !!this.loadingVariants[item.product];
-  }
-
-  // ── Inventory actions ────────────────────────────────────────────────────────
 
   openKardex(item: Inventory): void {
     this.dialog.open(KardexDialogComponent, {

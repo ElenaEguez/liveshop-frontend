@@ -73,6 +73,7 @@ export interface ProductoLookup {
 export class ComprasService {
   private proveedoresUrl = `${environment.apiUrl}/compras/proveedores/`;
   private ordenesUrl = `${environment.apiUrl}/compras/ordenes/`;
+  private devolucionesProvUrl = `${environment.apiUrl}/compras/devoluciones-proveedor/`;
   private productosUrl = `${environment.apiUrl}/products/`;
   private almacenesUrl = `${environment.apiUrl}/branches/almacenes/`;
 
@@ -116,6 +117,14 @@ export class ComprasService {
 
   cancelarOrden(id: number): Observable<OrdenCompra> {
     return this.http.post<OrdenCompra>(`${this.ordenesUrl}${id}/cancelar/`, {});
+  }
+
+  registrarDevolucionProveedor(payload: {
+    documento_ref?: string;
+    notas?: string;
+    items: { producto: number; almacen: number; cantidad: number; variante?: number | null }[];
+  }): Observable<any> {
+    return this.http.post(this.devolucionesProvUrl, payload);
   }
 
   buscarProductos(query: string): Observable<ProductoLookup[]> {

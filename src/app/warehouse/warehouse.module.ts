@@ -27,6 +27,7 @@ import { TransferenciaDetailComponent } from './transferencias/transferencia-det
 import { ConteosListComponent }           from './conteos/conteos-list.component';
 import { ConteoFormComponent }            from './conteos/conteo-form.component';
 import { ConteoDetailComponent }          from './conteos/conteo-detail.component';
+import { ConteosSupervisionComponent }    from './conteos/conteos-supervision.component';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { ConteoDetailComponent }          from './conteos/conteo-detail.componen
     ConteosListComponent,
     ConteoFormComponent,
     ConteoDetailComponent,
+    ConteosSupervisionComponent,
   ],
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,

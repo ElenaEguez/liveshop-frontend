@@ -1,0 +1,75 @@
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.header h2 {
+  margin: 0 0 8px;
+}
+.sub {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+.row2,
+.full {
+  width: 100%;
+}
+.grow {
+  flex: 1;
+  min-width: 180px;
+}
+.h3 {
+  font-size: 1rem;
+  margin: 16px 0 8px;
+}
+.linea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+}
+.fullw {
+  width: 100%;
+}
+.sug-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: -12px;
+  margin-bottom: 8px;
+}
+.sug-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.sug-item:hover {
+  background: #fee2e2;
+}
+.qty {
+  width: 100px;
+}
+.actions {
+  margin-top: 20px;
+}
+.ok {
+  color: #166534;
+  margin-top: 12px;
+}
+.err {
+  color: #b91c1c;
+  margin-top: 12px;
+}

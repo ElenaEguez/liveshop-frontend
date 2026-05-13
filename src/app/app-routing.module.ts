@@ -98,7 +98,7 @@ const routes: Routes = [
         path: 'almacen',
         loadChildren: () => import('./warehouse/warehouse.module').then(m => m.WarehouseModule),
         canActivate: [ModuloGuard],
-        data: { modulo: 'inventario' }
+        data: { modulos: ['inventario', 'almacen'] }
       },
       {
         path: 'gastos',

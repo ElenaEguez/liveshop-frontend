@@ -1,0 +1,83 @@
+<div class="wrap">
+  <div class="header">
+    <h2>Devolución a proveedor</h2>
+    <p class="sub">
+      Descuenta stock del almacén seleccionado y, si indica variante, también el stock de esa variante.
+      Queda registrado como salida en el kardex del producto.
+    </p>
+  </div>
+
+  <mat-card>
+    <mat-card-content>
+      <div class="row2">
+        <mat-form-field appearance="outline" class="grow">
+          <mat-label>Documento de referencia (opcional)</mat-label>
+          <input matInput [(ngModel)]="documentoRef" placeholder="Guía, nota de remisión…" />
+        </mat-form-field>
+      </div>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Notas</mat-label>
+        <textarea matInput rows="2" [(ngModel)]="notas"></textarea>
+      </mat-form-field>
+
+      <h3 class="h3">Ítems</h3>
+      <div class="linea" *ngFor="let linea of lineas; let i = index">
+        <div class="col grow">
+          <mat-form-field appearance="outline" class="fullw">
+            <mat-label>Buscar producto</mat-label>
+            <input matInput [(ngModel)]="linea.busqueda" (ngModelChange)="buscarProducto(linea)" />
+          </mat-form-field>
+          <div class="sug-panel" *ngIf="linea.sugerenciasLocales?.length">
+            <button
+              type="button"
+              class="sug-item"
+              *ngFor="let p of linea.sugerenciasLocales"
+              (click)="elegirProducto(linea, p)"
+            >
+              {{ p.name }}
+            </button>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" *ngIf="linea.producto && linea.variantOptions.length">
+          <mat-label>Variante</mat-label>
+          <mat-select [(ngModel)]="linea.variante">
+            <mat-option [value]="null">Sin variante</mat-option>
+            <mat-option *ngFor="let v of linea.variantOptions" [value]="v.id">{{ v.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Almacén</mat-label>
+          <mat-select [(ngModel)]="linea.almacen">
+            <mat-option *ngFor="let a of almacenes" [value]="a.id">
+              {{ a.nombre }}<span *ngIf="a.sucursal_nombre"> — {{ a.sucursal_nombre }}</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="qty">
+          <mat-label>Cant.</mat-label>
+          <input matInput type="number" min="1" [(ngModel)]="linea.cantidad" />
+        </mat-form-field>
+
+        <button mat-icon-button type="button" (click)="quitarLinea(i)" matTooltip="Quitar línea">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+
+      <button mat-stroked-button type="button" (click)="agregarLinea()">
+        <mat-icon>add</mat-icon> Otra línea
+      </button>
+
+      <div class="actions">
+        <button mat-raised-button color="warn" (click)="enviar()" [disabled]="enviando">
+          Registrar devolución
+        </button>
+      </div>
+
+      <p class="ok" *ngIf="mensaje">{{ mensaje }}</p>
+      <p class="err" *ngIf="error">{{ error }}</p>
+    </mat-card-content>
+  </mat-card>
+</div>

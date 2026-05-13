@@ -60,6 +60,7 @@ export interface ConteoFisico {
   total_diferencias?: number;
   items_con_diferencia?: number;
   created_at?: string;
+  aprobado_por_nombre?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -101,9 +102,14 @@ export class WarehouseExtraService {
       `${this.base}/transferencias/${id}/cancelar/`, {});
   }
 
-  getConteos(): Observable<ConteoFisico[]> {
+  getConteos(params?: { estado?: string }): Observable<ConteoFisico[]> {
+    let hp = new HttpParams();
+    if (params?.estado) {
+      hp = hp.set('estado', params.estado);
+    }
     return this.http.get<any>(
-      `${this.base}/conteos/`
+      `${this.base}/conteos/`,
+      { params: hp }
     ).pipe(map(r => this.asArray<ConteoFisico>(r)));
   }
 

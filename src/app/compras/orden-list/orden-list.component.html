@@ -1,10 +1,16 @@
 <div class="orden-list">
   <div class="header">
     <h2>Órdenes de compra</h2>
-    <button mat-raised-button color="primary" (click)="irNueva()">
-      <mat-icon>add</mat-icon>
-      Nueva orden
-    </button>
+    <div class="actions">
+      <button mat-stroked-button color="warn" routerLink="/compras/devolucion-proveedor">
+        <mat-icon>undo</mat-icon>
+        Devolución a proveedor
+      </button>
+      <button mat-raised-button color="primary" (click)="irNueva()">
+        <mat-icon>add</mat-icon>
+        Nueva orden
+      </button>
+    </div>
   </div>
 
   <mat-card>

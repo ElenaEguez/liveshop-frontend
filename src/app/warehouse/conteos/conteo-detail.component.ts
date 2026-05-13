@@ -8,6 +8,7 @@ import {
   WarehouseExtraService, ConteoFisico
 } from '../services/warehouse-extra.service';
 import { PermisosService } from '../../core/services/permisos.service';
+import { PermissionsService } from '../../shared/permissions.service';
 
 @Component({
   selector: 'app-conteo-detail',
@@ -37,7 +38,8 @@ export class ConteoDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    public permisosService: PermisosService
+    public permisosService: PermisosService,
+    private permissions: PermissionsService,
   ) {}
 
   ngOnInit(): void {
@@ -170,8 +172,10 @@ export class ConteoDetailComponent implements OnInit {
   }
 
   puedeAprobar(): boolean {
-    return this.permisosService.puede('inventario', 'operar')
-      || this.permisosService.puede('configuracion', 'operar');
+    const p = this.permisosService.permisos;
+    if (p?.es_propietario || p?.rol === 'superadmin') return true;
+    if (this.permisosService.puede('almacen', 'operar')) return true;
+    return this.permissions.canUseWarehouse();
   }
 
   puedeCerrar(): boolean {

@@ -9,6 +9,52 @@
   color: #db0000;
 }
 
+.kd-variants {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.kd-variants-block {
+  margin-bottom: 16px;
+}
+
+.kd-variants-title {
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.kd-variant-table {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+  }
+
+  td {
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+}
+
+.kd-variants-empty {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin: 0 0 14px;
+}
+
 .kd-content {
   width: 100%;
   max-width: 960px;

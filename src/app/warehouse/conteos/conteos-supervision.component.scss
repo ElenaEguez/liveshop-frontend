@@ -1,0 +1,57 @@
+.supervision-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #111827;
+  }
+}
+
+.sub {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.45;
+  max-width: 720px;
+}
+
+.info-card mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 24px 8px;
+  margin: 0;
+}
+
+.hay-dif {
+  color: #b45309;
+  font-weight: 600;
+}
+
+mat-table {
+  width: 100%;
+}

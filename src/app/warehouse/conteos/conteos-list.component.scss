@@ -11,6 +11,13 @@
   gap: 12px;
   margin-bottom: 16px;
 }
+
+.header-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
 .loading-center {
   display: flex;
   justify-content: center;

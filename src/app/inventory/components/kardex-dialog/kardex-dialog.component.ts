@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventoryService, KardexMovimiento } from '../../services/inventory.service';
+import { ProductService, ProductVariant } from '../../../products/products.service';
 
 export interface KardexDialogData {
   productId: number;
@@ -14,6 +15,8 @@ export interface KardexDialogData {
 })
 export class KardexDialogComponent implements OnInit {
   movimientos: KardexMovimiento[] = [];
+  variantesActuales: ProductVariant[] = [];
+  loadingVariantes = false;
   loading = false;
   totalCount = 0;
   pageSize = 20;
@@ -38,7 +41,8 @@ export class KardexDialogComponent implements OnInit {
     { value: 'venta_live', label: 'Venta Live' },
     { value: 'compra', label: 'Compra / Reposición' },
     { value: 'ajuste_manual', label: 'Ajuste manual' },
-    { value: 'devolucion', label: 'Devolución' },
+    { value: 'devolucion', label: 'Devolución (venta)' },
+    { value: 'devolucion_compra', label: 'Devolución a proveedor' },
     { value: 'transferencia', label: 'Transferencia' },
   ];
 
@@ -47,9 +51,21 @@ export class KardexDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: KardexDialogData,
     private svc: InventoryService,
+    private products: ProductService,
   ) {}
 
   ngOnInit(): void {
+    this.loadingVariantes = true;
+    this.products.getVariantes(this.data.productId).subscribe({
+      next: v => {
+        this.variantesActuales = v || [];
+        this.loadingVariantes = false;
+      },
+      error: () => {
+        this.variantesActuales = [];
+        this.loadingVariantes = false;
+      },
+    });
     this.load();
   }
 
@@ -104,7 +120,8 @@ export class KardexDialogComponent implements OnInit {
     venta_live: 'Venta Live',
     compra: 'Compra / Reposición',
     ajuste_manual: 'Ajuste manual',
-    devolucion: 'Devolución',
+    devolucion: 'Devolución (venta)',
+    devolucion_compra: 'Devolución a proveedor',
     transferencia: 'Transferencia',
   };
 

@@ -1,10 +1,18 @@
 <div class="list-container">
   <div class="header-actions">
     <h2>Conteos físicos</h2>
-    <button mat-raised-button color="primary"
-            (click)="onNuevo()">
-      <mat-icon>fact_check</mat-icon> Nuevo conteo
-    </button>
+    <div class="header-buttons">
+      <button mat-stroked-button color="primary" type="button"
+              *ngIf="puedeControlSupervision()"
+              (click)="onControlSupervision()">
+        <mat-icon>verified_user</mat-icon>
+        Control (pendientes)
+      </button>
+      <button mat-raised-button color="primary"
+              (click)="onNuevo()">
+        <mat-icon>fact_check</mat-icon> Nuevo conteo
+      </button>
+    </div>
   </div>
 
   <div *ngIf="cargando" class="loading-center">

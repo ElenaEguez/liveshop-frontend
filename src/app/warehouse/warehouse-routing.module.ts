@@ -7,11 +7,13 @@ import { TransferenciaDetailComponent } from './transferencias/transferencia-det
 import { ConteosListComponent } from './conteos/conteos-list.component';
 import { ConteoFormComponent } from './conteos/conteo-form.component';
 import { ConteoDetailComponent } from './conteos/conteo-detail.component';
+import { ConteosSupervisionComponent } from './conteos/conteos-supervision.component';
 
 const routes: Routes = [
   { path: 'transferencias/nueva', component: TransferenciaFormComponent },
   { path: 'transferencias/:id', component: TransferenciaDetailComponent },
   { path: 'transferencias', component: TransferenciasListComponent },
+  { path: 'conteos-control', component: ConteosSupervisionComponent },
   { path: 'conteos/nuevo', component: ConteoFormComponent },
   { path: 'conteos/:id', component: ConteoDetailComponent },
   { path: 'conteos', component: ConteosListComponent },

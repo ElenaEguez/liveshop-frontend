@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import {
   WarehouseExtraService, ConteoFisico
 } from '../services/warehouse-extra.service';
+import { PermisosService } from '../../core/services/permisos.service';
+import { PermissionsService } from '../../shared/permissions.service';
 
 @Component({
   selector: 'app-conteos-list',
@@ -21,7 +23,9 @@ export class ConteosListComponent implements OnInit {
   constructor(
     private svc: WarehouseExtraService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public permisosService: PermisosService,
+    private permissions: PermissionsService,
   ) {}
 
   ngOnInit(): void { this.cargar(); }
@@ -47,6 +51,17 @@ export class ConteosListComponent implements OnInit {
 
   onVer(id: number): void {
     this.router.navigate(['/almacen/conteos', id]);
+  }
+
+  puedeControlSupervision(): boolean {
+    const p = this.permisosService.permisos;
+    if (p?.es_propietario || p?.rol === 'superadmin') return true;
+    if (this.permisosService.puede('almacen', 'operar')) return true;
+    return this.permissions.canUseWarehouse();
+  }
+
+  onControlSupervision(): void {
+    this.router.navigate(['/almacen/conteos-control']);
   }
 
   getColor(estado: string | undefined): string {

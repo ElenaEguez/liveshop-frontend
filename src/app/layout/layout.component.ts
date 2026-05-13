@@ -40,6 +40,7 @@ export class LayoutComponent implements OnInit {
     { label: 'Almacén',       icon: 'warehouse',      route: '/almacen',         permission: 'warehouse' },
     { label: 'Transferencias', icon: 'swap_horiz',   route: '/almacen/transferencias', permission: 'warehouse' },
     { label: 'Conteo físico', icon: 'fact_check',    route: '/almacen/conteos', permission: 'inventory' },
+    { label: 'Control conteos', icon: 'verified_user', route: '/almacen/conteos-control', permission: 'warehouse' },
     { label: 'Gastos',        icon: 'receipt_long',   route: '/gastos',          permission: 'expenses'  },
     { label: 'Compras',       icon: 'shopping_basket', route: '/compras',        permission: 'compras'   },
     { label: 'Proveedores',   icon: 'business',         route: '/compras/proveedores', permission: 'compras' },
@@ -56,6 +57,9 @@ export class LayoutComponent implements OnInit {
   ];
 
   private moduloApiForItem(item: NavItem): string | null {
+    if (item.route === '/almacen/conteos-control') {
+      return 'almacen';
+    }
     if (item.route === '/compras/proveedores') {
       return 'compras';
     }

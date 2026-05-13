@@ -18,6 +18,7 @@ import { OrdenListComponent } from './orden-list/orden-list.component';
 import { OrdenFormComponent } from './orden-form/orden-form.component';
 import { OrdenDetailComponent } from './orden-detail/orden-detail.component';
 import { ProveedoresComponent } from './components/proveedores/proveedores.component';
+import { DevolucionProveedorComponent } from './devolucion-proveedor/devolucion-proveedor.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { ProveedoresComponent } from './components/proveedores/proveedores.compo
     OrdenFormComponent,
     OrdenDetailComponent,
     ProveedoresComponent,
+    DevolucionProveedorComponent,
   ],
   imports: [
     CommonModule,
