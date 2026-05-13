@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 const API = environment.apiUrl;
@@ -71,7 +72,10 @@ export class WarehouseService {
   }
 
   getInventories(): Observable<any[]> {
-    return this.http.get<any[]>(`${API}/products/inventories/`);
+    const params = new HttpParams().set('page_size', '500').set('page', '1');
+    return this.http.get<any>(`${API}/products/inventories/`, { params }).pipe(
+      map((r) => (Array.isArray(r) ? r : (r?.results ?? []))),
+    );
   }
 
   getAlmacenes(): Observable<any[]> {

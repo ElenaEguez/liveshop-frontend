@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ComprasRoutingModule } from './compras-routing.module';
 import { OrdenListComponent } from './orden-list/orden-list.component';
@@ -43,6 +44,7 @@ import { DevolucionProveedorComponent } from './devolucion-proveedor/devolucion-
     MatTableModule,
     MatTooltipModule,
     MatChipsModule,
+    MatRadioModule,
   ],
 })
 export class ComprasModule {}

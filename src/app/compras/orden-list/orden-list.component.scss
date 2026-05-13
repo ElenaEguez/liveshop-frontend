@@ -23,6 +23,23 @@
   border-bottom: 1px solid #eee;
 }
 
-tbody tr {
-  cursor: pointer;
+.link-num {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.link-num:hover {
+  text-decoration: underline;
+}
+
+.cell-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.btn-mini {
+  font-size: 0.75rem;
+  line-height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
 }

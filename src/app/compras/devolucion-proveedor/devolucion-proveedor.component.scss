@@ -11,6 +11,50 @@
   font-size: 0.9rem;
   margin: 0 0 16px;
 }
+.modo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+.muted {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+.tabla-orden-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+.tabla-orden {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.tabla-orden th,
+.tabla-orden td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+.tabla-orden th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+.qty-inline {
+  width: 96px;
+  margin: 0;
+}
+.qty-inline ::ng-deep .mat-mdc-form-field-subscript-wrapper,
+.qty-inline ::ng-deep .mat-form-field-subscript-wrapper {
+  display: none;
+}
 .row2,
 .full {
   width: 100%;

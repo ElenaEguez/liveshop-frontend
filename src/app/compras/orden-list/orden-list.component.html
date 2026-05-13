@@ -23,15 +23,31 @@
             <th>Fecha</th>
             <th>Estado</th>
             <th>Total</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let o of ordenes" [routerLink]="['/compras', o.id]">
-            <td>{{ o.numero }}</td>
+          <tr *ngFor="let o of ordenes">
+            <td>
+              <a [routerLink]="['/compras', o.id]" class="link-num">{{ o.numero }}</a>
+            </td>
             <td>{{ o.proveedor_data?.nombre || '—' }}</td>
             <td>{{ o.fecha }}</td>
             <td>{{ o.estado }}</td>
             <td>Bs. {{ o.total || 0 | number:'1.2-2' }}</td>
+            <td class="cell-actions">
+              <a
+                *ngIf="o.estado === 'recibida' && o.id"
+                mat-stroked-button
+                color="warn"
+                class="btn-mini"
+                [routerLink]="['/compras/devolucion-proveedor']"
+                [queryParams]="{ orden: o.id }"
+                (click)="$event.stopPropagation()"
+              >
+                Devolver
+              </a>
+            </td>
           </tr>
         </tbody>
       </table>

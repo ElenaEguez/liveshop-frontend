@@ -2,13 +2,23 @@
   <div class="header">
     <h2>Devolución a proveedor</h2>
     <p class="sub">
-      Descuenta stock del almacén seleccionado y, si indica variante, también el stock de esa variante.
-      Queda registrado como salida en el kardex del producto.
+      Descuenta stock del almacén de la línea (o el elegido en modo por producto) y, si hay variante, el
+      stock de esa variante. Queda registrado como salida en el kardex del producto.
     </p>
   </div>
 
   <mat-card>
     <mat-card-content>
+      <mat-radio-group
+        class="modo-row"
+        [(ngModel)]="modo"
+        (ngModelChange)="onModoChange()"
+        aria-label="Modo de devolución"
+      >
+        <mat-radio-button value="producto">Por producto</mat-radio-button>
+        <mat-radio-button value="orden">Por orden de compra</mat-radio-button>
+      </mat-radio-group>
+
       <div class="row2">
         <mat-form-field appearance="outline" class="grow">
           <mat-label>Documento de referencia (opcional)</mat-label>
@@ -20,55 +30,114 @@
         <textarea matInput rows="2" [(ngModel)]="notas"></textarea>
       </mat-form-field>
 
-      <h3 class="h3">Ítems</h3>
-      <div class="linea" *ngFor="let linea of lineas; let i = index">
-        <div class="col grow">
-          <mat-form-field appearance="outline" class="fullw">
-            <mat-label>Buscar producto</mat-label>
-            <input matInput [(ngModel)]="linea.busqueda" (ngModelChange)="buscarProducto(linea)" />
-          </mat-form-field>
-          <div class="sug-panel" *ngIf="linea.sugerenciasLocales?.length">
-            <button
-              type="button"
-              class="sug-item"
-              *ngFor="let p of linea.sugerenciasLocales"
-              (click)="elegirProducto(linea, p)"
-            >
-              {{ p.name }}
-            </button>
+      <ng-container *ngIf="modo === 'producto'">
+        <h3 class="h3">Ítems</h3>
+        <div class="linea" *ngFor="let linea of lineas; let i = index">
+          <div class="col grow">
+            <mat-form-field appearance="outline" class="fullw">
+              <mat-label>Buscar producto</mat-label>
+              <input matInput [(ngModel)]="linea.busqueda" (ngModelChange)="buscarProducto(linea)" />
+            </mat-form-field>
+            <div class="sug-panel" *ngIf="linea.sugerenciasLocales?.length">
+              <button
+                type="button"
+                class="sug-item"
+                *ngFor="let p of linea.sugerenciasLocales"
+                (click)="elegirProducto(linea, p)"
+              >
+                {{ p.name }}
+              </button>
+            </div>
           </div>
+
+          <mat-form-field appearance="outline" *ngIf="linea.producto && linea.variantOptions.length">
+            <mat-label>Variante</mat-label>
+            <mat-select [(ngModel)]="linea.variante">
+              <mat-option [value]="null">Sin variante</mat-option>
+              <mat-option *ngFor="let v of linea.variantOptions" [value]="v.id">{{ v.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Almacén</mat-label>
+            <mat-select [(ngModel)]="linea.almacen">
+              <mat-option *ngFor="let a of almacenes" [value]="a.id">
+                {{ a.nombre }}<span *ngIf="a.sucursal_nombre"> — {{ a.sucursal_nombre }}</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="qty">
+            <mat-label>Cant.</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="linea.cantidad" />
+          </mat-form-field>
+
+          <button mat-icon-button type="button" (click)="quitarLinea(i)" matTooltip="Quitar línea">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
 
-        <mat-form-field appearance="outline" *ngIf="linea.producto && linea.variantOptions.length">
-          <mat-label>Variante</mat-label>
-          <mat-select [(ngModel)]="linea.variante">
-            <mat-option [value]="null">Sin variante</mat-option>
-            <mat-option *ngFor="let v of linea.variantOptions" [value]="v.id">{{ v.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="agregarLinea()">
+          <mat-icon>add</mat-icon> Otra línea
+        </button>
+      </ng-container>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Almacén</mat-label>
-          <mat-select [(ngModel)]="linea.almacen">
-            <mat-option *ngFor="let a of almacenes" [value]="a.id">
-              {{ a.nombre }}<span *ngIf="a.sucursal_nombre"> — {{ a.sucursal_nombre }}</span>
+      <ng-container *ngIf="modo === 'orden'">
+        <h3 class="h3">Orden recibida</h3>
+        <p class="hint">
+          Solo se listan órdenes en estado «recibida». Las cantidades a devolver no pueden superar las de la
+          compra; el stock en almacén se valida al registrar.
+        </p>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Orden de compra</mat-label>
+          <mat-select
+            [(ngModel)]="ordenSeleccionadaId"
+            (ngModelChange)="onOrdenSeleccionada($event)"
+            [disabled]="cargandoOrdenes"
+          >
+            <mat-option [value]="null">— Seleccionar —</mat-option>
+            <mat-option *ngFor="let o of ordenesRecibidas" [value]="o.id">
+              {{ o.numero }} — {{ o.proveedor_data?.nombre || 'Proveedor' }} — {{ o.fecha }} — Bs.
+              {{ o.total || 0 | number: '1.2-2' }}
             </mat-option>
           </mat-select>
         </mat-form-field>
+        <p *ngIf="cargandoOrdenes" class="muted">Cargando órdenes…</p>
+        <p *ngIf="cargandoDetalleOrden" class="muted">Cargando ítems…</p>
 
-        <mat-form-field appearance="outline" class="qty">
-          <mat-label>Cant.</mat-label>
-          <input matInput type="number" min="1" [(ngModel)]="linea.cantidad" />
-        </mat-form-field>
-
-        <button mat-icon-button type="button" (click)="quitarLinea(i)" matTooltip="Quitar línea">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </div>
-
-      <button mat-stroked-button type="button" (click)="agregarLinea()">
-        <mat-icon>add</mat-icon> Otra línea
-      </button>
+        <div *ngIf="lineasOrden.length && !cargandoDetalleOrden" class="tabla-orden-wrap">
+          <table class="tabla-orden">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Variante</th>
+                <th>Almacén</th>
+                <th>Cant. orden</th>
+                <th>A devolver</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of lineasOrden">
+                <td>{{ row.item.producto_nombre || '—' }}</td>
+                <td>{{ labelVariante(row.item) }}</td>
+                <td>{{ almacenNombre(row.item.almacen) }}</td>
+                <td>{{ row.item.cantidad }}</td>
+                <td>
+                  <mat-form-field appearance="outline" class="qty-inline">
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      [max]="row.item.cantidad"
+                      [(ngModel)]="row.cantidad"
+                    />
+                  </mat-form-field>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
 
       <div class="actions">
         <button mat-raised-button color="warn" (click)="enviar()" [disabled]="enviando">

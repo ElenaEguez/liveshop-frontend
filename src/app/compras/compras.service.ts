@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -95,8 +95,22 @@ export class ComprasService {
     return this.http.get<any>(this.almacenesUrl);
   }
 
-  getOrdenes(): Observable<OrdenCompra[]> {
-    return this.http.get<OrdenCompra[]>(this.ordenesUrl);
+  getOrdenes(params?: { estado?: string }): Observable<OrdenCompra[]> {
+    let httpParams = new HttpParams();
+    if (params?.estado) {
+      httpParams = httpParams.set('estado', params.estado);
+    }
+    return this.http.get<any>(this.ordenesUrl, { params: httpParams }).pipe(
+      map((res) => {
+        if (Array.isArray(res)) {
+          return res as OrdenCompra[];
+        }
+        if (res && Array.isArray(res.results)) {
+          return res.results as OrdenCompra[];
+        }
+        return [];
+      })
+    );
   }
 
   getOrden(id: number): Observable<OrdenCompra> {
@@ -122,7 +136,10 @@ export class ComprasService {
   registrarDevolucionProveedor(payload: {
     documento_ref?: string;
     notas?: string;
-    items: { producto: number; almacen: number; cantidad: number; variante?: number | null }[];
+    orden_compra?: number;
+    items:
+      | { producto: number; almacen: number; cantidad: number; variante?: number | null }[]
+      | { orden_item_id: number; cantidad: number }[];
   }): Observable<any> {
     return this.http.post(this.devolucionesProvUrl, payload);
   }

@@ -53,9 +53,10 @@ export class AlmacenComponent implements OnInit {
   }
 
   get filteredInventories(): any[] {
+    const list = Array.isArray(this.inventories) ? this.inventories : [];
     const q = this.productQuery.trim().toLowerCase();
-    if (!q) return this.inventories;
-    return this.inventories.filter(inv =>
+    if (!q) return list;
+    return list.filter(inv =>
       String(inv.product_name || '').toLowerCase().includes(q)
     );
   }
@@ -110,8 +111,9 @@ export class AlmacenComponent implements OnInit {
       ...dateF,
     }).subscribe({
       next: res => {
-        this.movimientos = res.results;
-        this.totalCount = res.count;
+        const rows = Array.isArray(res) ? res : (res?.results ?? []);
+        this.movimientos = rows;
+        this.totalCount = Array.isArray(res) ? rows.length : (res?.count ?? rows.length);
         this.actualizarStockVariantes();
         this.loading = false;
       },
@@ -180,8 +182,8 @@ export class AlmacenComponent implements OnInit {
 
   private actualizarStockVariantes(): void {
     const selectedAlmacen = this.almacenes.find((a: any) => a.id === this.filters.almacen_id);
-    const datos = selectedAlmacen || {};
-    this.stockVariantes = datos.stock_por_variante || [];
+    const raw = selectedAlmacen?.stock_por_variante;
+    this.stockVariantes = Array.isArray(raw) ? raw : [];
     this.cdr.markForCheck();
   }
 }
