@@ -41,7 +41,8 @@
             "allowedCommonJsDependencies": [
               "socket.io-client",
               "socket.io-parser",
-              "debug"
+              "debug",
+              "jsbarcode"
             ]
           },
           "configurations": {

@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { VentaPOS } from '../pos.service';
 import { TicketConfig } from '../../settings/settings.service';
+import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 
 export interface TicketPreviewData {
   venta: VentaPOS;
@@ -34,13 +35,18 @@ export class TicketPreviewDialogComponent {
     const el = document.getElementById('ticket-print');
     if (!el) { window.print(); return; }
     const content = el.innerHTML;
-    const win = window.open('', '_blank', 'width=400,height=600');
-    if (!win) { window.print(); return; }
-    win.document.write(`
+    const pageSize = this.config?.ancho_ticket === 58 ? '58mm' : '80mm';
+    const ticketMax = this.config?.ancho_ticket === 58 ? '52mm' : '72mm';
+    const html = `
       <html><head><title>Ticket</title>
+      <meta charset="utf-8">
       <style>
-        body { font-family: monospace; font-size: 12px; margin: 0; padding: 8px; }
-        .ticket { max-width: ${this.ticketWidthPx}px; margin: 0 auto; }
+        @page { size: ${pageSize} auto; margin: 2mm; }
+        @media print {
+          body { margin: 0; padding: 0; }
+        }
+        body { font-family: monospace; font-size: 11px; margin: 0; padding: 6px; }
+        .ticket { max-width: ${ticketMax}; margin: 0 auto; }
         .ticket-header { text-align: center; margin-bottom: 4px; }
         .ticket-logo { text-align: center; margin-bottom: 6px; }
         .ticket-logo-img { max-height: 60px; max-width: 140px; object-fit: contain; }
@@ -61,11 +67,24 @@ export class TicketPreviewDialogComponent {
         .ticket-qr-img { max-width: 100px; max-height: 100px; }
       </style></head><body>
       <div class="ticket">${content}</div>
-      </body></html>
-    `);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 300);
+      <script>window.addEventListener('load', function () {
+        setTimeout(function () { window.focus(); window.print(); }, 200);
+      });<\/script>
+      </body></html>`;
+
+    const win = window.open('', '_blank', 'width=400,height=700');
+    if (win) {
+      try {
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+      } catch {
+        printHtmlInHiddenIframe(html);
+      }
+      return;
+    }
+    printHtmlInHiddenIframe(html);
   }
 
   nuevaVenta(): void {

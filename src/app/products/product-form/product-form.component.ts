@@ -4,6 +4,8 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Inject } from '@angular/core';
+import { printHtmlInHiddenIframe } from '../../shared/print-utils';
+import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductService } from '../products.service';
 
 export const SELL_BY_OPTIONS = [
@@ -112,29 +114,193 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   printBarcodeLabel(): void {
-    const barcode = this.productForm.get('barcode')?.value || '';
-    const name    = this.productForm.get('name')?.value || '';
+    const barcode = String(this.productForm.get('barcode')?.value || '').trim();
+    const name = String(this.productForm.get('name')?.value || '').trim();
     if (!barcode) {
       this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
       return;
     }
-    const w = window.open('', '_blank', 'width=380,height=280');
-    if (!w) return;
-    w.document.write(`<!DOCTYPE html><html><head><title>Etiqueta</title>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&display=swap">
-      <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 16px; margin: 0; }
-        .prod-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-        .barcode-font { font-family: "Libre Barcode 39 Text", monospace; font-size: 52px; line-height: 1; margin: 4px 0; }
-        .barcode-num { font-size: 11px; letter-spacing: 2px; color: #333; }
-        @media print { @page { margin: 0.5cm; } }
-      </style></head><body>
-      <div class="prod-name">${name}</div>
-      <div class="barcode-font">*${barcode}*</div>
-      <div class="barcode-num">${barcode}</div>
-      <script>window.onload = function(){ window.print(); window.close(); };<\/script>
-      </body></html>`);
-    w.document.close();
+    const canvas = this.renderBarcodeCanvas(barcode);
+    if (!canvas) {
+      this.snackBar.open(
+        'No se pudo generar el código de barras. Use 13 dígitos (EAN-13) o un texto válido.',
+        'Cerrar',
+        { duration: 4500 },
+      );
+      return;
+    }
+    const dataUrl = canvas.toDataURL('image/png');
+    const html = this.buildLabelPrintHtml(name, barcode, dataUrl);
+    const win = window.open('', '_blank', 'width=420,height=520');
+    if (win) {
+      try {
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+      } catch {
+        printHtmlInHiddenIframe(html);
+      }
+      return;
+    }
+    this.snackBar.open(
+      'Ventana emergente bloqueada: imprimiendo desde esta página. Si falla, use «Descargar PNG».',
+      'Cerrar',
+      { duration: 4000 },
+    );
+    printHtmlInHiddenIframe(html);
+  }
+
+  downloadBarcodeLabelPng(): void {
+    const barcode = String(this.productForm.get('barcode')?.value || '').trim();
+    const name = String(this.productForm.get('name')?.value || 'producto').trim();
+    if (!barcode) {
+      this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    const canvas = this.renderBarcodeCanvas(barcode);
+    if (!canvas) {
+      this.snackBar.open('No se pudo generar la imagen del código.', 'Cerrar', { duration: 4000 });
+      return;
+    }
+    const safeName = name.replace(/[^\w\-]+/g, '_').slice(0, 48) || 'producto';
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        this.snackBar.open('No se pudo crear el archivo.', 'Cerrar', { duration: 3000 });
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `etiqueta-${safeName}-${barcode}.png`;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.snackBar.open('PNG descargado. Ábralo y comparta o imprímalo desde la galería.', 'Cerrar', {
+        duration: 4000,
+      });
+    }, 'image/png');
+  }
+
+  private escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** EAN-13 si hay 12–13 dígitos; si no, CODE128. */
+  private renderBarcodeCanvas(raw: string): HTMLCanvasElement | null {
+    const trimmed = (raw || '').trim();
+    if (!trimmed) {
+      return null;
+    }
+    const canvas = document.createElement('canvas');
+    const onlyDigits = trimmed.replace(/\D/g, '');
+    try {
+      if (onlyDigits.length === 13) {
+        JsBarcode(canvas, onlyDigits, {
+          format: 'EAN13',
+          width: 2,
+          height: 90,
+          displayValue: true,
+          fontSize: 18,
+          margin: 12,
+          background: '#ffffff',
+          lineColor: '#000000',
+        });
+        return canvas;
+      }
+      if (onlyDigits.length === 12) {
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+          sum += parseInt(onlyDigits[i], 10) * (i % 2 === 0 ? 1 : 3);
+        }
+        const check = (10 - (sum % 10)) % 10;
+        JsBarcode(canvas, onlyDigits + check, {
+          format: 'EAN13',
+          width: 2,
+          height: 90,
+          displayValue: true,
+          fontSize: 18,
+          margin: 12,
+          background: '#ffffff',
+          lineColor: '#000000',
+        });
+        return canvas;
+      }
+      JsBarcode(canvas, trimmed, {
+        format: 'CODE128',
+        width: 2,
+        height: 80,
+        displayValue: true,
+        fontSize: 16,
+        margin: 12,
+        background: '#ffffff',
+        lineColor: '#000000',
+      });
+      return canvas;
+    } catch (e) {
+      console.warn('JsBarcode error', e);
+      return null;
+    }
+  }
+
+  private buildLabelPrintHtml(productName: string, barcode: string, imageDataUrl: string): string {
+    const nameEsc = this.escapeHtml(productName || '—');
+    const codeEsc = this.escapeHtml(barcode);
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Etiqueta</title>
+<style>
+  @page { size: 80mm auto; margin: 3mm; }
+  @media print {
+    html, body { margin: 0; padding: 0; background: #fff; }
+  }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 3mm;
+    text-align: center;
+    background: #fff;
+  }
+  .label {
+    max-width: 74mm;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .prod-name {
+    font-size: 11pt;
+    font-weight: 700;
+    margin-bottom: 2mm;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+  .barcode-img {
+    width: 100%;
+    max-width: 72mm;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    image-rendering: pixelated;
+  }
+  .barcode-num {
+    font-size: 10pt;
+    letter-spacing: 0.12em;
+    margin-top: 2mm;
+    color: #111;
+  }
+</style></head><body>
+  <div class="label">
+    <div class="prod-name">${nameEsc}</div>
+    <img class="barcode-img" src="${imageDataUrl}" alt="" />
+    <div class="barcode-num">${codeEsc}</div>
+  </div>
+  <script>window.addEventListener('load', function () {
+    setTimeout(function () { window.focus(); window.print(); }, 200);
+  });<\/script>
+</body></html>`;
   }
 
   // ── Images ──────────────────────────────────────────────────────────────────

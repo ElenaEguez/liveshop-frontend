@@ -57,9 +57,13 @@
                 matTooltip="Generar EAN-13 aleatorio" class="code-btn">
           <mat-icon>refresh</mat-icon> Generar
         </button>
-        <button *ngIf="!viewOnly" type="button" mat-icon-button color="primary"
-                (click)="printBarcodeLabel()" matTooltip="Imprimir etiqueta">
-          <mat-icon>print</mat-icon>
+        <button *ngIf="productForm.get('barcode')?.value" type="button" mat-stroked-button
+                (click)="printBarcodeLabel()" matTooltip="Imprimir etiqueta (papel 80 mm)">
+          <mat-icon>print</mat-icon> Imprimir
+        </button>
+        <button *ngIf="productForm.get('barcode')?.value" type="button" mat-stroked-button
+                (click)="downloadBarcodeLabelPng()" matTooltip="Descargar PNG (móvil o etiquetadora)">
+          <mat-icon>download</mat-icon> PNG
         </button>
       </div>
 
