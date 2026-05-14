@@ -118,17 +118,17 @@
             </thead>
             <tbody>
               <tr *ngFor="let row of lineasOrden">
-                <td>{{ row.item.producto_nombre || '—' }}</td>
-                <td>{{ labelVariante(row.item) }}</td>
-                <td>{{ almacenNombre(row.item.almacen) }}</td>
-                <td>{{ row.item.cantidad }}</td>
+                <td>{{ row.productoNombre }}</td>
+                <td>{{ row.varianteLabel }}</td>
+                <td>{{ almacenNombre(row.almacenId) }}</td>
+                <td>{{ row.cantidadComprada }}</td>
                 <td>
                   <mat-form-field appearance="outline" class="qty-inline">
                     <input
                       matInput
                       type="number"
                       min="0"
-                      [max]="row.item.cantidad"
+                      [max]="row.cantidadComprada"
                       [(ngModel)]="row.cantidad"
                     />
                   </mat-form-field>

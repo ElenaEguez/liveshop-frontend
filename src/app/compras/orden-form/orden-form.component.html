@@ -47,6 +47,17 @@
           </button>
 
           <mat-form-field appearance="outline">
+            <mat-label>Almacén destino (recepción)</mat-label>
+            <mat-select formControlName="almacen">
+              <mat-option [value]="null">—</mat-option>
+              <mat-option *ngFor="let a of almacenes" [value]="a.id">
+                {{ a.nombre }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>La compra ingresa a este almacén; use transferencias para otros.</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
             <mat-label>Cantidad total de compra</mat-label>
             <input matInput [value]="cantidadTotal + ' uds.'" readonly>
           </mat-form-field>
@@ -81,36 +92,47 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <mat-form-field appearance="outline"
-                            *ngIf="variantesDisponibles.length > 0">
-              <mat-label>Variante</mat-label>
-              <mat-select formControlName="variante">
-                <mat-option [value]="null">Sin variante</mat-option>
-                <mat-option *ngFor="let v of variantesDisponibles"
-                            [value]="v.id">
-                  <span class="color-dot"
-                        [style.background]="v.color_hex"></span>
-                  {{ v.talla }} / {{ v.color }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
+          <div class="form-row" *ngIf="productoSeleccionado">
             <mat-form-field appearance="outline">
-              <mat-label>Almacén destino</mat-label>
-              <mat-select formControlName="almacen">
-                <mat-option *ngFor="let a of almacenes" [value]="a.id">
-                  {{ a.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Cantidad</mat-label>
+              <mat-label>Cantidad total del ítem</mat-label>
               <input matInput type="number"
                      formControlName="cantidad" min="1">
+              <mat-hint>Debe coincidir con la suma de la distribución por variante</mat-hint>
             </mat-form-field>
           </div>
+
+          <mat-card class="distrib-card" *ngIf="variantesDisponibles.length > 0">
+            <mat-card-subtitle>Distribución de la compra (variantes)</mat-card-subtitle>
+            <mat-card-content>
+              <table class="distrib-table">
+                <thead>
+                  <tr>
+                    <th>Variante</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let v of variantesDisponibles">
+                    <td>
+                      <span class="color-dot" [style.background]="v.color_hex"></span>
+                      {{ v.talla }} / {{ v.color }}
+                    </td>
+                    <td>
+                      <mat-form-field appearance="outline" class="qty-field">
+                        <input matInput type="number" min="0"
+                               [value]="distribCants[v.id]"
+                               (input)="setDistribCant(v.id, $event)">
+                      </mat-form-field>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="distrib-sum" [class.distrib-warn]="sumDistribucionEdicion !== (itemForm.get('cantidad')?.value || 0)">
+                Suma variantes: <strong>{{ sumDistribucionEdicion }}</strong>
+                &nbsp;·&nbsp; Cantidad total: <strong>{{ itemForm.get('cantidad')?.value || 0 }}</strong>
+              </p>
+            </mat-card-content>
+          </mat-card>
 
           <mat-card class="costos-card">
             <mat-card-subtitle>Cálculo de costos</mat-card-subtitle>
@@ -145,12 +167,19 @@
                   <span matSuffix>%</span>
                 </mat-form-field>
 
+                <div class="manual-pvp-row">
+                  <mat-checkbox formControlName="precio_venta_manual">
+                    Precio venta manual (sin fórmula)
+                  </mat-checkbox>
+                </div>
+
                 <mat-form-field appearance="outline">
                   <mat-label>Precio venta sugerido (Bs.)</mat-label>
                   <input matInput type="number"
                          formControlName="precio_venta_sugerido"
-                         readonly>
-                  <mat-hint>Calculado automáticamente</mat-hint>
+                         min="0">
+                  <mat-hint *ngIf="!itemForm.get('precio_venta_manual')?.value">Calculado con % ganancia</mat-hint>
+                  <mat-hint *ngIf="itemForm.get('precio_venta_manual')?.value">Valor ingresado manualmente</mat-hint>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -190,7 +219,12 @@
             <mat-cell *matCellDef="let item">
               <div>
                 <div>{{ item.producto_nombre }}</div>
-                <small *ngIf="item.variante_detalle"
+                <ul class="distrib-resumen" *ngIf="item.distribuciones?.length">
+                  <li *ngFor="let d of item.distribuciones">
+                    {{ labelDistribFila(d) }}: <strong>{{ d.cantidad }}</strong>
+                  </li>
+                </ul>
+                <small *ngIf="!item.distribuciones?.length && item.variante_detalle"
                        class="variante-info">
                   <span class="color-dot"
                         [style.background]="item.variante_detalle.color_hex"></span>
@@ -204,7 +238,7 @@
           <ng-container matColumnDef="almacen">
             <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
             <mat-cell *matCellDef="let item">
-              {{ getAlmacenNombre(item.almacen) }}
+              {{ getAlmacenNombre(resolveAlmacenItem(item)) }}
             </mat-cell>
           </ng-container>
 
@@ -230,7 +264,8 @@
             <mat-cell *matCellDef="let item">
               <div class="money-cell">
                 <strong>Bs. {{ item.precio_venta_sugerido | number:'1.2-2' }}</strong>
-                <small>{{ item.porcentaje_ganancia }}% ganancia</small>
+                <small *ngIf="item.precio_venta_es_manual">Manual</small>
+                <small *ngIf="!item.precio_venta_es_manual">{{ item.porcentaje_ganancia }}% ganancia</small>
               </div>
             </mat-cell>
           </ng-container>

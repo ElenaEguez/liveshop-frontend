@@ -12,6 +12,53 @@
   margin-bottom: 16px;
 }
 
+.distrib-card {
+  margin: 12px 0;
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+}
+
+.distrib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.distrib-table th,
+.distrib-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f3e8ff;
+  text-align: left;
+}
+
+.distrib-table .qty-field {
+  width: 120px;
+}
+
+.distrib-sum {
+  margin: 10px 0 0;
+  font-size: 0.88rem;
+  color: #4b5563;
+}
+
+.distrib-sum.distrib-warn {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.manual-pvp-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.distrib-resumen {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
 .form-actions {
   display: flex;
   gap: 8px;

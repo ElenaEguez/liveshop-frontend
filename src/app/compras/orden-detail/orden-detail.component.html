@@ -27,7 +27,12 @@
           <mat-cell *matCellDef="let i">
             <div>
               <div>{{ i.producto_nombre }}</div>
-              <small *ngIf="i.variante_detalle" class="variante-info">
+              <ul class="distrib-list" *ngIf="i.distribuciones?.length">
+                <li *ngFor="let d of i.distribuciones">
+                  {{ labelDistribFila(d) }}: <strong>{{ d.cantidad }}</strong>
+                </li>
+              </ul>
+              <small *ngIf="!i.distribuciones?.length && i.variante_detalle" class="variante-info">
                 <span class="color-dot"
                       [style.background]="i.variante_detalle.color_hex"></span>
                 {{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}
@@ -38,7 +43,7 @@
 
         <ng-container matColumnDef="almacen">
           <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
-          <mat-cell *matCellDef="let i">{{ i.almacen || '—' }}</mat-cell>
+          <mat-cell *matCellDef="let i">{{ almacenLabel(o, i) }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="cantidad">
@@ -63,7 +68,8 @@
             <span class="precio-venta">
               Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }}
             </span>
-            <small class="text-muted">{{ i.porcentaje_ganancia }}% ganancia</small>
+            <small class="text-muted" *ngIf="i.precio_venta_es_manual">Manual</small>
+            <small class="text-muted" *ngIf="!i.precio_venta_es_manual">{{ i.porcentaje_ganancia }}% ganancia</small>
           </mat-cell>
         </ng-container>
 

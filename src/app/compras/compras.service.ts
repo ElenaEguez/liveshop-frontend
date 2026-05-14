@@ -22,12 +22,20 @@ export interface VarianteDetalle {
   sku: string;
 }
 
+export interface OrdenCompraItemDistribucion {
+  id?: number;
+  variante: number;
+  variante_detalle?: VarianteDetalle | null;
+  cantidad: number;
+}
+
 export interface OrdenCompraItem {
   id?: number;
   producto: number;
   producto_nombre?: string;
   variante?: number | null;
   variante_detalle?: VarianteDetalle | null;
+  distribuciones?: OrdenCompraItemDistribucion[];
   almacen?: number | null;
   descripcion?: string;
   cantidad: number;
@@ -36,6 +44,7 @@ export interface OrdenCompraItem {
   costo_unitario_total?: number;
   porcentaje_ganancia: number;
   precio_venta_sugerido?: number;
+  precio_venta_es_manual?: boolean;
   precio_unitario: number;
   subtotal?: number;
 }
@@ -68,6 +77,11 @@ export interface ProductoLookup {
   sku: string;
   variantes?: VarianteDetalle[];
 }
+
+export type DevolucionProveedorItem =
+  | { producto: number; almacen: number; cantidad: number; variante?: number | null }
+  | { orden_item_id: number; cantidad: number }
+  | { orden_distribucion_id: number; cantidad: number };
 
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
@@ -137,9 +151,7 @@ export class ComprasService {
     documento_ref?: string;
     notas?: string;
     orden_compra?: number;
-    items:
-      | { producto: number; almacen: number; cantidad: number; variante?: number | null }[]
-      | { orden_item_id: number; cantidad: number }[];
+    items: DevolucionProveedorItem[];
   }): Observable<any> {
     return this.http.post(this.devolucionesProvUrl, payload);
   }

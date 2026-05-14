@@ -20,7 +20,13 @@ interface Linea {
 }
 
 interface LineaOrdenRow {
-  item: OrdenCompraItem;
+  tipo: 'item' | 'distribucion';
+  ordenItemId?: number;
+  distribucionId?: number;
+  productoNombre: string;
+  varianteLabel: string;
+  almacenId: number | null;
+  cantidadComprada: number;
   cantidad: number;
 }
 
@@ -145,11 +151,48 @@ export class DevolucionProveedorComponent implements OnInit {
   }
 
   private aplicarDetalleOrden(o: OrdenCompra): void {
-    const items = o.items || [];
-    this.lineasOrden = items.map((it) => ({
-      item: it,
-      cantidad: 0,
-    }));
+    const rows: LineaOrdenRow[] = [];
+    for (const it of o.items || []) {
+      const pname = it.producto_nombre || '—';
+      const almId = this.almacenIdParaItem(o, it);
+      const dists = it.distribuciones || [];
+      if (dists.length) {
+        for (const d of dists) {
+          const vd = d.variante_detalle;
+          const vl = vd
+            ? [vd.talla, vd.color].filter(Boolean).join(' / ')
+            : `Var #${d.variante}`;
+          rows.push({
+            tipo: 'distribucion',
+            distribucionId: d.id,
+            productoNombre: pname,
+            varianteLabel: vl,
+            almacenId: almId,
+            cantidadComprada: d.cantidad,
+            cantidad: 0,
+          });
+        }
+      } else if (it.id != null) {
+        rows.push({
+          tipo: 'item',
+          ordenItemId: it.id,
+          productoNombre: pname,
+          varianteLabel: this.labelVariante(it),
+          almacenId: almId,
+          cantidadComprada: it.cantidad,
+          cantidad: 0,
+        });
+      }
+    }
+    this.lineasOrden = rows;
+  }
+
+  private almacenIdParaItem(o: OrdenCompra, it: OrdenCompraItem): number | null {
+    const raw = it.almacen ?? o.almacen;
+    if (raw == null) {
+      return null;
+    }
+    return typeof raw === 'object' ? (raw as { id: number }).id : (raw as number);
   }
 
   almacenNombre(id: number | null | undefined): string {
@@ -270,11 +313,19 @@ export class DevolucionProveedorComponent implements OnInit {
         return;
       }
       const items = this.lineasOrden
-        .filter((r) => r.cantidad > 0 && r.item.id != null)
-        .map((r) => ({
-          orden_item_id: r.item.id as number,
-          cantidad: r.cantidad,
-        }));
+        .filter((r) => r.cantidad > 0)
+        .map((r) => {
+          if (r.tipo === 'distribucion') {
+            return {
+              orden_distribucion_id: r.distribucionId as number,
+              cantidad: r.cantidad,
+            };
+          }
+          return {
+            orden_item_id: r.ordenItemId as number,
+            cantidad: r.cantidad,
+          };
+        });
       if (!items.length) {
         this.error = 'Indique al menos una cantidad a devolver en las líneas de la orden.';
         return;
