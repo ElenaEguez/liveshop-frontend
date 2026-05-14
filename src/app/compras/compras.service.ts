@@ -159,22 +159,28 @@ export class ComprasService {
   buscarProductos(query: string): Observable<ProductoLookup[]> {
     return this.http.get<any[]>(this.productosUrl, { params: { search: query } }).pipe(
       map((rows: any[]) =>
-        (rows || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          barcode: p.barcode || null,
-          internal_code: p.internal_code || '',
-          sku: p.sku || '',
-          variantes: Array.isArray(p.variants)
-            ? p.variants.map((v: any) => ({
-                id: Number(v.id ?? 0),
-                talla: String(v.talla ?? v.size ?? ''),
-                color: String(v.color ?? ''),
-                color_hex: String(v.color_hex ?? ''),
-                sku: String(v.sku ?? ''),
-              }))
-            : [],
-        }))
+        (rows || []).map((p: any) => {
+          const rawList = Array.isArray(p.variantes)
+            ? p.variantes
+            : Array.isArray(p.variants)
+              ? p.variants
+              : [];
+          const variantes = rawList.map((v: any) => ({
+            id: Number(v.id),
+            talla: String(v.talla ?? v.size ?? ''),
+            color: String(v.color ?? ''),
+            color_hex: String(v.color_hex ?? ''),
+            sku: String(v.sku ?? ''),
+          })).filter((v: VarianteDetalle) => Number.isFinite(v.id) && v.id > 0);
+          return {
+            id: p.id,
+            name: p.name,
+            barcode: p.barcode || null,
+            internal_code: p.internal_code || '',
+            sku: p.sku || '',
+            variantes,
+          };
+        })
       )
     );
   }

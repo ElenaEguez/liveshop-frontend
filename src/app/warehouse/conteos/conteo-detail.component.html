@@ -48,9 +48,17 @@
   </div>
 
   <mat-card class="section-card"
-            *ngIf="conteo.estado === 'abierto' && puedeRegistrarItems()">
-    <mat-card-title>Registrar conteo de producto</mat-card-title>
+            *ngIf="puedeMostrarFormularioConteo()">
+    <mat-card-title>
+      {{ conteo.estado === 'cerrado'
+        ? 'Corregir conteo (dueña / almacén)'
+        : 'Registrar conteo de producto' }}
+    </mat-card-title>
     <mat-card-content>
+      <p class="hint-cerrado" *ngIf="conteo.estado === 'cerrado'">
+        Conteo cerrado: puede ajustar el stock físico o las notas de un ítem
+        buscando de nuevo el mismo producto; los totales se recalculan antes de aprobar.
+      </p>
       <div class="item-form">
         <div class="producto-search">
           <mat-form-field appearance="outline"

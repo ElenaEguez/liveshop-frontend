@@ -117,7 +117,9 @@ export class ConteoDetailComponent implements OnInit {
   onCerrar(): void {
     if (!confirm(
       '¿Cerrar el conteo? '
-      + 'Ya no se podrán agregar más ítems.')) { return; }
+      + 'Las empleadas ya no podrán registrar ítems; la dueña o almacén '
+      + 'sí podrá corregir cantidades mientras esté cerrado y antes de aprobar.'
+    )) { return; }
     this.svc.cerrarConteo(this.conteo!.id!).subscribe({
       next: (c) => {
         this.conteo = c;
@@ -185,5 +187,20 @@ export class ConteoDetailComponent implements OnInit {
 
   puedeCancelar(): boolean {
     return this.puedeAprobar();
+  }
+
+  /** Dueña / almacén: corregir cantidades físicas en conteo cerrado (antes de aprobar). */
+  puedeCorregirConteoCerrado(): boolean {
+    return this.puedeAprobar();
+  }
+
+  puedeMostrarFormularioConteo(): boolean {
+    if (!this.conteo) {
+      return false;
+    }
+    if (this.conteo.estado === 'abierto' && this.puedeRegistrarItems()) {
+      return true;
+    }
+    return this.conteo.estado === 'cerrado' && this.puedeCorregirConteoCerrado();
   }
 }

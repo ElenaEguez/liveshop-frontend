@@ -151,19 +151,27 @@ export class WarehouseExtraService {
     return this.http.get<any>(url, { params }).pipe(
       map((resp: any) => {
         const rows = Array.isArray(resp) ? resp : (resp?.results || []);
-        return (rows || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          sku: p.sku || '',
-          variantes: Array.isArray(p.variants)
-            ? p.variants.map((v: any) => ({
-                id: Number(v.id ?? 0),
-                talla: String(v.talla ?? v.size ?? ''),
-                color: String(v.color ?? ''),
-                color_hex: String(v.color_hex ?? ''),
-              }))
-            : [],
-        }));
+        return (rows || []).map((p: any) => {
+          const rawList = Array.isArray(p.variantes)
+            ? p.variantes
+            : Array.isArray(p.variants)
+              ? p.variants
+              : [];
+          const variantes = rawList
+            .map((v: any) => ({
+              id: Number(v.id),
+              talla: String(v.talla ?? v.size ?? ''),
+              color: String(v.color ?? ''),
+              color_hex: String(v.color_hex ?? ''),
+            }))
+            .filter((v: { id: number }) => Number.isFinite(v.id) && v.id > 0);
+          return {
+            id: p.id,
+            name: p.name,
+            sku: p.sku || '',
+            variantes,
+          };
+        });
       })
     );
   }

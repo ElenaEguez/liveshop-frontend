@@ -1,7 +1,7 @@
 import {
   Component, OnInit, ChangeDetectorRef
 } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -183,14 +183,32 @@ export class OrdenFormComponent implements OnInit {
     return +(this.itemForm.get('costo_unitario_total')?.value || 0);
   }
 
+  /** Costo unitario × cantidad (línea en edición), alineado al Excel. */
+  get compraTotalCosto(): number {
+    return this.cantidadItemEdicion * this.costoUnitarioTotal;
+  }
+
+  get almacenControl(): FormControl {
+    return this.form.get('almacen') as FormControl;
+  }
+
   get precioVentaSugerido(): number {
     return +(this.itemForm.get('precio_venta_sugerido')?.value || 0);
   }
 
+  get cantidadItemEdicion(): number {
+    return this.toNum(this.itemForm?.get('cantidad')?.value, 0);
+  }
+
   get subtotalItem(): number {
-    const cant = +(this.itemForm.get('cantidad')?.value || 0);
-    const precio = +(this.itemForm.get('precio_unitario')?.value || 0);
-    return cant * precio;
+    const cant = this.cantidadItemEdicion;
+    const costoU = this.toNum(this.itemForm.get('costo_unitario_total')?.value, 0);
+    const pu = this.toNum(this.itemForm.get('precio_unitario')?.value, 0) || costoU;
+    return cant * pu;
+  }
+
+  trackVariante(_index: number, v: VarianteDetalle): number {
+    return v.id;
   }
 
   onAgregarItem(): void {
@@ -204,6 +222,8 @@ export class OrdenFormComponent implements OnInit {
 
     const v = this.itemForm.getRawValue();
     const cantidad = this.toNum(v.cantidad, 1);
+    const costoUnitTotal = this.toNum(v.costo_unitario_total, 0);
+    const precioUnit = this.toNum(v.precio_unitario, 0) || costoUnitTotal;
     const precioVentaManual = !!v.precio_venta_manual;
     const pvs = this.toNum(v.precio_venta_sugerido, 0);
 
@@ -239,8 +259,8 @@ export class OrdenFormComponent implements OnInit {
       porcentaje_ganancia: v.porcentaje_ganancia,
       precio_venta_sugerido: pvs,
       precio_venta_es_manual: precioVentaManual,
-      precio_unitario: v.precio_unitario,
-      subtotal: cantidad * v.precio_unitario,
+      precio_unitario: precioUnit,
+      subtotal: cantidad * precioUnit,
     };
 
     this.items = [...this.items, nuevoItem];
@@ -280,7 +300,9 @@ export class OrdenFormComponent implements OnInit {
   }
 
   get cantidadTotal(): number {
-    return this.items.reduce((s, i) => s + this.toNum(i.cantidad, 0), 0);
+    const enItems = this.items.reduce((s, i) => s + this.toNum(i.cantidad, 0), 0);
+    const borrador = this.productoSeleccionado ? this.cantidadItemEdicion : 0;
+    return enItems + borrador;
   }
 
   get totalCostos(): number {

@@ -12,6 +12,64 @@
   margin-bottom: 16px;
 }
 
+.excel-section-header {
+  background: #fce7f3;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 6px 6px 0 0;
+}
+
+.section-card.excel-section .excel-section-header {
+  margin: -16px -16px 16px -16px;
+}
+
+.excel-subsection {
+  border: 1px solid #fbcfe8;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.excel-subsection .excel-section-header {
+  margin: 0;
+  border-radius: 0;
+}
+
+.excel-section-body {
+  padding: 12px 14px 14px;
+  background: #fffdfd;
+}
+
+.plain-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.distrib-wrap .distrib-table {
+  margin-top: 0;
+}
+
+.full-almacen-field {
+  min-width: 260px;
+}
+
+.btn-agregar-item {
+  margin-top: 4px;
+}
+
+.resumen-bloque {
+  margin-top: 8px;
+}
+
+.resumen-bloque .items-table-wrap {
+  margin-top: 0;
+  border-radius: 8px;
+}
+
 .distrib-card {
   margin: 12px 0;
   background: #fdf2f8;
@@ -44,6 +102,12 @@
 .distrib-sum.distrib-warn {
   color: #b91c1c;
   font-weight: 600;
+}
+
+.subtotal-preview {
+  margin: 12px 0;
+  font-size: 0.9rem;
+  color: #374151;
 }
 
 .manual-pvp-row {
