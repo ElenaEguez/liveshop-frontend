@@ -25,19 +25,28 @@
         <ng-container matColumnDef="producto">
           <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
           <mat-cell *matCellDef="let i">
-            <div>
-              <div>{{ i.producto_nombre }}</div>
-              <ul class="distrib-list" *ngIf="i.distribuciones?.length">
-                <li *ngFor="let d of i.distribuciones">
-                  {{ labelDistribFila(d) }}: <strong>{{ d.cantidad }}</strong>
-                </li>
-              </ul>
-              <small *ngIf="!i.distribuciones?.length && i.variante_detalle" class="variante-info">
-                <span class="color-dot"
-                      [style.background]="i.variante_detalle.color_hex"></span>
-                {{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}
-              </small>
+            {{ i.producto_nombre }}
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="variante">
+          <mat-header-cell *matHeaderCellDef>Variante / distribución</mat-header-cell>
+          <mat-cell *matCellDef="let i">
+            <ul class="distrib-list" *ngIf="i.distribuciones?.length">
+              <li *ngFor="let d of i.distribuciones">
+                {{ labelDistribFila(d) }}: <strong>{{ d.cantidad }}</strong> uds.
+              </li>
+            </ul>
+            <div *ngIf="!i.distribuciones?.length && i.variante_detalle" class="variante-one">
+              <span class="color-dot"
+                    [style.background]="i.variante_detalle.color_hex"></span>
+              <span>{{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}</span>
+              <span class="text-muted">({{ i.cantidad }} uds. en línea)</span>
             </div>
+            <span *ngIf="!i.distribuciones?.length && !i.variante_detalle"
+                  class="text-muted">
+              Sin desglose por variante ({{ i.cantidad }} uds. en línea)
+            </span>
           </mat-cell>
         </ng-container>
 

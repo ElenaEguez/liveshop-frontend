@@ -23,7 +23,7 @@
             <th>Fecha</th>
             <th>Estado</th>
             <th>Total</th>
-            <th></th>
+            <th class="th-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -36,17 +36,33 @@
             <td>{{ o.estado }}</td>
             <td>Bs. {{ o.total || 0 | number:'1.2-2' }}</td>
             <td class="cell-actions">
-              <a
-                *ngIf="o.estado === 'recibida' && o.id"
-                mat-stroked-button
-                color="warn"
-                class="btn-mini"
-                [routerLink]="['/compras/devolucion-proveedor']"
-                [queryParams]="{ orden: o.id }"
-                (click)="$event.stopPropagation()"
-              >
-                Devolver
-              </a>
+              <span class="row-actions">
+                <a *ngIf="o.id"
+                   mat-icon-button
+                   color="primary"
+                   [routerLink]="['/compras', o.id]"
+                   matTooltip="Ver detalle">
+                  <mat-icon>visibility</mat-icon>
+                </a>
+                <a *ngIf="o.id && puedeEditar(o)"
+                   mat-icon-button
+                   color="accent"
+                   [routerLink]="['/compras', o.id, 'edit']"
+                   matTooltip="Editar orden">
+                  <mat-icon>edit</mat-icon>
+                </a>
+                <a
+                  *ngIf="o.estado === 'recibida' && o.id"
+                  mat-stroked-button
+                  color="warn"
+                  class="btn-mini"
+                  [routerLink]="['/compras/devolucion-proveedor']"
+                  [queryParams]="{ orden: o.id }"
+                  (click)="$event.stopPropagation()"
+                >
+                  Devolver
+                </a>
+              </span>
             </td>
           </tr>
         </tbody>

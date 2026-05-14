@@ -36,4 +36,10 @@ export class OrdenListComponent implements OnInit {
   irNueva(): void {
     this.router.navigate(['/compras/new']);
   }
+
+  /** Solo borrador o pendiente; recibida/cancelada no se editan en API. */
+  puedeEditar(o: OrdenCompra): boolean {
+    const e = o.estado;
+    return e === 'borrador' || e === 'pendiente';
+  }
 }

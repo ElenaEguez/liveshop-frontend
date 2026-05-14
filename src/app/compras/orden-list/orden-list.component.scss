@@ -32,9 +32,22 @@
   text-decoration: underline;
 }
 
+.th-acciones {
+  text-align: right;
+  min-width: 140px;
+}
+
 .cell-actions {
   white-space: nowrap;
   text-align: right;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn-mini {

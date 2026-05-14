@@ -102,8 +102,21 @@
 }
 
 .distrib-list {
-  margin: 6px 0 0;
+  margin: 0;
   padding-left: 18px;
   font-size: 0.82rem;
   color: #4b5563;
+}
+
+.variante-one {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+}
+
+.detail-table .mat-column-variante {
+  min-width: 200px;
+  max-width: 320px;
 }

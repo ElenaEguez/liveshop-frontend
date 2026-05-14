@@ -137,7 +137,9 @@
               {{ i.variante_detalle.talla }} /
               {{ i.variante_detalle.color }}
             </ng-container>
-            <span *ngIf="!i.variante_detalle">—</span>
+            <span *ngIf="!i.variante_detalle" class="text-muted">
+              Sin variante (conteo a nivel producto)
+            </span>
           </mat-cell>
         </ng-container>
 

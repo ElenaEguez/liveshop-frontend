@@ -9,7 +9,10 @@ import { ComprasService, OrdenCompra, OrdenCompraItem, OrdenCompraItemDistribuci
 })
 export class OrdenDetailComponent implements OnInit {
   orden: OrdenCompra | null = null;
-  columnas = ['producto', 'almacen', 'cantidad', 'costo_unit', 'precio_venta', 'subtotal'];
+  columnas = [
+    'producto', 'variante', 'almacen', 'cantidad',
+    'costo_unit', 'precio_venta', 'subtotal',
+  ];
   almacenes: { id: number; nombre: string }[] = [];
 
   constructor(
