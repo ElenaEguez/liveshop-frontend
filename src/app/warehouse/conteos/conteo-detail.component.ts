@@ -129,7 +129,23 @@ export class ConteoDetailComponent implements OnInit {
     });
   }
 
+  /** Ítems de productos con variantes registrados sin talla/color (borrador). */
+  itemsPendientesVariante(): any[] {
+    if (!this.conteo?.items?.length) return [];
+    return this.conteo.items.filter(
+      (i: any) => i.producto_requiere_variante && !i.variante_detalle,
+    );
+  }
+
   onAprobar(): void {
+    const pendientes = this.itemsPendientesVariante();
+    if (pendientes.length > 0) {
+      alert(
+        'Hay ítems sin variante. Complete talla/color en cada producto '
+        + 'con variantes antes de aprobar.',
+      );
+      return;
+    }
     const difs = this.conteo?.items_con_diferencia || 0;
     if (!confirm(
       `¿Aprobar conteo? Se ajustarán ${difs} ítems con diferencia. `

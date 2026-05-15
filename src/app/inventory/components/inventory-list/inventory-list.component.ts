@@ -4,9 +4,23 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent } from '@angular/material/paginator';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Inventory, InventoryService } from '../../services/inventory.service';
+import {
+  Inventory,
+  InventoryService,
+  InventoryVariantStock,
+} from '../../services/inventory.service';
 import { Category, ProductService } from '../../../products/products.service';
-import { KardexDialogComponent } from '../kardex-dialog/kardex-dialog.component';
+import {
+  KardexDialogComponent,
+  KardexDialogData,
+} from '../kardex-dialog/kardex-dialog.component';
+
+interface AlmacenOption {
+  id: number;
+  nombre: string;
+  sucursal: number;
+  activo?: boolean;
+}
 
 @Component({
   selector: 'app-inventory-list',
@@ -17,22 +31,18 @@ export class InventoryListComponent implements OnInit {
   inventory: Inventory[] = [];
   categories: Category[] = [];
   sucursales: any[] = [];
-  almacenes: any[] = [];
-  availableTallas: string[] = [];
-  availableColors: string[] = [];
+  allAlmacenes: AlmacenOption[] = [];
+  totalCount = 0;
+  pageSize = 20;
+  currentPage = 0;
+
+  searchControl = new FormControl('');
 
   selectedCategoryId: number | null = null;
   selectedSucursalId: number | null = null;
   selectedAlmacenId: number | null = null;
-  selectedTalla: string = '';
-  selectedColor: string = '';
-  totalCount = 0;
-  pageSize = 20;
-  currentPage = 0; // 0-indexed for paginator
 
-  searchControl = new FormControl('');
-
-  displayedColumns = ['product_name', 'talla', 'color', 'quantity', 'reserved_quantity', 'available_quantity', 'vendido', 'acciones'];
+  displayedColumns = ['product_name', 'available_quantity', 'acciones'];
 
   constructor(
     private inventoryService: InventoryService,
@@ -45,7 +55,7 @@ export class InventoryListComponent implements OnInit {
     this.loadInventory();
     this.loadCategories();
     this.loadSucursales();
-    this.loadVariantOptions();
+    this.loadAlmacenes();
 
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
@@ -56,13 +66,30 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
+  get almacenesForSelect(): AlmacenOption[] {
+    const activos = this.allAlmacenes.filter(a => a.activo !== false);
+    if (!this.selectedSucursalId) {
+      return activos;
+    }
+    return activos.filter(a => a.sucursal === this.selectedSucursalId);
+  }
+
+  get selectedAlmacenNombre(): string {
+    if (!this.selectedAlmacenId) return '';
+    const a = this.allAlmacenes.find(x => x.id === this.selectedAlmacenId);
+    return a ? this.almacenLabel(a) : '';
+  }
+
+  almacenLabel(a: AlmacenOption): string {
+    const suc = this.sucursales.find(s => s.id === a.sucursal);
+    return suc ? `${a.nombre} (${suc.nombre})` : a.nombre;
+  }
+
   loadInventory(): void {
     const filters: any = {};
     if (this.selectedAlmacenId)  filters.almacen_id = this.selectedAlmacenId;
     if (this.selectedCategoryId) filters.category   = this.selectedCategoryId;
     if (this.searchControl.value) filters.search    = this.searchControl.value;
-    if (this.selectedTalla)      filters.talla      = this.selectedTalla;
-    if (this.selectedColor)      filters.color      = this.selectedColor;
     filters.page = this.currentPage + 1;
     filters.page_size = this.pageSize;
 
@@ -72,7 +99,9 @@ export class InventoryListComponent implements OnInit {
         this.totalCount = Array.isArray(data) ? list.length : (data.count ?? list.length);
         this.inventory = list.map(item => ({
           ...item,
-          available_quantity: item.available_quantity ?? (item.quantity - item.reserved_quantity)
+          available_quantity: item.available_quantity ?? Math.max(0, item.quantity - item.reserved_quantity),
+          variantes: item.variantes ?? [],
+          sin_asignar_variante: item.sin_asignar_variante ?? 0,
         }));
       },
       error: () => this.snackBar.open('Error al cargar el inventario', 'Cerrar', { duration: 3000 })
@@ -86,16 +115,6 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
-  loadVariantOptions(): void {
-    this.productService.getAllVariantOptions().subscribe({
-      next: opts => {
-        this.availableTallas = opts.tallas;
-        this.availableColors = opts.colors;
-      },
-      error: () => {}
-    });
-  }
-
   loadSucursales(): void {
     this.inventoryService.getSucursales().subscribe({
       next: list => this.sucursales = list,
@@ -103,19 +122,28 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
+  loadAlmacenes(): void {
+    this.inventoryService.getAlmacenes().subscribe({
+      next: list => {
+        this.allAlmacenes = (list || []).filter((a: AlmacenOption) => a.activo !== false);
+      },
+      error: () => {}
+    });
+  }
+
   onSucursalChange(): void {
-    this.selectedAlmacenId = null;
-    this.almacenes = [];
-    if (this.selectedSucursalId) {
-      this.inventoryService.getAlmacenes(this.selectedSucursalId).subscribe({
-        next: list => this.almacenes = list,
-        error: () => {}
-      });
+    if (this.selectedAlmacenId) {
+      const stillValid = this.almacenesForSelect.some(a => a.id === this.selectedAlmacenId);
+      if (!stillValid) {
+        this.selectedAlmacenId = null;
+      }
     }
+    this.currentPage = 0;
     this.loadInventory();
   }
 
   onAlmacenChange(): void {
+    this.currentPage = 0;
     this.loadInventory();
   }
 
@@ -124,16 +152,10 @@ export class InventoryListComponent implements OnInit {
     this.loadInventory();
   }
 
-  onTallaChange(): void  { this.currentPage = 0; this.loadInventory(); }
-  onColorChange(): void  { this.currentPage = 0; this.loadInventory(); }
-
   clearFilters(): void {
     this.selectedCategoryId = null;
     this.selectedSucursalId = null;
     this.selectedAlmacenId  = null;
-    this.selectedTalla      = '';
-    this.selectedColor      = '';
-    this.almacenes = [];
     this.currentPage = 0;
     this.searchControl.setValue('');
     this.loadInventory();
@@ -147,33 +169,50 @@ export class InventoryListComponent implements OnInit {
 
   get hasActiveFilters(): boolean {
     return !!(this.selectedCategoryId || this.selectedSucursalId || this.selectedAlmacenId ||
-              this.selectedTalla || this.selectedColor || this.searchControl.value);
+              this.searchControl.value);
   }
 
-  openKardex(item: Inventory): void {
+  variantLabel(v: InventoryVariantStock): string {
+    const parts = [v.talla, v.color].filter(Boolean);
+    return parts.length ? parts.join(' / ') : '—';
+  }
+
+  openDetalle(item: Inventory): void {
+    const data: KardexDialogData = {
+      productId: item.product,
+      productName: item.product_name,
+      variantes: item.variantes,
+      disponibleTotal: item.available_quantity,
+      sinAsignarVariante: item.sin_asignar_variante,
+    };
     this.dialog.open(KardexDialogComponent, {
-      width: '900px',
+      width: '560px',
       maxWidth: '95vw',
-      maxHeight: '92vh',
-      data: { productId: item.product, productName: item.product_name },
+      maxHeight: '85vh',
+      data,
     });
   }
 
   onImprimir(): void {
-    const filas = (this.inventory || []).map((item: any) => {
-      const v = item.variante;
+    const almacenTxt = this.selectedAlmacenId
+      ? `Almacén: ${this.selectedAlmacenNombre}`
+      : 'Todos los almacenes';
+    const filas = (this.inventory || []).map((item: Inventory) => {
+      const vars = (item.variantes || [])
+        .map(v => `${this.variantLabel(v)}: ${v.disponible}`)
+        .join('; ');
+      const extra = item.sin_asignar_variante
+        ? `; sin variante: ${item.sin_asignar_variante}`
+        : '';
       return `
       <tr>
-        <td>${item.producto_nombre || item.product_name || item.product?.name || ''}</td>
-        <td>${v?.talla || '—'}</td>
-        <td>${v?.color || '—'}</td>
-        <td style="text-align:center">
-          ${item.quantity ?? item.stock_extra ?? 0}
-        </td>
+        <td>${item.product_name || ''}</td>
+        <td style="text-align:center">${item.available_quantity ?? 0}</td>
+        <td>${vars}${extra}</td>
       </tr>`;
     }).join('');
 
-    const ventana = window.open('', '_blank', 'width=600,height=500');
+    const ventana = window.open('', '_blank', 'width=640,height=520');
     if (!ventana) return;
     ventana.document.write(`
     <!DOCTYPE html>
@@ -183,34 +222,19 @@ export class InventoryListComponent implements OnInit {
       <title>Reporte de Inventario</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        h2 { margin-bottom: 4px; }
-        p  { color: #666; font-size: 13px; margin: 0 0 16px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f5f5f5; text-align: left;
-             padding: 8px; border-bottom: 2px solid #ddd; }
-        td { padding: 6px 8px; border-bottom: 1px solid #eee; }
-        tr:last-child td { border-bottom: none; }
-        @media print {
-          button { display: none; }
-        }
+        th, td { padding: 8px; border-bottom: 1px solid #eee; }
+        th { background: #f5f5f5; }
       </style>
     </head>
     <body>
       <h2>Reporte de Inventario</h2>
-      <p>Generado: ${new Date().toLocaleString('es-BO')}</p>
+      <p>${almacenTxt}<br>${new Date().toLocaleString('es-BO')}</p>
       <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Talla</th>
-            <th>Color</th>
-            <th>Stock disponible</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Producto</th><th>Disponible</th><th>Variantes</th></tr></thead>
         <tbody>${filas}</tbody>
       </table>
-      <br>
-      <button onclick="window.print()">Imprimir</button>
+      <br><button onclick="window.print()">Imprimir</button>
     </body>
     </html>
   `);
@@ -218,7 +242,10 @@ export class InventoryListComponent implements OnInit {
   }
 
   get totalStockValue(): number {
-    return this.inventory.reduce((sum, i) => sum + i.quantity * i.product_price, 0);
+    return this.inventory.reduce(
+      (sum, i) => sum + (i.available_quantity ?? 0) * i.product_price,
+      0
+    );
   }
 
   getAvailableBg(qty: number): string {

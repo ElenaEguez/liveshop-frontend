@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { MatButtonModule }          from '@angular/material/button';
 import { MatCardModule }            from '@angular/material/card';
@@ -42,7 +43,7 @@ import { ConteosSupervisionComponent }    from './conteos/conteos-supervision.co
     ConteosSupervisionComponent,
   ],
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule,
+    CommonModule, FormsModule, ReactiveFormsModule, RouterModule,
     WarehouseRoutingModule,
     MatButtonModule, MatCardModule, MatDialogModule, MatFormFieldModule,
     MatIconModule, MatInputModule, MatPaginatorModule, MatProgressSpinnerModule,

@@ -1,11 +1,23 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { InventoryService, KardexMovimiento } from '../../services/inventory.service';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { ProductService, ProductVariant } from '../../../products/products.service';
 
 export interface KardexDialogData {
   productId: number;
   productName: string;
+  variantes?: InventoryVariantStock[];
+  disponibleTotal?: number;
+  sinAsignarVariante?: number;
+}
+
+export interface InventoryVariantStock {
+  id: number;
+  talla: string;
+  color: string;
+  color_hex?: string;
+  sku?: string;
+  disponible: number;
 }
 
 @Component({
@@ -14,51 +26,37 @@ export interface KardexDialogData {
   styleUrls: ['./kardex-dialog.component.scss'],
 })
 export class KardexDialogComponent implements OnInit {
-  movimientos: KardexMovimiento[] = [];
-  variantesActuales: ProductVariant[] = [];
+  variantesActuales: InventoryVariantStock[] = [];
+  disponibleTotal = 0;
+  sinAsignarVariante = 0;
   loadingVariantes = false;
-  loading = false;
-  totalCount = 0;
-  pageSize = 20;
-  currentPage = 1;
-
-  filterTipo = '';
-  filterMotivo = '';
-  filterDesde = '';
-  filterHasta = '';
-
-  tipoOpts = [
-    { value: '', label: 'Todos' },
-    { value: 'entrada', label: 'Entrada' },
-    { value: 'salida', label: 'Salida' },
-    { value: 'ajuste', label: 'Ajuste' },
-    { value: 'transferencia', label: 'Transferencia' },
-  ];
-
-  motivoOpts = [
-    { value: '', label: 'Todos' },
-    { value: 'venta', label: 'Venta POS' },
-    { value: 'venta_live', label: 'Venta Live' },
-    { value: 'compra', label: 'Compra / Reposición' },
-    { value: 'ajuste_manual', label: 'Ajuste manual' },
-    { value: 'devolucion', label: 'Devolución (venta)' },
-    { value: 'devolucion_compra', label: 'Devolución a proveedor' },
-    { value: 'transferencia', label: 'Transferencia' },
-  ];
-
-  displayedColumns = ['fecha', 'tipo', 'motivo', 'variante', 'cantidad', 'stock', 'documento', 'usuario'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: KardexDialogData,
-    private svc: InventoryService,
+    private dialogRef: MatDialogRef<KardexDialogComponent>,
     private products: ProductService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
+    if (this.data.variantes?.length) {
+      this.variantesActuales = this.data.variantes;
+      this.disponibleTotal = this.data.disponibleTotal ?? 0;
+      this.sinAsignarVariante = this.data.sinAsignarVariante ?? 0;
+      return;
+    }
+
     this.loadingVariantes = true;
     this.products.getVariantes(this.data.productId).subscribe({
-      next: v => {
-        this.variantesActuales = v || [];
+      next: (v: ProductVariant[]) => {
+        this.variantesActuales = (v || []).map(x => ({
+          id: x.id,
+          talla: x.talla || '',
+          color: x.color || '',
+          color_hex: x.color_hex,
+          sku: x.sku || undefined,
+          disponible: x.stock_extra ?? 0,
+        }));
         this.loadingVariantes = false;
       },
       error: () => {
@@ -66,90 +64,17 @@ export class KardexDialogComponent implements OnInit {
         this.loadingVariantes = false;
       },
     });
-    this.load();
   }
 
-  load(): void {
-    this.loading = true;
-    this.svc.getKardex({
-      product_id: this.data.productId,
-      tipo:        this.filterTipo   || undefined,
-      motivo:      this.filterMotivo || undefined,
-      fecha_desde: this.filterDesde  || undefined,
-      fecha_hasta: this.filterHasta  || undefined,
-      page:        this.currentPage,
-      page_size:   this.pageSize,
-    }).subscribe({
-      next: res => {
-        this.movimientos = res.results;
-        this.totalCount  = res.count;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; },
+  variantLabel(v: InventoryVariantStock): string {
+    const parts = [v.talla, v.color].filter(Boolean);
+    return parts.length ? parts.join(' / ') : '—';
+  }
+
+  irAlmacen(): void {
+    this.dialogRef.close();
+    this.router.navigate(['/almacen'], {
+      queryParams: { product_id: this.data.productId, product_name: this.data.productName },
     });
-  }
-
-  applyFilters(): void {
-    this.currentPage = 1;
-    this.load();
-  }
-
-  clearFilters(): void {
-    this.filterTipo   = '';
-    this.filterMotivo = '';
-    this.filterDesde  = '';
-    this.filterHasta  = '';
-    this.currentPage  = 1;
-    this.load();
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.totalCount / this.pageSize);
-  }
-
-  prevPage(): void {
-    if (this.currentPage > 1) { this.currentPage--; this.load(); }
-  }
-
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) { this.currentPage++; this.load(); }
-  }
-
-  private readonly motivoLabels: Record<string, string> = {
-    venta: 'Venta POS',
-    venta_live: 'Venta Live',
-    compra: 'Compra / Reposición',
-    ajuste_manual: 'Ajuste manual',
-    devolucion: 'Devolución (venta)',
-    devolucion_compra: 'Devolución a proveedor',
-    transferencia: 'Transferencia',
-  };
-
-  motivoLabel(motivo: string): string {
-    return this.motivoLabels[motivo] ?? motivo;
-  }
-
-  tipoColor(tipo: string): string {
-    return tipo === 'entrada' ? '#166534' : tipo === 'salida' ? '#991b1b' : '#374151';
-  }
-
-  tipoBg(tipo: string): string {
-    return tipo === 'entrada' ? '#dcfce7' : tipo === 'salida' ? '#fee2e2' : '#f3f4f6';
-  }
-
-  cantidadLabel(m: KardexMovimiento): string {
-    return m.cantidad > 0 ? `+${m.cantidad}` : `${m.cantidad}`;
-  }
-
-  get totalSalidas(): number {
-    return this.movimientos
-      .filter(m => m.tipo === 'salida')
-      .reduce((s, m) => s + Math.abs(m.cantidad), 0);
-  }
-
-  get totalEntradas(): number {
-    return this.movimientos
-      .filter(m => m.tipo === 'entrada')
-      .reduce((s, m) => s + m.cantidad, 0);
   }
 }

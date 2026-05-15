@@ -9,6 +9,7 @@ const API = environment.apiUrl;
 export interface KardexMovimiento {
   id: number;
   inventory: number;
+  product_id?: number;
   product_name: string;
   almacen: number | null;
   almacen_nombre: string | null;
@@ -71,8 +72,13 @@ export class WarehouseService {
     return this.http.post<KardexMovimiento>(`${API}/inventory/kardex/ajuste/`, payload);
   }
 
-  getInventories(): Observable<any[]> {
-    const params = new HttpParams().set('page_size', '500').set('page', '1');
+  getInventories(search?: string, pageSize = 50): Observable<any[]> {
+    let params = new HttpParams()
+      .set('page_size', String(pageSize))
+      .set('page', '1');
+    if (search?.trim()) {
+      params = params.set('search', search.trim());
+    }
     return this.http.get<any>(`${API}/products/inventories/`, { params }).pipe(
       map((r) => (Array.isArray(r) ? r : (r?.results ?? []))),
     );

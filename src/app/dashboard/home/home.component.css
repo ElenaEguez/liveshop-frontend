@@ -397,6 +397,12 @@
   border: 1px solid #e5e7eb;
 }
 
+.table-hint {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
 .products-table {
   width: 100%;
 }

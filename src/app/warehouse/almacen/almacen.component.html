@@ -4,7 +4,9 @@
   <div class="page-toolbar">
     <div>
       <h1><mat-icon>warehouse</mat-icon> Almacén / Kardex</h1>
-      <p class="page-subtitle">Historial detallado de lo que ingresó o salió del stock.</p>
+      <p class="page-subtitle">
+        Movimientos por variante. El stock real por talla/color está en el panel inferior.
+      </p>
     </div>
     <div class="toolbar-actions">
       <button mat-stroked-button (click)="descargarXLSX()">
@@ -57,9 +59,12 @@
           [matAutocomplete]="productAuto"
           placeholder="Escribe para buscar..."
         >
-        <mat-autocomplete #productAuto="matAutocomplete">
-          <mat-option (click)="selectProductFilter(null)">Todos</mat-option>
-          <mat-option *ngFor="let inv of filteredInventories" (click)="selectProductFilter(inv)">
+        <mat-autocomplete
+          #productAuto="matAutocomplete"
+          (optionSelected)="onProductSelected($event.option.value)">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngIf="productSearchLoading" disabled>Buscando…</mat-option>
+          <mat-option *ngFor="let inv of filteredInventories" [value]="inv">
             {{ inv.product_name }}
           </mat-option>
         </mat-autocomplete>
@@ -115,11 +120,6 @@
         <mat-cell *matCellDef="let m">{{ m.variant_name || '—' }}</mat-cell>
       </ng-container>
 
-      <ng-container matColumnDef="almacen">
-        <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.almacen_nombre || '—' }}</mat-cell>
-      </ng-container>
-
       <ng-container matColumnDef="tipo">
         <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
         <mat-cell *matCellDef="let m">
@@ -128,32 +128,28 @@
       </ng-container>
 
       <ng-container matColumnDef="motivo">
-        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.motivo }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="cantidad">
-        <mat-header-cell *matHeaderCellDef>Cantidad</mat-header-cell>
-        <mat-cell *matCellDef="let m">
-          <span [class.positive]="m.tipo === 'entrada'" [class.negative]="m.tipo === 'salida'">
-            {{ m.tipo === 'entrada' ? '+' : m.tipo === 'salida' ? '-' : '' }}{{ m.cantidad }}
-          </span>
+        <mat-header-cell *matHeaderCellDef>Motivo / Detalle</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="motivo-cell">
+          <span class="motivo-linea-principal">{{ formatMotivoCompleto(m) }}</span>
         </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="stock_anterior">
-        <mat-header-cell *matHeaderCellDef>St. Anterior</mat-header-cell>
-        <mat-cell *matCellDef="let m">{{ m.stock_anterior }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="stock_actual">
-        <mat-header-cell *matHeaderCellDef>St. Actual</mat-header-cell>
-        <mat-cell *matCellDef="let m"><strong>{{ m.stock_actual }}</strong></mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="usuario">
         <mat-header-cell *matHeaderCellDef>Usuario</mat-header-cell>
         <mat-cell *matCellDef="let m">{{ m.usuario_nombre || m.usuario_email || '—' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="detalle">
+        <mat-header-cell *matHeaderCellDef>Detalle</mat-header-cell>
+        <mat-cell *matCellDef="let m">
+          <button mat-icon-button
+                  type="button"
+                  (click)="verDetalleProducto(m)"
+                  matTooltip="Filtrar movimientos de este producto"
+                  class="btn-detalle-kardex">
+            <mat-icon>filter_alt</mat-icon>
+          </button>
+        </mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
@@ -173,11 +169,11 @@
     </mat-paginator>
   </mat-card>
 
-  <mat-expansion-panel class="stock-panel">
+  <mat-expansion-panel class="stock-panel" [expanded]="!!filters.almacen_id">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>inventory_2</mat-icon>
-        Stock por variante
+        Stock real por variante
       </mat-panel-title>
       <mat-panel-description>
         {{ stockVariantes.length }} registros

@@ -17,15 +17,18 @@ import { MatSortModule }         from '@angular/material/sort';
 import { MatTableModule }        from '@angular/material/table';
 import { MatToolbarModule }      from '@angular/material/toolbar';
 import { MatTooltipModule }     from '@angular/material/tooltip';
+import { MatDialogModule }      from '@angular/material/dialog';
 
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardComponent }     from './dashboard.component';
 import { HomeComponent }          from './home/home.component';
+import { ProductVariantsSalesDialogComponent } from './home/product-variants-sales-dialog.component';
 
 @NgModule({
   declarations: [
     DashboardComponent,
-    HomeComponent
+    HomeComponent,
+    ProductVariantsSalesDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -44,7 +47,8 @@ import { HomeComponent }          from './home/home.component';
     MatSortModule,
     MatTableModule,
     MatToolbarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDialogModule,
   ]
 })
 export class DashboardModule { }

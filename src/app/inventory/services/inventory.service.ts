@@ -32,6 +32,15 @@ export interface PaginatedKardex {
   results: KardexMovimiento[];
 }
 
+export interface InventoryVariantStock {
+  id: number;
+  talla: string;
+  color: string;
+  color_hex?: string;
+  sku?: string;
+  disponible: number;
+}
+
 export interface Inventory {
   id: number;
   product: number;
@@ -48,7 +57,8 @@ export interface Inventory {
     color: string;
     color_hex: string;
   } | null;
-  vendido?: number;
+  variantes?: InventoryVariantStock[];
+  sin_asignar_variante?: number;
 }
 
 export interface InventoryFilters {
@@ -123,7 +133,7 @@ export class InventoryService {
   }
 
   getSucursales(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/branches/`);
+    return this.http.get<any[]>(`${environment.apiUrl}/branches/sucursales/`);
   }
 
   getAlmacenes(sucursalId?: number): Observable<any[]> {

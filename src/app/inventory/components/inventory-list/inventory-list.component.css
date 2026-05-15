@@ -16,7 +16,10 @@
   min-width: 200px;
 }
 
-/* Detail row */
+.filter-almacen {
+  min-width: 200px;
+}
+
 .inventory-table-card {
   background: white;
   border-radius: 12px;
@@ -26,7 +29,7 @@
 
 .inventory-table {
   width: 100%;
-  min-width: 980px;
+  min-width: 720px;
 }
 
 .inventory-table th,
@@ -38,38 +41,92 @@
   min-width: 220px;
 }
 
-.inventory-table .mat-column-talla,
-.inventory-table .mat-column-color {
-  min-width: 120px;
-}
-
 .inventory-table .mat-column-acciones {
   width: 72px;
 }
 
-/* Talla chip */
-.talla-chip {
-  display: inline-block;
-  padding: 2px 10px;
-  background: #e0e7ff;
-  color: #3730a3;
-  border-radius: 12px;
-  font-size: 0.8rem;
+.inventory-table .mat-column-available_quantity {
+  min-width: 280px;
+  white-space: normal;
+}
+
+.col-disponible {
+  padding: 12px 16px !important;
+  vertical-align: top;
+}
+
+.disp-total {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.disp-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
-/* Color swatch in table */
-.color-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.disp-bajo {
+  font-size: 0.75rem;
+  color: #854d0e;
 }
 
-.color-swatch {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.15);
-  flex-shrink: 0;
+.disp-variantes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.variante-chip {
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.variante-chip.sin-asignar {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.btn-detalle {
+  color: #3b82f6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #9ca3af;
+}
+
+.valor-total-card {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
+}
+
+.valor-total-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.valor-total-monto {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.valor-total-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 2px;
 }

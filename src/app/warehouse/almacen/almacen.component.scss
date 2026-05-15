@@ -43,8 +43,15 @@
   &.chip-transfer   { background: #e3f2fd; color: #1565c0; }
 }
 
-.positive { color: #2e7d32; font-weight: 600; }
-.negative { color: #c62828; font-weight: 600; }
+.motivo-cell {
+  max-width: 320px;
+  white-space: normal;
+  line-height: 1.35;
+  font-size: 13px;
+}
+.motivo-linea-principal {
+  display: block;
+}
 
 .color-dot {
   display: inline-block;
@@ -60,4 +67,8 @@
   text-align: center;
   color: #888;
   padding: 24px;
+}
+
+.btn-detalle-kardex {
+  color: #3b82f6;
 }

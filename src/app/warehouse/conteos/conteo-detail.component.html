@@ -81,9 +81,11 @@
 
         <mat-form-field appearance="outline"
                         *ngIf="variantesDisponibles.length > 0">
-          <mat-label>Variante</mat-label>
+          <mat-label>Variante (talla / color)</mat-label>
           <mat-select [(ngModel)]="varianteSeleccionada">
-            <mat-option [value]="null">Sin variante</mat-option>
+            <mat-option [value]="null">
+              Borrador rápido (sin variante — obligatorio antes de aprobar)
+            </mat-option>
             <mat-option *ngFor="let v of variantesDisponibles"
                         [value]="v.id">
               <span class="color-dot"
@@ -199,24 +201,28 @@
     </mat-card-content>
   </mat-card>
 
+  <p class="aviso-variantes" *ngIf="itemsPendientesVariante().length > 0">
+    <mat-icon>warning</mat-icon>
+    {{ itemsPendientesVariante().length }} ítem(s) sin variante.
+    Deben completarse con talla/color antes de aprobar el conteo.
+  </p>
+
   <div class="form-actions">
     <button mat-raised-button type="button"
-            *ngIf="conteo.estado === 'abierto'
-              && puedeCerrar()"
+            *ngIf="conteo.estado === 'abierto' && puedeCerrar()"
             (click)="onCerrar()">
       <mat-icon>lock</mat-icon> Cerrar conteo
     </button>
     <button mat-raised-button color="primary"
             type="button"
-            *ngIf="conteo.estado === 'cerrado'
-              && puedeAprobar()"
+            *ngIf="conteo.estado === 'cerrado' && puedeAprobar()"
+            [disabled]="itemsPendientesVariante().length > 0"
             (click)="onAprobar()">
       <mat-icon>check_circle</mat-icon> Aprobar y ajustar stock
     </button>
     <button mat-raised-button color="warn"
             type="button"
-            *ngIf="(conteo.estado === 'abierto'
-                   || conteo.estado === 'cerrado')
+            *ngIf="(conteo.estado === 'abierto' || conteo.estado === 'cerrado')
               && puedeCancelar()"
             (click)="onCancelar()">
       <mat-icon>cancel</mat-icon> Cancelar

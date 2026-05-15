@@ -426,22 +426,10 @@
         </div>
       </div>
 
-      <div class="table-wrapper responsive-table-wrapper">
-        <mat-table [dataSource]="tableDataSource" matSort multiTemplateDataRows class="products-table">
+      <p class="table-hint">Talla y color por variante están en la columna Detalle (icono del ojo).</p>
 
-          <!-- Expand button -->
-          <ng-container matColumnDef="expand">
-            <mat-header-cell *matHeaderCellDef style="max-width:48px;"></mat-header-cell>
-            <mat-cell *matCellDef="let row" style="max-width:48px;">
-              <button *ngIf="getVariantes(row).length > 0"
-                      mat-icon-button
-                      (click)="toggleVariants(row); $event.stopPropagation()"
-                      [matTooltip]="expandedProductId === row.product_id ? 'Ocultar variantes' : 'Ver variantes'"
-                      style="color:#6b7280;">
-                <mat-icon>{{ expandedProductId === row.product_id ? 'expand_less' : 'expand_more' }}</mat-icon>
-              </button>
-            </mat-cell>
-          </ng-container>
+      <div class="table-wrapper responsive-table-wrapper">
+        <mat-table [dataSource]="tableDataSource" matSort class="products-table">
 
           <!-- Producto -->
           <ng-container matColumnDef="product_name">
@@ -467,57 +455,21 @@
             <mat-cell *matCellDef="let row" class="col-num">{{ row.revenue | number:'1.2-2' }}</mat-cell>
           </ng-container>
 
-          <!-- Costo -->
-          <ng-container matColumnDef="cost">
-            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Costo (Bs.)</mat-header-cell>
-            <mat-cell *matCellDef="let row" class="col-num">
-              <span *ngIf="row.cost != null">{{ row.cost | number:'1.2-2' }}</span>
-              <span *ngIf="row.cost == null" class="null-cell">—</span>
-            </mat-cell>
-          </ng-container>
-
-          <!-- Margen -->
-          <ng-container matColumnDef="margin">
-            <mat-header-cell *matHeaderCellDef mat-sort-header class="col-num">Margen (Bs.)</mat-header-cell>
-            <mat-cell *matCellDef="let row" class="col-num">
-              <span *ngIf="row.margin != null"
-                    [style.color]="+row.margin >= 0 ? '#16a34a' : '#dc2626'">
-                {{ row.margin | number:'1.2-2' }}
-              </span>
-              <span *ngIf="row.margin == null" class="null-cell">—</span>
-            </mat-cell>
-          </ng-container>
-
-          <!-- Variante detail row -->
-          <ng-container matColumnDef="variantDetail">
-            <mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length" style="padding:0;">
-              <div *ngIf="expandedProductId === row.product_id && getVariantes(row).length > 0"
-                   class="variant-detail-panel">
-                <table class="variant-subtable-inner">
-                  <thead>
-                    <tr>
-                      <th>Variante</th>
-                      <th class="col-num">Unidades</th>
-                      <th class="col-num">Ingresos (Bs.)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let v of getVariantes(row)">
-                      <td>{{ v.variante }}</td>
-                      <td class="col-num">{{ v.units_sold }}</td>
-                      <td class="col-num">
-                        {{ (v.revenue || '0') | number:'1.2-2' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+          <!-- Detalle -->
+          <ng-container matColumnDef="detalle">
+            <mat-header-cell *matHeaderCellDef>Detalle</mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <button mat-icon-button
+                      (click)="openVariantesDialog(row); $event.stopPropagation()"
+                      matTooltip="Ver ventas por variante"
+                      style="color:#3b82f6;">
+                <mat-icon>visibility</mat-icon>
+              </button>
             </mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-          <mat-row *matRowDef="let row; columns: ['variantDetail']" class="variant-row"></mat-row>
 
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
@@ -535,11 +487,11 @@
               <div class="mobile-card-title">{{ row.product_name }}</div>
               <div class="mobile-card-subtitle">{{ row.category || 'Sin categoría' }}</div>
             </div>
-            <button *ngIf="getVariantes(row).length > 0"
-                    mat-icon-button
-                    (click)="toggleVariants(row)"
-                    [matTooltip]="expandedProductId === row.product_id ? 'Ocultar variantes' : 'Ver variantes'">
-              <mat-icon>{{ expandedProductId === row.product_id ? 'expand_less' : 'expand_more' }}</mat-icon>
+            <button mat-icon-button
+                    (click)="openVariantesDialog(row)"
+                    matTooltip="Ver ventas por variante"
+                    style="color:#3b82f6;">
+              <mat-icon>visibility</mat-icon>
             </button>
           </div>
 
@@ -551,27 +503,6 @@
             <div class="mobile-card-metric">
               <span>Ingresos</span>
               <strong>Bs.&nbsp;{{ row.revenue | number:'1.2-2' }}</strong>
-            </div>
-            <div class="mobile-card-metric">
-              <span>Costo</span>
-              <strong *ngIf="row.cost != null">Bs.&nbsp;{{ row.cost | number:'1.2-2' }}</strong>
-              <strong *ngIf="row.cost == null" class="null-cell">—</strong>
-            </div>
-            <div class="mobile-card-metric">
-              <span>Margen</span>
-              <strong *ngIf="row.margin != null"
-                      [style.color]="+row.margin >= 0 ? '#16a34a' : '#dc2626'">
-                Bs.&nbsp;{{ row.margin | number:'1.2-2' }}
-              </strong>
-              <strong *ngIf="row.margin == null" class="null-cell">—</strong>
-            </div>
-          </div>
-
-          <div *ngIf="expandedProductId === row.product_id && getVariantes(row).length > 0"
-               class="mobile-variant-list">
-            <div *ngFor="let v of getVariantes(row)" class="mobile-variant-row">
-              <span>{{ v.variante }}</span>
-              <strong>{{ v.units_sold }} uds. · Bs.&nbsp;{{ (v.revenue || '0') | number:'1.2-2' }}</strong>
             </div>
           </div>
         </div>

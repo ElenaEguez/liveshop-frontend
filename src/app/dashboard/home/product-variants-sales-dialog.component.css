@@ -1,0 +1,42 @@
+.pvs-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.pvs-title-icon {
+  color: #3b82f6;
+}
+
+.pvs-content {
+  min-width: 320px;
+  max-width: 560px;
+  padding-top: 4px;
+}
+
+.pvs-period {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.pvs-table {
+  width: 100%;
+}
+
+.pvs-table .mat-header-cell {
+  font-weight: 600;
+  color: #374151;
+}
+
+.pvs-table .col-num {
+  text-align: right;
+}
+
+.pvs-empty {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}

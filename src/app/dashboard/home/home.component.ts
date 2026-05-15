@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -27,6 +28,10 @@ import {
 import { Category, CategoryService } from '../../categories/services/category.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 import { VendorSocketService } from '../../core/vendor-socket.service';
+import {
+  ProductVariantsSalesDialogComponent,
+  ProductVariantsSalesDialogData,
+} from './product-variants-sales-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -63,7 +68,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Table ─────────────────────────────────────────────────────────────────
   tableDataSource = new MatTableDataSource<SalesByProduct>([]);
-  displayedColumns = ['expand', 'product_name', 'category', 'units_sold', 'revenue', 'cost', 'margin'];
+  displayedColumns = ['product_name', 'category', 'units_sold', 'revenue', 'detalle'];
   tableFilterCategory = '';
   tableFilterTalla = '';
   tableFilterColor = '';
@@ -92,9 +97,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.from(set).sort();
   }
 
-  // ── Variant expansion ─────────────────────────────────────────────────────
-  expandedProductId: number | null = null;
-
   // ── Movimientos de Caja ───────────────────────────────────────────────────
   movimientos: MovimientoCaja[] = [];
   movPage = 1;
@@ -115,6 +117,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private categoryService:      CategoryService,
     private vendorProfileService: VendorProfileService,
     private vendorSocket:         VendorSocketService,
+    private dialog:               MatDialog,
     public  router:               Router
   ) {}
 
@@ -148,8 +151,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   loadSalesDashboard(): void {
     this.loading = true;
     this.error   = false;
-    this.expandedProductId = null;
-
     const params: SalesDashboardParams = {
       period: this.selectedPeriod,
       ...(this.selectedCategoryId != null && { category_id: this.selectedCategoryId }),
@@ -306,14 +307,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  // ── Variant expansion ─────────────────────────────────────────────────────
-
-  toggleVariants(row: SalesByProduct): void {
-    this.expandedProductId = this.expandedProductId === row.product_id ? null : row.product_id;
-  }
-
   getVariantes(row: SalesByProduct): VarianteVenta[] {
     return row.variantes ?? [];
+  }
+
+  openVariantesDialog(row: SalesByProduct): void {
+    const data: ProductVariantsSalesDialogData = {
+      productName: row.product_name,
+      periodLabel: this.salesData?.period_label ?? '',
+      variantes: this.getVariantes(row),
+    };
+    this.dialog.open(ProductVariantsSalesDialogComponent, {
+      data,
+      width: '520px',
+      maxWidth: '95vw',
+    });
   }
 
   // ── Canal-aware stat helpers ──────────────────────────────────────────────
