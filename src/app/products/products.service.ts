@@ -15,6 +15,8 @@ export interface Product {
   images: string[];
   is_active: boolean;
   variants: Variant[];
+  /** Variantes en BD (ProductVariant); preferir al editar. */
+  variantes?: ProductVariant[];
   inventory_distribution?: ProductInventoryDistribution[];
   barcode?: string | null;
   internal_code?: string;

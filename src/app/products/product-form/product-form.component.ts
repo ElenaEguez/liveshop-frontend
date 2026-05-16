@@ -6,7 +6,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Inject } from '@angular/core';
 import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 import JsBarcode from 'jsbarcode';
-import { Product, Category, Variant, ProductService } from '../products.service';
+import { Product, Category, Variant, ProductVariant, ProductService } from '../products.service';
 import { httpErrorMessage } from '../../shared/api-utils';
 
 export const SELL_BY_OPTIONS = [
@@ -60,7 +60,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       barcode:              [data.product?.barcode ?? ''],
       internal_code:        [data.product?.internal_code ?? ''],
       sell_by:              this.fb.group(sellByGroup),
-      variants:             this.fb.array(data.product?.variants?.map(v => this.createVariant(v)) || []),
+      variants:             this.fb.array(this.initialVariants(data.product).map(v => this.createVariant(v))),
     });
 
     if (this.viewOnly) {
@@ -70,6 +70,26 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCategories();
+  }
+
+  /** Preferir variantes de BD (compras/POS); fallback al JSON legacy. */
+  private initialVariants(product?: Product): Variant[] {
+    if (!product) {
+      return [];
+    }
+    const fromDb = product.variantes;
+    if (Array.isArray(fromDb) && fromDb.length) {
+      return fromDb.map((v: ProductVariant) => ({
+        size: v.talla || '',
+        color: v.color || '',
+        color_hex: v.color_hex || '',
+        stock: v.stock_extra ?? 0,
+      }));
+    }
+    if (Array.isArray(product.variants) && product.variants.length) {
+      return product.variants;
+    }
+    return [];
   }
 
   // ── Category ────────────────────────────────────────────────────────────────
