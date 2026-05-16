@@ -7,6 +7,7 @@ import { Inject } from '@angular/core';
 import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductService } from '../products.service';
+import { httpErrorMessage } from '../../shared/api-utils';
 
 export const SELL_BY_OPTIONS = [
   { value: 'unidad', label: 'UNIDAD' },
@@ -74,16 +75,23 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   // ── Category ────────────────────────────────────────────────────────────────
 
   loadCategories(): void {
-    this.productService.getCategories().subscribe(
-      categories => {
+    this.productService.getCategories().subscribe({
+      next: categories => {
         this.categories = categories;
         const currentCategory = this.productForm.get('category')?.value;
         if (currentCategory) {
           this.productForm.get('category')?.setValue(currentCategory);
         }
       },
-      error => console.error('Error loading categories:', error)
-    );
+      error: err => {
+        console.error('Error loading categories:', err);
+        this.snackBar.open(
+          httpErrorMessage(err, 'No se pudieron cargar las categorías.'),
+          'Cerrar',
+          { duration: 5000, panelClass: ['snack-error'] },
+        );
+      },
+    });
   }
 
   compareById(a: any, b: any): boolean {
@@ -428,15 +436,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     );
   }
 
-  private getSaveErrorMessage(error: any): string {
-    const detail = error?.error;
-    if (!detail) return 'No se pudo guardar el producto.';
-    if (typeof detail === 'string') return detail;
-    if (detail.detail) return detail.detail;
-    const firstKey = Object.keys(detail)[0];
-    const firstValue = firstKey ? detail[firstKey] : null;
-    const message = Array.isArray(firstValue) ? firstValue.join(' ') : firstValue;
-    return message ? `${firstKey}: ${message}` : 'No se pudo guardar el producto.';
+  private getSaveErrorMessage(error: unknown): string {
+    return httpErrorMessage(error, 'No se pudo guardar el producto.');
   }
 
   onCancel(): void {

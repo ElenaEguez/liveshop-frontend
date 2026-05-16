@@ -72,10 +72,10 @@ export class ProductListComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.productService.getCategories().subscribe(
-      categories => this.categories = categories,
-      error => console.error('Error loading categories:', error)
-    );
+    this.productService.getCategories().subscribe({
+      next: categories => { this.categories = categories; },
+      error: err => console.error('Error loading categories:', err),
+    });
   }
 
   loadVariantOptions(): void {

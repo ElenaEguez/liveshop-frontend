@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { unwrapList } from '../shared/api-utils';
 
 export interface Product {
   id?: number;
@@ -104,7 +106,9 @@ export class ProductService {
   }
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.apiUrl}/categories/`);
+    return this.http
+      .get<Category[] | PaginatedResponse<Category>>(`${this.apiUrl}/categories/`)
+      .pipe(map(data => unwrapList(data)));
   }
 
   getVariantes(productId: number): Observable<ProductVariant[]> {
