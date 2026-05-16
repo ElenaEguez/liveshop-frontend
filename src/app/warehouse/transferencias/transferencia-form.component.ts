@@ -24,9 +24,11 @@ export class TransferenciaFormComponent implements OnInit {
   productoSeleccionado: any = null;
   variantesDisponibles: any[] = [];
   guardando = false;
+  stockActual: number | null = null;
+  cargandoStock = false;
   private busqueda$ = new Subject<string>();
 
-  columnas = ['producto', 'variante', 'cantidad', 'eliminar'];
+  columnas = ['producto', 'variante', 'stock_actual', 'cantidad', 'eliminar'];
 
   constructor(
     private fb: FormBuilder,
@@ -68,6 +70,61 @@ export class TransferenciaFormComponent implements OnInit {
       variante: [null],
       cantidad: [1, [Validators.required, Validators.min(1)]],
     });
+    this.form.get('almacen_origen')?.valueChanges.subscribe(() => {
+      this.actualizarStockSeleccion();
+      this.refrescarStockItems();
+    });
+    this.itemForm.get('variante')?.valueChanges.subscribe(() => {
+      this.actualizarStockSeleccion();
+    });
+  }
+
+  almacenOrigenId(): number | null {
+    const id = this.form?.value?.almacen_origen;
+    return id != null ? Number(id) : null;
+  }
+
+  private actualizarStockSeleccion(): void {
+    const almacenId = this.almacenOrigenId();
+    if (!this.productoSeleccionado || !almacenId) {
+      this.stockActual = null;
+      this.cargandoStock = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.cargandoStock = true;
+    this.svc.getStockEnAlmacen(
+      this.productoSeleccionado.id,
+      almacenId,
+    ).subscribe({
+      next: (stock) => {
+        this.stockActual = stock;
+        this.cargandoStock = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.stockActual = 0;
+        this.cargandoStock = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private refrescarStockItems(): void {
+    const almacenId = this.almacenOrigenId();
+    if (!almacenId || this.items.length === 0) {
+      return;
+    }
+    this.items.forEach((item, idx) => {
+      this.svc.getStockEnAlmacen(item.producto, almacenId).subscribe({
+        next: (stock) => {
+          this.items = this.items.map((row, i) =>
+            i === idx ? { ...row, stock_actual: stock } : row
+          );
+          this.cdr.markForCheck();
+        },
+      });
+    });
   }
 
   onBusqueda(v: string): void {
@@ -80,6 +137,7 @@ export class TransferenciaFormComponent implements OnInit {
     this.itemForm.patchValue({
       busqueda: p.name, variante: null });
     this.productosFiltrados = [];
+    this.actualizarStockSeleccion();
     this.cdr.markForCheck();
   }
 
@@ -87,25 +145,47 @@ export class TransferenciaFormComponent implements OnInit {
     if (!this.productoSeleccionado || this.itemForm.invalid) {
       return;
     }
+    const almacenId = this.almacenOrigenId();
+    if (!almacenId) {
+      alert('Seleccione el almacén origen');
+      return;
+    }
     const v = this.itemForm.value;
     const varDet = v.variante
       ? this.variantesDisponibles.find(
           (vr: any) => vr.id === v.variante) || null
       : null;
-    this.items = [...this.items, {
+    const nuevoItem: TransferenciaItem = {
       producto: this.productoSeleccionado.id,
       producto_nombre: this.productoSeleccionado.name,
       variante: v.variante || null,
       variante_detalle: varDet,
       cantidad: v.cantidad,
-    }];
-    this.productoSeleccionado = null;
-    this.variantesDisponibles = [];
-    this.itemForm.reset({
-      busqueda: '', variante: null,
-      cantidad: 1
+      stock_actual: this.stockActual ?? undefined,
+    };
+    const agregar = (stock: number) => {
+      nuevoItem.stock_actual = stock;
+      this.items = [...this.items, nuevoItem];
+      this.productoSeleccionado = null;
+      this.variantesDisponibles = [];
+      this.stockActual = null;
+      this.itemForm.reset({
+        busqueda: '', variante: null,
+        cantidad: 1
+      });
+      this.cdr.markForCheck();
+    };
+    if (nuevoItem.stock_actual != null) {
+      agregar(nuevoItem.stock_actual);
+      return;
+    }
+    this.svc.getStockEnAlmacen(
+      this.productoSeleccionado.id,
+      almacenId,
+    ).subscribe({
+      next: (stock) => agregar(stock),
+      error: () => agregar(0),
     });
-    this.cdr.markForCheck();
   }
 
   onEliminar(i: number): void {

@@ -12,31 +12,284 @@
   font-size: 13px;
 }
 
-.filter-card { margin-bottom: 16px;
-  .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .filter-label { font-size: 13px; color: #666; white-space: nowrap; }
-  .periodo-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    .periodo-chip { font-size: 12px; height: 30px; &.active { background: #1565c0; color: #fff; } }
+.filter-card {
+  margin-bottom: 16px;
+  padding: 16px !important;
+
+  .filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    & + .filter-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+    }
   }
-  mat-form-field { min-width: 130px; margin: 0; }
+
+  .filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    white-space: nowrap;
+    margin-right: 4px;
+  }
+
+  .periodo-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+
+    .periodo-chip {
+      font-size: 12px;
+      height: 32px;
+      line-height: 32px;
+
+      &.active {
+        background: #1565c0;
+        color: #fff;
+        border-color: #1565c0;
+      }
+    }
+  }
+
+  .filter-field {
+    min-width: 150px;
+    margin: 0;
+  }
+
+  .filter-search {
+    flex: 2 1 220px;
+    min-width: 200px;
+  }
+
+  .filter-almacen {
+    min-width: 180px;
+  }
+
+  .filter-tipo {
+    min-width: 130px;
+  }
+
+  .filter-date {
+    min-width: 150px;
+  }
+
+  .filter-clear-btn {
+    height: 40px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
 }
 
-.table-card { position: relative; padding: 0; overflow-x: auto; }
+.table-card {
+  position: relative;
+  padding: 0;
+  overflow-x: auto;
+}
 
 .loading-shade {
   position: absolute; inset: 0; background: rgba(255,255,255,.7);
   display: flex; align-items: center; justify-content: center; z-index: 5;
 }
 
-.kardex-table {
-  min-width: 1120px;
+// Shared table styles
+.kardex-table,
+.stock-variante-table {
   width: 100%;
+
+  .mat-header-row {
+    background: #f9fafb;
+    min-height: 44px;
+  }
+
+  .mat-header-cell {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  .mat-cell {
+    font-size: 0.875rem;
+    color: #374151;
+    padding: 10px 12px;
+    align-items: center;
+  }
+
+  .mat-row:not(.no-data-row):nth-child(even) {
+    background: #fafafa;
+  }
+
+  .mat-row:not(.no-data-row):hover {
+    background: #f3f4f6;
+  }
 }
 
-.no-data { text-align: center; padding: 32px; color: #888; }
+.col-num {
+  text-align: right !important;
+  justify-content: flex-end !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.col-center {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+.cell-ellipsis {
+  overflow: hidden;
+  min-width: 0;
+
+  strong,
+  .motivo-linea-principal {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.kardex-table {
+  min-width: 1280px;
+
+  .mat-column-fecha {
+    flex: 0 0 118px;
+    min-width: 118px;
+  }
+
+  .mat-column-documento {
+    flex: 0 0 120px;
+    min-width: 110px;
+    font-size: 0.82rem;
+  }
+
+  .mat-column-producto {
+    flex: 1 1 160px;
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  .mat-column-variante {
+    flex: 0 0 100px;
+    min-width: 90px;
+  }
+
+  .mat-column-almacen {
+    flex: 0 0 110px;
+    min-width: 100px;
+  }
+
+  .mat-column-tipo {
+    flex: 0 0 100px;
+    min-width: 90px;
+  }
+
+  .mat-column-motivo {
+    flex: 1 1 160px;
+    min-width: 130px;
+    max-width: 220px;
+  }
+
+  .mat-column-cantidad,
+  .mat-column-stock_anterior,
+  .mat-column-stock_actual {
+    flex: 0 0 88px;
+    min-width: 72px;
+  }
+
+  .mat-column-usuario {
+    flex: 0 0 120px;
+    min-width: 100px;
+    font-size: 0.82rem;
+  }
+
+  .mat-column-detalle {
+    flex: 1 1 200px;
+    min-width: 180px;
+    max-width: 280px;
+  }
+}
+
+.stock-variante-table {
+  .mat-column-producto {
+    flex: 1 1 200px;
+    min-width: 160px;
+  }
+
+  .mat-column-variante {
+    flex: 1 1 180px;
+    min-width: 140px;
+  }
+
+  .mat-column-disponible,
+  .mat-column-reservado {
+    flex: 0 0 100px;
+    min-width: 90px;
+  }
+}
+
+.qty-entrada { color: #2e7d32; font-weight: 600; }
+.qty-salida  { color: #c62828; font-weight: 600; }
+
+.detalle-cell {
+  white-space: normal;
+  font-size: 12px;
+  line-height: 1.4;
+  align-items: flex-start !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.detalle-variante-linea {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  &:not(:last-child) { margin-bottom: 6px; }
+}
+
+.detalle-var-nombre {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalle-var-qty {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.detalle-var-stock {
+  color: #6b7280;
+  font-size: 11px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.no-data-row .no-data,
+.no-data {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 32px;
+  color: #888;
+}
 
 .tipo-chip {
-  padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
   &.chip-entrada    { background: #e8f5e9; color: #2e7d32; }
   &.chip-salida     { background: #ffebee; color: #c62828; }
   &.chip-ajuste     { background: #fff3e0; color: #e65100; }
@@ -44,13 +297,16 @@
 }
 
 .motivo-cell {
-  max-width: 320px;
   white-space: normal;
   line-height: 1.35;
   font-size: 13px;
 }
+
 .motivo-linea-principal {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .color-dot {
@@ -61,14 +317,20 @@
   vertical-align: middle;
   border: 1px solid rgba(0,0,0,.15);
 }
+
 .stock-bajo { color: #e53935; }
-.stock-panel { margin-top: 16px; }
+
+.stock-panel {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
 .empty-state {
   text-align: center;
   color: #888;
   padding: 24px;
 }
 
-.btn-detalle-kardex {
-  color: #3b82f6;
+mat-paginator {
+  border-top: 1px solid #e5e7eb;
 }

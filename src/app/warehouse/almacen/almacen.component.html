@@ -5,7 +5,7 @@
     <div>
       <h1><mat-icon>warehouse</mat-icon> Almacén / Kardex</h1>
       <p class="page-subtitle">
-        Movimientos por variante. El stock real por talla/color está en el panel inferior.
+        Historial detallado de lo que ingresó o salió del stock.
       </p>
     </div>
     <div class="toolbar-actions">
@@ -17,52 +17,46 @@
 
   <!-- Filtros -->
   <mat-card class="filter-card">
-    <div class="filter-row">
-
-      <!-- Período chips -->
+    <div class="filter-row filter-row-periodo">
       <div class="periodo-chips">
-        <span class="filter-label">Período:</span>
-        <button *ngFor="let p of [
-          {v:'todo',label:'Todo'},
-          {v:'hoy',label:'Hoy'},
-          {v:'7d',label:'7 días'},
-          {v:'30d',label:'30 días'},
-          {v:'año',label:'Este año'},
-          {v:'dia',label:'Por día'}
-        ]"
-          mat-stroked-button class="periodo-chip"
+        <span class="filter-label">Período</span>
+        <button *ngFor="let p of periodoOptions"
+          mat-stroked-button
+          type="button"
+          class="periodo-chip"
           [class.active]="filters.periodo === p.v"
-          (click)="filters.periodo = p.v; resetPage()">
+          (click)="setPeriodo(p.v)">
           {{ p.label }}
         </button>
       </div>
 
-      <!-- Rango de fechas (solo si periodo=dia) -->
       <ng-container *ngIf="filters.periodo === 'dia'">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="filter-field filter-date">
           <mat-label>Desde</mat-label>
-          <input matInput type="date" [(ngModel)]="filters.fecha_desde" (change)="resetPage()">
+          <input matInput type="date" [(ngModel)]="filters.fecha_desde" (change)="onDateRangeChange()">
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="filter-field filter-date">
           <mat-label>Hasta</mat-label>
-          <input matInput type="date" [(ngModel)]="filters.fecha_hasta" (change)="resetPage()">
+          <input matInput type="date" [(ngModel)]="filters.fecha_hasta" (change)="onDateRangeChange()">
         </mat-form-field>
       </ng-container>
+    </div>
 
-      <!-- Producto -->
-      <mat-form-field appearance="outline">
+    <div class="filter-row filter-row-fields">
+      <mat-form-field appearance="outline" class="filter-field filter-search">
         <mat-label>Producto</mat-label>
         <input
           matInput
           [(ngModel)]="productQuery"
           (ngModelChange)="onProductInputChange()"
           [matAutocomplete]="productAuto"
-          placeholder="Escribe para buscar..."
+          placeholder="Busca y selecciona de la lista"
         >
+        <mat-icon matSuffix>search</mat-icon>
         <mat-autocomplete
           #productAuto="matAutocomplete"
           (optionSelected)="onProductSelected($event.option.value)">
-          <mat-option [value]="null">Todos</mat-option>
+          <mat-option [value]="null">Todos los productos</mat-option>
           <mat-option *ngIf="productSearchLoading" disabled>Buscando…</mat-option>
           <mat-option *ngFor="let inv of filteredInventories" [value]="inv">
             {{ inv.product_name }}
@@ -70,17 +64,26 @@
         </mat-autocomplete>
       </mat-form-field>
 
-      <!-- Almacén -->
-      <mat-form-field appearance="outline">
-        <mat-label>Almacén</mat-label>
-        <mat-select [(ngModel)]="filters.almacen_id" (ngModelChange)="resetPage()">
-          <mat-option [value]="null">Todos</mat-option>
-          <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
+      <mat-form-field appearance="outline" class="filter-field" *ngIf="sucursales.length > 0">
+        <mat-label>Sucursal</mat-label>
+        <mat-select [(ngModel)]="selectedSucursalId" (ngModelChange)="onSucursalChange()">
+          <mat-option [value]="null">Todas</mat-option>
+          <mat-option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <!-- Tipo -->
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="filter-field filter-almacen">
+        <mat-label>Almacén</mat-label>
+        <mat-select
+          [(ngModel)]="filters.almacen_id"
+          [compareWith]="compareIds"
+          (ngModelChange)="resetPage()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let a of almacenesForSelect" [value]="a.id">{{ a.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field filter-tipo">
         <mat-label>Tipo</mat-label>
         <mat-select [(ngModel)]="filters.tipo" (ngModelChange)="resetPage()">
           <mat-option value="">Todos</mat-option>
@@ -91,6 +94,15 @@
         </mat-select>
       </mat-form-field>
 
+      <button
+        mat-stroked-button
+        type="button"
+        class="filter-clear-btn"
+        *ngIf="hasActiveFilters"
+        (click)="clearFilters()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar
+      </button>
     </div>
   </mat-card>
 
@@ -112,7 +124,10 @@
 
       <ng-container matColumnDef="producto">
         <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
-        <mat-cell *matCellDef="let m"><strong>{{ m.product_name }}</strong></mat-cell>
+        <mat-cell *matCellDef="let m" class="cell-ellipsis"
+                  [matTooltip]="m.product_name" matTooltipShowDelay="400">
+          <strong>{{ m.product_name }}</strong>
+        </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="variante">
@@ -120,18 +135,43 @@
         <mat-cell *matCellDef="let m">{{ m.variant_name || '—' }}</mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="almacen">
+        <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+        <mat-cell *matCellDef="let m">{{ m.almacen_nombre || '—' }}</mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="tipo">
-        <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
-        <mat-cell *matCellDef="let m">
+        <mat-header-cell *matHeaderCellDef class="col-center">Tipo</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="col-center">
           <span class="tipo-chip" [class]="tipoClass(m.tipo)">{{ tipoLabel(m.tipo) }}</span>
         </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="motivo">
-        <mat-header-cell *matHeaderCellDef>Motivo / Detalle</mat-header-cell>
-        <mat-cell *matCellDef="let m" class="motivo-cell">
-          <span class="motivo-linea-principal">{{ formatMotivoCompleto(m) }}</span>
+        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="motivo-cell cell-ellipsis"
+                  [matTooltip]="motivoLabel(m.motivo)" matTooltipShowDelay="400">
+          <span class="motivo-linea-principal">{{ motivoLabel(m.motivo) }}</span>
         </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="cantidad">
+        <mat-header-cell *matHeaderCellDef class="col-num">Cantidad</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="col-num">
+          <span [class.qty-entrada]="cantidadEsEntrada(m)" [class.qty-salida]="!cantidadEsEntrada(m) && (m.cantidad || 0) !== 0">
+            {{ formatCantidad(m) }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="stock_anterior">
+        <mat-header-cell *matHeaderCellDef class="col-num">St. Anterior</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="col-num">{{ m.stock_anterior }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="stock_actual">
+        <mat-header-cell *matHeaderCellDef class="col-num">St. Actual</mat-header-cell>
+        <mat-cell *matCellDef="let m" class="col-num">{{ m.stock_actual }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="usuario">
@@ -141,21 +181,24 @@
 
       <ng-container matColumnDef="detalle">
         <mat-header-cell *matHeaderCellDef>Detalle</mat-header-cell>
-        <mat-cell *matCellDef="let m">
-          <button mat-icon-button
-                  type="button"
-                  (click)="verDetalleProducto(m)"
-                  matTooltip="Filtrar movimientos de este producto"
-                  class="btn-detalle-kardex">
-            <mat-icon>filter_alt</mat-icon>
-          </button>
+        <mat-cell *matCellDef="let m" class="detalle-cell">
+          <ng-container *ngIf="detalleVariantes(m).length; else sinDetalle">
+            <div *ngFor="let linea of detalleVariantes(m)" class="detalle-variante-linea">
+              <span class="detalle-var-nombre">{{ linea.variant_name }}</span>
+              <span class="detalle-var-qty" [class.qty-entrada]="linea.cantidad > 0" [class.qty-salida]="linea.cantidad < 0">
+                {{ formatCantidadValor(linea.cantidad) }}
+              </span>
+              <span class="detalle-var-stock">{{ linea.stock_anterior }} → {{ linea.stock_actual }}</span>
+            </div>
+          </ng-container>
+          <ng-template #sinDetalle>—</ng-template>
         </mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
 
-      <tr class="mat-row" *matNoDataRow>
+      <tr class="mat-row no-data-row" *matNoDataRow>
         <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
           No hay movimientos con los filtros aplicados.
         </td>
@@ -165,6 +208,7 @@
     <mat-paginator [length]="totalCount"
                    [pageSize]="pageSize"
                    [pageSizeOptions]="[10, 20, 50, 100]"
+                   showFirstLastButtons
                    (page)="onPage($event)">
     </mat-paginator>
   </mat-card>
@@ -201,8 +245,8 @@
       </ng-container>
 
       <ng-container matColumnDef="disponible">
-        <mat-header-cell *matHeaderCellDef>Disponible</mat-header-cell>
-        <mat-cell *matCellDef="let row">
+        <mat-header-cell *matHeaderCellDef class="col-num">Disponible</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="col-num">
           <strong [class.stock-bajo]="row.disponible <= 3">
             {{ row.disponible }}
           </strong>
@@ -210,8 +254,8 @@
       </ng-container>
 
       <ng-container matColumnDef="reservado">
-        <mat-header-cell *matHeaderCellDef>Reservado</mat-header-cell>
-        <mat-cell *matCellDef="let row">{{ row.reserved }}</mat-cell>
+        <mat-header-cell *matHeaderCellDef class="col-num">Reservado</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="col-num">{{ row.reserved }}</mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="[

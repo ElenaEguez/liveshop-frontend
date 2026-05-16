@@ -57,6 +57,20 @@
   border: 1px solid #ccc;
 }
 .cantidad-field { width: 100px; }
+.stock-hint {
+  align-self: center;
+  font-size: 13px;
+  color: #555;
+  min-width: 180px;
+}
+.stock-bajo {
+  color: #c62828;
+  font-weight: 600;
+}
+.stock-excedido {
+  color: #e65100;
+  font-weight: 600;
+}
 .form-actions {
   display: flex;
   justify-content: flex-end;

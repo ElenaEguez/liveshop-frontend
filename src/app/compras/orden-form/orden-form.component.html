@@ -50,7 +50,9 @@
     </mat-card>
 
     <mat-card class="section-card">
-      <mat-card-title class="plain-section-title">Agregar ítem a la orden</mat-card-title>
+      <mat-card-title class="plain-section-title">
+        {{ editandoItemResumen ? 'Editar ítem de la orden' : 'Agregar ítem a la orden' }}
+      </mat-card-title>
       <mat-card-content>
         <div class="item-form" [formGroup]="itemForm">
 
@@ -217,13 +219,21 @@
             <input matInput formControlName="descripcion">
           </mat-form-field>
 
-          <button mat-raised-button color="primary"
-                  type="button"
-                  class="btn-agregar-item"
-                  (click)="onAgregarItem()"
-                  [disabled]="!productoSeleccionado">
-            <mat-icon>add</mat-icon> Agregar ítem
-          </button>
+          <div class="item-form-actions">
+            <button mat-raised-button color="primary"
+                    type="button"
+                    class="btn-agregar-item"
+                    (click)="onAgregarItem()"
+                    [disabled]="!productoSeleccionado">
+              <mat-icon>{{ editandoItemResumen ? 'save' : 'add' }}</mat-icon>
+              {{ editandoItemResumen ? 'Guardar cambios' : 'Agregar ítem' }}
+            </button>
+            <button mat-stroked-button type="button"
+                    *ngIf="editandoItemResumen"
+                    (click)="onCancelarEdicionItem()">
+              Cancelar edición
+            </button>
+          </div>
         </div>
 
         <div class="excel-section excel-subsection resumen-bloque" *ngIf="items.length > 0">
@@ -295,11 +305,20 @@
             </mat-cell>
           </ng-container>
 
-          <ng-container matColumnDef="eliminar">
+          <ng-container matColumnDef="acciones">
             <mat-header-cell *matHeaderCellDef></mat-header-cell>
-            <mat-cell *matCellDef="let item; let i = index">
+            <mat-cell *matCellDef="let item; let i = index" class="acciones-cell">
+              <button mat-icon-button type="button"
+                      color="primary"
+                      (click)="onEditarItem(i)"
+                      [disabled]="editandoItemResumen"
+                      matTooltip="Editar ítem">
+                <mat-icon>edit</mat-icon>
+              </button>
               <button mat-icon-button color="warn" type="button"
-                      (click)="onEliminarItem(i)">
+                      (click)="onEliminarItem(i)"
+                      [disabled]="editandoItemResumen"
+                      matTooltip="Eliminar ítem">
                 <mat-icon>delete</mat-icon>
               </button>
             </mat-cell>
@@ -307,11 +326,12 @@
 
           <mat-header-row *matHeaderRowDef="[
             'producto','almacen','cantidad',
-            'costo_total','precio_venta','subtotal','eliminar']">
+            'costo_total','precio_venta','subtotal','acciones']">
           </mat-header-row>
-          <mat-row *matRowDef="let row; columns: [
+          <mat-row *matRowDef="let row; let i = index; columns: [
             'producto','almacen','cantidad',
-            'costo_total','precio_venta','subtotal','eliminar']">
+            'costo_total','precio_venta','subtotal','acciones']"
+                  [class.fila-editando]="itemEditandoIndex === i">
           </mat-row>
         </mat-table>
             </div>

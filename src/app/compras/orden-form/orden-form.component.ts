@@ -32,6 +32,8 @@ export class OrdenFormComponent implements OnInit {
   ordenNumero = '';
   guardando = false;
   modoEdicion = false;
+  /** Índice en `items` del ítem que se está editando desde el resumen. */
+  itemEditandoIndex: number | null = null;
 
   private busquedaSubject = new Subject<string>();
 
@@ -207,6 +209,10 @@ export class OrdenFormComponent implements OnInit {
     return cant * pu;
   }
 
+  get editandoItemResumen(): boolean {
+    return this.itemEditandoIndex !== null;
+  }
+
   trackVariante(_index: number, v: VarianteDetalle): number {
     return v.id;
   }
@@ -245,12 +251,14 @@ export class OrdenFormComponent implements OnInit {
         .filter(d => d.cantidad > 0);
     }
 
+    const almacenVal = this.almacenControl.value;
     const nuevoItem: OrdenCompraItem = {
       producto: this.productoSeleccionado.id,
       producto_nombre: this.productoSeleccionado.name,
       variante: null,
       variante_detalle: null,
       distribuciones,
+      almacen: almacenVal != null && almacenVal !== '' ? almacenVal : null,
       descripcion: v.descripcion,
       cantidad,
       costo_mercaderia: v.costo_mercaderia,
@@ -263,17 +271,113 @@ export class OrdenFormComponent implements OnInit {
       subtotal: cantidad * precioUnit,
     };
 
-    this.items = [...this.items, nuevoItem];
+    if (this.itemEditandoIndex !== null) {
+      const prev = this.items[this.itemEditandoIndex];
+      nuevoItem.id = prev.id;
+      this.items = this.items.map((it, i) =>
+        i === this.itemEditandoIndex ? nuevoItem : it,
+      );
+    } else {
+      this.items = [...this.items, nuevoItem];
+    }
     this.limpiarItemForm();
     this.cdr.markForCheck();
   }
 
+  onEditarItem(index: number): void {
+    const item = this.items[index];
+    if (!item) {
+      return;
+    }
+    this.itemEditandoIndex = index;
+
+    this.productoSeleccionado = {
+      id: item.producto,
+      name: item.producto_nombre || 'Producto',
+      sku: '',
+      variantes: [],
+    };
+    this.variantesDisponibles = [];
+    this.distribCants = {};
+
+    const q = (item.producto_nombre || '').trim();
+    if (q.length >= 2) {
+      this.comprasService.buscarProductos(q).subscribe(productos => {
+        const p = productos.find(x => x.id === item.producto) || productos[0];
+        if (p) {
+          this.productoSeleccionado = p;
+          this.variantesDisponibles = p.variantes || [];
+        } else {
+          this.variantesDisponibles = (item.distribuciones || [])
+            .map(d => d.variante_detalle)
+            .filter((v): v is VarianteDetalle => !!v);
+        }
+        this.aplicarDistribucionesEnFormulario(item);
+        this.cdr.markForCheck();
+      });
+    } else {
+      this.variantesDisponibles = (item.distribuciones || [])
+        .map(d => d.variante_detalle)
+        .filter((v): v is VarianteDetalle => !!v);
+      this.aplicarDistribucionesEnFormulario(item);
+    }
+
+    const alm = this.resolveAlmacenItem(item);
+    if (alm != null) {
+      this.almacenControl.setValue(alm);
+    }
+
+    const manual = !!item.precio_venta_es_manual;
+    this.itemForm.patchValue({
+      busqueda: item.producto_nombre || '',
+      descripcion: item.descripcion || '',
+      cantidad: item.cantidad,
+      costo_mercaderia: item.costo_mercaderia,
+      flete_unitario: item.flete_unitario,
+      costo_unitario_total: item.costo_unitario_total,
+      porcentaje_ganancia: item.porcentaje_ganancia,
+      precio_venta_manual: manual,
+      precio_venta_sugerido: item.precio_venta_sugerido,
+      precio_unitario: item.precio_unitario,
+    });
+    if (manual) {
+      this.itemForm.get('precio_venta_sugerido')?.enable({ emitEvent: false });
+    } else {
+      this.itemForm.get('precio_venta_sugerido')?.disable({ emitEvent: false });
+    }
+
+    this.productosFiltrados = [];
+    setTimeout(() => {
+      document.querySelector('.item-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+    this.cdr.markForCheck();
+  }
+
+  onCancelarEdicionItem(): void {
+    this.limpiarItemForm();
+    this.cdr.markForCheck();
+  }
+
+  private aplicarDistribucionesEnFormulario(item: OrdenCompraItem): void {
+    this.distribCants = {};
+    for (const v of this.variantesDisponibles) {
+      const dist = item.distribuciones?.find(d => d.variante === v.id);
+      this.distribCants[v.id] = dist ? this.toNum(dist.cantidad, 0) : 0;
+    }
+  }
+
   onEliminarItem(index: number): void {
+    if (this.itemEditandoIndex === index) {
+      this.limpiarItemForm();
+    } else if (this.itemEditandoIndex !== null && index < this.itemEditandoIndex) {
+      this.itemEditandoIndex--;
+    }
     this.items = this.items.filter((_, i) => i !== index);
     this.cdr.markForCheck();
   }
 
   private limpiarItemForm(): void {
+    this.itemEditandoIndex = null;
     this.productoSeleccionado = null;
     this.variantesDisponibles = [];
     this.distribCants = {};
@@ -359,6 +463,7 @@ export class OrdenFormComponent implements OnInit {
         id: i.id,
         producto: i.producto,
         variante: i.variante || null,
+        almacen: this.resolveAlmacenItem(i),
         distribuciones: (i.distribuciones || []).map(d => ({
           variante: d.variante,
           cantidad: this.toNum(d.cantidad, 0),
@@ -441,11 +546,16 @@ export class OrdenFormComponent implements OnInit {
             ...d,
             cantidad: this.toNum(d.cantidad, 0),
           }));
+          const almItem = i.almacen != null && typeof i.almacen === 'object'
+            ? (i.almacen as { id: number }).id
+            : (i.almacen as number | null | undefined) ?? null;
           return {
             ...i,
+            almacen: almItem,
             cantidad,
             costo_mercaderia: this.toNum(i.costo_mercaderia, 0),
             flete_unitario: this.toNum(i.flete_unitario, 0),
+            costo_unitario_total: this.toNum(i.costo_unitario_total, 0),
             porcentaje_ganancia: this.toNum(i.porcentaje_ganancia, 0),
             precio_unitario: precio,
             precio_venta_sugerido: this.toNum(i.precio_venta_sugerido, 0),

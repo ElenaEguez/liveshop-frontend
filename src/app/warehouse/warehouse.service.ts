@@ -6,6 +6,13 @@ import { environment } from '../../environments/environment';
 
 const API = environment.apiUrl;
 
+export interface KardexDetalleVariante {
+  variant_name: string;
+  cantidad: number;
+  stock_anterior: number;
+  stock_actual: number;
+}
+
 export interface KardexMovimiento {
   id: number;
   inventory: number;
@@ -24,6 +31,7 @@ export interface KardexMovimiento {
   usuario_email: string | null;
   usuario_nombre: string | null;
   variant_name: string | null;
+  detalle_variantes?: KardexDetalleVariante[];
   notas: string;
   created_at: string;
 }

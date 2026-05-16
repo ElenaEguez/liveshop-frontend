@@ -57,8 +57,27 @@
   min-width: 260px;
 }
 
-.btn-agregar-item {
+.item-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
   margin-top: 4px;
+}
+
+.btn-agregar-item {
+  margin-top: 0;
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.fila-editando {
+  background: #fff8e1 !important;
 }
 
 .resumen-bloque {

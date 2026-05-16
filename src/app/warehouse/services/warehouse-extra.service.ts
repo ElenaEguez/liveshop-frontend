@@ -16,6 +16,7 @@ export interface TransferenciaItem {
     color_hex: string;
   } | null;
   cantidad: number;
+  stock_actual?: number;
 }
 
 export interface Transferencia {
@@ -180,5 +181,39 @@ export class WarehouseExtraService {
     return this.http.get<any>(
       `${environment.apiUrl}/branches/almacenes/`
     ).pipe(map(r => this.asArray<any>(r)));
+  }
+
+  /**
+   * Stock en almacén origen (Inventory), no la suma global de variantes.
+   * Misma regla que al confirmar una transferencia.
+   */
+  getStockEnAlmacen(
+    productoId: number,
+    almacenId: number,
+  ): Observable<number> {
+    const params = new HttpParams()
+      .set('product_id', String(productoId))
+      .set('almacen_id', String(almacenId))
+      .set('use_warehouse_stock', '1')
+      .set('page_size', '1');
+    return this.http.get<any>(
+      `${environment.apiUrl}/products/inventories/`,
+      { params },
+    ).pipe(
+      map((resp: any) => {
+        const rows = Array.isArray(resp) ? resp : (resp?.results ?? []);
+        const row = rows[0];
+        if (!row) {
+          return 0;
+        }
+        const wh = row.inventario_disponible ?? row.available_quantity;
+        if (wh != null) {
+          return Math.max(0, Number(wh) || 0);
+        }
+        const q = Number(row.quantity) || 0;
+        const r = Number(row.reserved_quantity) || 0;
+        return Math.max(0, q - r);
+      }),
+    );
   }
 }

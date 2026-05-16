@@ -87,6 +87,19 @@
                    formControlName="cantidad" min="1">
           </mat-form-field>
 
+          <div class="stock-hint" *ngIf="productoSeleccionado">
+            <span *ngIf="!almacenOrigenId()">
+              Seleccione almacén origen para ver stock
+            </span>
+            <span *ngIf="almacenOrigenId() && cargandoStock">
+              Consultando stock…
+            </span>
+            <span *ngIf="almacenOrigenId() && !cargandoStock && stockActual != null"
+                  [class.stock-bajo]="stockActual === 0">
+              Stock actual (origen): <strong>{{ stockActual }}</strong>
+            </span>
+          </div>
+
           <button mat-raised-button color="primary"
                   type="button"
                   (click)="onAgregarItem()"
@@ -123,11 +136,23 @@
             </mat-cell>
           </ng-container>
 
+          <ng-container matColumnDef="stock_actual">
+            <mat-header-cell *matHeaderCellDef>
+              Stock actual
+            </mat-header-cell>
+            <mat-cell *matCellDef="let i"
+                      [class.stock-bajo]="i.stock_actual === 0">
+              {{ i.stock_actual ?? '—' }}
+            </mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="cantidad">
             <mat-header-cell *matHeaderCellDef>
               Cantidad
             </mat-header-cell>
-            <mat-cell *matCellDef="let i">
+            <mat-cell *matCellDef="let i"
+                      [class.stock-excedido]="
+                        i.stock_actual != null && i.cantidad > i.stock_actual">
               {{ i.cantidad }}
             </mat-cell>
           </ng-container>
