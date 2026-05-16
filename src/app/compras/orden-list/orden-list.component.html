@@ -13,61 +13,115 @@
     </div>
   </div>
 
-  <mat-card>
+  <p *ngIf="cargando" class="loading-hint">Cargando órdenes…</p>
+
+  <mat-card *ngIf="!cargando">
     <mat-card-content>
-      <table class="table" *ngIf="ordenes.length > 0">
-        <thead>
-          <tr>
-            <th>Número</th>
-            <th>Proveedor</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Total</th>
-            <th class="th-acciones">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let o of ordenes">
-            <td>
-              <a [routerLink]="['/compras', o.id]" class="link-num">{{ o.numero }}</a>
-            </td>
-            <td>{{ o.proveedor_data?.nombre || '—' }}</td>
-            <td>{{ o.fecha }}</td>
-            <td>{{ o.estado }}</td>
-            <td>Bs. {{ o.total || 0 | number:'1.2-2' }}</td>
-            <td class="cell-actions">
-              <span class="row-actions">
-                <a *ngIf="o.id"
-                   mat-icon-button
-                   color="primary"
-                   [routerLink]="['/compras', o.id]"
-                   matTooltip="Ver detalle">
-                  <mat-icon>visibility</mat-icon>
-                </a>
-                <a *ngIf="o.id && puedeEditar(o)"
-                   mat-icon-button
-                   color="accent"
-                   [routerLink]="['/compras', o.id, 'edit']"
-                   matTooltip="Editar orden">
-                  <mat-icon>edit</mat-icon>
-                </a>
-                <a
-                  *ngIf="o.estado === 'recibida' && o.id"
-                  mat-stroked-button
-                  color="warn"
-                  class="btn-mini"
-                  [routerLink]="['/compras/devolucion-proveedor']"
-                  [queryParams]="{ orden: o.id }"
-                  (click)="$event.stopPropagation()"
-                >
-                  Devolver
-                </a>
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <p *ngIf="!cargando && ordenes.length === 0">Sin órdenes registradas.</p>
+      <p *ngIf="ordenes.length === 0" class="empty-state">Sin órdenes registradas.</p>
+
+      <!-- Tabla: escritorio -->
+      <div class="table-scroll desktop-only" *ngIf="ordenes.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Proveedor</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Total</th>
+              <th class="th-acciones">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of ordenes">
+              <td>
+                <a [routerLink]="['/compras', o.id]" class="link-num">{{ o.numero }}</a>
+              </td>
+              <td>{{ o.proveedor_data?.nombre || '—' }}</td>
+              <td>{{ o.fecha }}</td>
+              <td>
+                <span class="estado-chip" [ngClass]="estadoClass(o)">{{ estadoLabel(o) }}</span>
+              </td>
+              <td class="col-total">Bs. {{ o.total || 0 | number:'1.2-2' }}</td>
+              <td class="cell-actions">
+                <span class="row-actions">
+                  <a *ngIf="o.id"
+                     mat-icon-button
+                     color="primary"
+                     [routerLink]="['/compras', o.id]"
+                     matTooltip="Ver detalle">
+                    <mat-icon>visibility</mat-icon>
+                  </a>
+                  <a *ngIf="o.id && puedeEditar(o)"
+                     mat-icon-button
+                     color="accent"
+                     [routerLink]="['/compras', o.id, 'edit']"
+                     matTooltip="Editar orden">
+                    <mat-icon>edit</mat-icon>
+                  </a>
+                  <a
+                    *ngIf="o.estado === 'recibida' && o.id"
+                    mat-stroked-button
+                    color="warn"
+                    class="btn-mini"
+                    [routerLink]="['/compras/devolucion-proveedor']"
+                    [queryParams]="{ orden: o.id }"
+                    (click)="$event.stopPropagation()"
+                  >
+                    Devolver
+                  </a>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tarjetas: móvil -->
+      <div class="orden-cards mobile-only" *ngIf="ordenes.length > 0">
+        <article class="orden-card" *ngFor="let o of ordenes">
+          <div class="orden-card-top">
+            <a [routerLink]="['/compras', o.id]" class="link-num orden-card-num">{{ o.numero }}</a>
+            <span class="estado-chip" [ngClass]="estadoClass(o)">{{ estadoLabel(o) }}</span>
+          </div>
+          <div class="orden-card-row">
+            <span class="label">Proveedor</span>
+            <span>{{ o.proveedor_data?.nombre || '—' }}</span>
+          </div>
+          <div class="orden-card-row">
+            <span class="label">Fecha</span>
+            <span>{{ o.fecha }}</span>
+          </div>
+          <div class="orden-card-row orden-card-total">
+            <span class="label">Total</span>
+            <strong>Bs. {{ o.total || 0 | number:'1.2-2' }}</strong>
+          </div>
+          <div class="orden-card-actions">
+            <a *ngIf="o.id"
+               mat-stroked-button
+               color="primary"
+               [routerLink]="['/compras', o.id]">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </a>
+            <a *ngIf="o.id && puedeEditar(o)"
+               mat-stroked-button
+               [routerLink]="['/compras', o.id, 'edit']">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </a>
+            <a
+              *ngIf="o.estado === 'recibida' && o.id"
+              mat-stroked-button
+              color="warn"
+              [routerLink]="['/compras/devolucion-proveedor']"
+              [queryParams]="{ orden: o.id }"
+            >
+              Devolver
+            </a>
+          </div>
+        </article>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

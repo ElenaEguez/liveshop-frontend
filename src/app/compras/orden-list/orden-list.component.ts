@@ -42,4 +42,18 @@ export class OrdenListComponent implements OnInit {
     const e = o.estado;
     return e === 'borrador' || e === 'pendiente';
   }
+
+  estadoLabel(o: OrdenCompra): string {
+    const labels: Record<string, string> = {
+      borrador: 'Borrador',
+      pendiente: 'Pendiente',
+      recibida: 'Recibida',
+      cancelada: 'Cancelada'
+    };
+    return labels[o.estado || ''] || o.estado || '—';
+  }
+
+  estadoClass(o: OrdenCompra): string {
+    return o.estado ? `estado-${o.estado}` : '';
+  }
 }
