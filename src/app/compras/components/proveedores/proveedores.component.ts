@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { PageEvent } from '@angular/material/paginator';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ComprasService, Proveedor } from '../../compras.service';
+import { ProveedorDialogComponent } from '../proveedor-dialog/proveedor-dialog.component';
 
 @Component({
   selector: 'app-proveedores',
@@ -9,77 +14,75 @@ import { ComprasService, Proveedor } from '../../compras.service';
 })
 export class ProveedoresComponent implements OnInit {
   proveedores: Proveedor[] = [];
-  mostrarForm = false;
-  editandoId: number | null = null;
-  guardando = false;
-  form!: FormGroup;
+  searchControl = new FormControl('');
+  pageIndex = 0;
+  pageSize = 10;
+  totalCount = 0;
+  loading = false;
 
   constructor(
-    private fb: FormBuilder,
-    private comprasService: ComprasService
+    private comprasService: ComprasService,
+    private dialog: MatDialog,
+    private snack: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
-    this.form = this.fb.group({
-      nombre: ['', Validators.required],
-      contacto: [''],
-      telefono: [''],
-      email: [''],
-      notas: [''],
-      activo: [true],
-    });
     this.cargar();
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.cargar();
+    });
   }
 
   cargar(): void {
-    this.comprasService.getProveedores().subscribe({
-      next: (list) => { this.proveedores = list; },
-      error: (err) => console.error(err)
+    this.loading = true;
+    const search = this.searchControl.value?.trim() || undefined;
+    this.comprasService.getProveedoresPaginated(
+      this.pageIndex + 1,
+      this.pageSize,
+      search
+    ).subscribe({
+      next: res => {
+        this.proveedores = res.results;
+        this.totalCount = res.count;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.snack.open('Error al cargar proveedores', 'Cerrar', { duration: 3000 });
+      }
     });
+  }
+
+  onPage(e: PageEvent): void {
+    this.pageIndex = e.pageIndex;
+    this.pageSize = e.pageSize;
+    this.cargar();
   }
 
   onNuevo(): void {
-    this.editandoId = null;
-    this.form.reset({ activo: true, nombre: '', contacto: '', telefono: '', email: '', notas: '' });
-    this.mostrarForm = true;
+    this.abrirDialog();
   }
 
   onEditar(p: Proveedor): void {
-    this.editandoId = p.id ?? null;
-    this.form.patchValue({
-      nombre: p.nombre,
-      contacto: p.contacto || '',
-      telefono: p.telefono || '',
-      email: p.email || '',
-      notas: p.notas || '',
-      activo: p.activo !== false,
+    this.abrirDialog(p);
+  }
+
+  private abrirDialog(proveedor?: Proveedor): void {
+    const ref = this.dialog.open(ProveedorDialogComponent, {
+      width: '520px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      panelClass: 'dialog-md',
+      data: { proveedor },
+      disableClose: true,
     });
-    this.mostrarForm = true;
-  }
-
-  onCancelar(): void {
-    this.editandoId = null;
-    this.mostrarForm = false;
-    this.form.reset({ activo: true });
-  }
-
-  onGuardar(): void {
-    if (this.form.invalid || this.guardando) { return; }
-    this.guardando = true;
-    const v = this.form.value;
-    const op = this.editandoId != null
-      ? this.comprasService.actualizarProveedor(this.editandoId, v)
-      : this.comprasService.crearProveedor(v);
-    op.subscribe({
-      next: () => {
-        this.guardando = false;
-        this.onCancelar();
-        this.cargar();
-      },
-      error: (err) => {
-        this.guardando = false;
-        alert(err.error?.detail || err.error?.error || 'Error al guardar');
-      }
+    ref.afterClosed().subscribe(saved => {
+      if (saved) this.cargar();
     });
   }
 
@@ -88,7 +91,23 @@ export class ProveedoresComponent implements OnInit {
       p.id!, { activo: !p.activo }
     ).subscribe({
       next: () => this.cargar(),
-      error: (err) => console.error(err)
+      error: () => this.snack.open('Error al actualizar estado', 'Cerrar', { duration: 3000 }),
+    });
+  }
+
+  onEliminar(p: Proveedor): void {
+    if (!confirm(`¿Eliminar el proveedor "${p.nombre}"?`)) return;
+    this.comprasService.eliminarProveedor(p.id!).subscribe({
+      next: () => {
+        this.snack.open('Proveedor eliminado.', 'Cerrar', { duration: 3000 });
+        this.cargar();
+      },
+      error: (err) => {
+        const msg = err.error?.detail
+          || err.error?.error
+          || 'No se puede eliminar el proveedor.';
+        this.snack.open(msg, 'Cerrar', { duration: 5000, panelClass: 'snack-error' });
+      },
     });
   }
 }

@@ -40,6 +40,7 @@
   font-family: 'Courier New', monospace; font-size: 12px;
   background: #fff; padding: 12px; border: 1px dashed #ccc;
   .tp-header { text-align: center; margin-bottom: 6px;
+    .tp-logo { max-height: 56px; max-width: 140px; display: block; margin: 0 auto 8px; object-fit: contain; }
     .tp-store { font-size: 15px; font-weight: bold; }
     .tp-meta  { font-size: 11px; }
   }

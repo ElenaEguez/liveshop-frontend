@@ -1,0 +1,21 @@
+.proveedor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 320px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 140px;
+  }
+}

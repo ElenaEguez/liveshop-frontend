@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar proveedor' : 'Nuevo proveedor' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="proveedor-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre *</mat-label>
+      <input matInput formControlName="nombre">
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Contacto</mat-label>
+        <input matInput formControlName="contacto">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="telefono">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notas</mat-label>
+      <textarea matInput formControlName="notas" rows="2"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancelar()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button"
+          (click)="onGuardar()" [disabled]="form.invalid || guardando">
+    {{ guardando ? 'Guardando...' : 'Guardar' }}
+  </button>
+</mat-dialog-actions>

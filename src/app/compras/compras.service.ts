@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { PaginatedResponse } from '../products/products.service';
 
 export interface Proveedor {
   id?: number;
@@ -94,7 +95,28 @@ export class ComprasService {
   constructor(private http: HttpClient) {}
 
   getProveedores(): Observable<Proveedor[]> {
-    return this.http.get<Proveedor[]>(this.proveedoresUrl);
+    const params = new HttpParams().set('page_size', '500');
+    return this.http.get<Proveedor[] | { results: Proveedor[] }>(this.proveedoresUrl, { params }).pipe(
+      map(res => (Array.isArray(res) ? res : res.results ?? [])),
+    );
+  }
+
+  getProveedoresPaginated(
+    page = 1,
+    pageSize = 10,
+    search?: string,
+  ): Observable<PaginatedResponse<Proveedor>> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('page_size', String(pageSize));
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<PaginatedResponse<Proveedor>>(this.proveedoresUrl, { params });
+  }
+
+  eliminarProveedor(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.proveedoresUrl}${id}/`);
   }
 
   crearProveedor(payload: Partial<Proveedor>): Observable<Proveedor> {

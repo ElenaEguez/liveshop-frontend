@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PageEvent } from '@angular/material/paginator';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Category, CategoryService } from '../../services/category.service';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
 
@@ -12,6 +15,11 @@ import { CategoryFormDialogComponent } from '../category-form-dialog/category-fo
 export class CategoryListComponent implements OnInit {
   categories: Category[] = [];
   displayedColumns = ['name', 'description', 'actions'];
+  searchControl = new FormControl('');
+  pageIndex = 0;
+  pageSize = 10;
+  totalCount = 0;
+  loading = false;
 
   constructor(
     private categoryService: CategoryService,
@@ -21,15 +29,35 @@ export class CategoryListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCategories();
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.loadCategories();
+    });
   }
 
   loadCategories(): void {
-    this.categoryService.getCategories().subscribe({
-      next: (data: any) => {
-        this.categories = Array.isArray(data) ? data : (data.results ?? []);
+    this.loading = true;
+    const search = this.searchControl.value?.trim() || undefined;
+    this.categoryService.getCategories(this.pageIndex + 1, this.pageSize, search).subscribe({
+      next: (data) => {
+        this.categories = data.results;
+        this.totalCount = data.count;
+        this.loading = false;
       },
-      error: () => this.snackBar.open('Error al cargar categorías', 'Cerrar', { duration: 3000 })
+      error: () => {
+        this.loading = false;
+        this.snackBar.open('Error al cargar categorías', 'Cerrar', { duration: 3000 });
+      }
     });
+  }
+
+  onPage(e: PageEvent): void {
+    this.pageIndex = e.pageIndex;
+    this.pageSize = e.pageSize;
+    this.loadCategories();
   }
 
   openForm(category?: Category): void {
@@ -53,7 +81,13 @@ export class CategoryListComponent implements OnInit {
         this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 });
         this.loadCategories();
       },
-      error: () => this.snackBar.open('Error al eliminar la categoría', 'Cerrar', { duration: 3000 })
+      error: (err) => {
+        const msg = err.error?.detail
+          || err.error?.error
+          || (typeof err.error === 'string' ? err.error : null)
+          || 'No se puede eliminar la categoría.';
+        this.snackBar.open(msg, 'Cerrar', { duration: 5000, panelClass: 'snack-error' });
+      }
     });
   }
 }

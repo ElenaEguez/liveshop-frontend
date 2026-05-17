@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PosService, VentaPOS, Sucursal } from '../pos.service';
 import { TicketPreviewDialogComponent } from '../ticket-preview/ticket-preview-dialog.component';
+import { VentaItemsDetailDialogComponent } from '../venta-items-detail-dialog/venta-items-detail-dialog.component';
 import { CobrarCreditoDialogComponent } from '../cobrar-credito-dialog/cobrar-credito-dialog.component';
 
 @Component({
@@ -42,7 +43,7 @@ export class VentasListComponent implements OnInit {
   };
   resumen = { total_ventas: '0', total_cobrado: '0', cantidad_ventas: 0 };
 
-  displayedColumns = ['numero_ticket', 'fecha', 'cliente', 'productos', 'total', 'monto_cobrado', 'metodo', 'cajero', 'status', 'acciones'];
+  displayedColumns = ['numero_ticket', 'fecha', 'caja', 'cliente', 'productos', 'total', 'monto_cobrado', 'metodo', 'cajero', 'status', 'acciones'];
 
   today = new Date().toISOString().substring(0, 10);
 
@@ -142,14 +143,14 @@ export class VentasListComponent implements OnInit {
   }
 
   verDetalle(venta: VentaPOS): void {
-    this.dialog.open(TicketPreviewDialogComponent, {
-      data: { venta, vendorName: '', moneda: 'Bs.', showNuevaVenta: false },
-      width: '420px',
+    this.dialog.open(VentaItemsDetailDialogComponent, {
+      data: { venta },
+      width: '640px',
       maxWidth: '95vw',
       maxHeight: '90vh',
       disableClose: false,
       autoFocus: false,
-      panelClass: 'dialog-sm',
+      panelClass: 'dialog-md',
     });
   }
 

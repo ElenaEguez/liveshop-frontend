@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Editar miembro</h2>
+
+<mat-dialog-content>
+  <p class="member-info">{{ data.member.user_name || data.member.user_email }}</p>
+  <p class="member-email">{{ data.member.user_email }}</p>
+
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rol</mat-label>
+      <mat-select formControlName="custom_role">
+        <mat-option *ngFor="let r of data.roles" [value]="r.id">{{ r.name }}</mat-option>
+      </mat-select>
+      <mat-error>Seleccione un rol</mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button"
+          (click)="onSave()" [disabled]="form.invalid || saving">
+    {{ saving ? 'Guardando...' : 'Guardar' }}
+  </button>
+</mat-dialog-actions>

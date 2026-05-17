@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TeamService, TeamMember, CustomRole } from '../services/team.service';
 import { TeamInviteDialogComponent } from '../team-invite-dialog/team-invite-dialog.component';
 import { RoleDialogComponent } from '../role-dialog/role-dialog.component';
+import { TeamMemberEditDialogComponent } from '../team-member-edit-dialog/team-member-edit-dialog.component';
 
 @Component({
   selector: 'app-team-list',
@@ -62,6 +63,25 @@ export class TeamListComponent implements OnInit {
     });
     ref.afterClosed().subscribe(result => {
       if (result) this.loadMembers();
+    });
+  }
+
+  openEditMember(member: TeamMember): void {
+    const ref = this.dialog.open(TeamMemberEditDialogComponent, {
+      width: '420px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      panelClass: 'dialog-md',
+      data: { member, roles: this.roles },
+    });
+    ref.afterClosed().subscribe(updated => {
+      if (updated) {
+        const idx = this.members.findIndex(m => m.id === updated.id);
+        if (idx >= 0) {
+          this.members[idx] = updated;
+          this.members = [...this.members];
+        }
+      }
     });
   }
 

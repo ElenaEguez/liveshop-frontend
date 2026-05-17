@@ -30,6 +30,7 @@ import { CobrarCreditoDialogComponent }        from './cobrar-credito-dialog/cob
 import { ArqueosListComponent }                from './arqueos-list/arqueos-list.component';
 import { ScannerConfigDialogComponent }        from './scanner-config-dialog/scanner-config-dialog.component';
 import { EditarFondoDialogComponent }          from './editar-fondo-dialog/editar-fondo-dialog.component';
+import { VentaItemsDetailDialogComponent }     from './venta-items-detail-dialog/venta-items-detail-dialog.component';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { EditarFondoDialogComponent }          from './editar-fondo-dialog/edita
     ArqueosListComponent,
     ScannerConfigDialogComponent,
     EditarFondoDialogComponent,
+    VentaItemsDetailDialogComponent,
   ],
   imports: [
     CommonModule,

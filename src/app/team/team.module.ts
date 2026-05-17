@@ -20,12 +20,14 @@ import { TeamRoutingModule } from './team-routing.module';
 import { TeamListComponent } from './team-list/team-list.component';
 import { TeamInviteDialogComponent } from './team-invite-dialog/team-invite-dialog.component';
 import { RoleDialogComponent } from './role-dialog/role-dialog.component';
+import { TeamMemberEditDialogComponent } from './team-member-edit-dialog/team-member-edit-dialog.component';
 
 @NgModule({
   declarations: [
     TeamListComponent,
     TeamInviteDialogComponent,
-    RoleDialogComponent
+    RoleDialogComponent,
+    TeamMemberEditDialogComponent,
   ],
   imports: [
     CommonModule,

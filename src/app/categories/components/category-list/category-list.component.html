@@ -10,6 +10,12 @@
     </button>
   </div>
 
+  <mat-form-field appearance="outline" style="width:100%; max-width:400px; margin-bottom:16px;">
+    <mat-label>Buscar por nombre</mat-label>
+    <input matInput [formControl]="searchControl" placeholder="Nombre de categoría">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
   <!-- Tabla -->
   <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
     <table mat-table [dataSource]="categories" style="width:100%;">
@@ -49,7 +55,7 @@
           style="border-bottom:1px solid #f3f4f6;"></tr>
     </table>
 
-    <div *ngIf="categories.length === 0"
+    <div *ngIf="!loading && categories.length === 0"
          style="text-align:center; padding:48px; color:#9ca3af;">
       <mat-icon style="font-size:48px; width:48px; height:48px;">category</mat-icon>
       <p style="margin-top:12px; font-size:1rem;">No hay categorías aún</p>
@@ -57,6 +63,14 @@
         Crear primera categoría
       </button>
     </div>
+
+    <mat-paginator
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)">
+    </mat-paginator>
   </div>
 
 </div>

@@ -83,7 +83,13 @@ export class SettingsComponent implements OnInit {
     this.expensesSvc.getCategorias().subscribe(c => this.categoriasGasto = c);
     this.vendorProfileSvc.getProfile().subscribe({
       next: p => {
-        this.vendorLogo = p.logo ?? null;
+        const logo = p.logo ?? null;
+        if (logo && !logo.startsWith('http')) {
+          const base = this.vendorProfileSvc.mediaBase;
+          this.vendorLogo = `${base}${logo}`;
+        } else {
+          this.vendorLogo = logo;
+        }
         this.inventoryMethod = p.inventory_method ?? 'peps';
       },
       error: () => {},
@@ -111,7 +117,6 @@ export class SettingsComponent implements OnInit {
       direccion:       [''],
       telefono:        [''],
       texto_pie:       ['¡Gracias por su compra!'],
-      mostrar_qr:      [false],
       moneda:          ['Bs.'],
       ancho_ticket:    [80],
     });
@@ -140,7 +145,8 @@ export class SettingsComponent implements OnInit {
   saveTicket(): void {
     if (this.ticketForm.invalid) return;
     this.ticketSaving = true;
-    this.svc.saveTicketConfig(this.ticketForm.value).subscribe({
+    const payload = { ...this.ticketForm.value, mostrar_logo: true, mostrar_qr: false };
+    this.svc.saveTicketConfig(payload).subscribe({
       next: () => { this.ticketSaving = false; this.snack.open('Configuración guardada.', 'OK', { duration: 2000 }); },
       error: () => { this.ticketSaving = false; this.snack.open('Error al guardar.', 'OK', { duration: 3000 }); },
     });

@@ -109,6 +109,7 @@ export interface VentaPOS {
   sucursal: number;
   sucursal_nombre: string;
   caja: number | null;
+  caja_nombre?: string | null;
   turno: number | null;
   cliente_nombre: string;
   cliente_telefono: string;

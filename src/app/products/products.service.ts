@@ -11,6 +11,7 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
+  stock_disponible?: number;
   category: number;
   images: string[];
   is_active: boolean;

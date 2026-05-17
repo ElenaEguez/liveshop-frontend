@@ -29,6 +29,7 @@ export class RoleDialogComponent {
     { key: 'perm_pos',          label: 'Punto de Venta',   description: 'Acceder al módulo de venta física (POS)' },
     { key: 'perm_warehouse',    label: 'Almacén/Kardex',   description: 'Ver movimientos y ajustar inventario en almacén' },
     { key: 'perm_expenses',     label: 'Gastos',           description: 'Registrar y ver gastos operativos' },
+    { key: 'perm_compras',      label: 'Compras',          description: 'Órdenes de compra y proveedores' },
     { key: 'perm_dashboard',    label: 'Dashboard',        description: 'Ver reportes y estadísticas' },
     { key: 'perm_team',         label: 'Equipo',           description: 'Gestionar miembros y roles del equipo' },
   ];
@@ -54,6 +55,7 @@ export class RoleDialogComponent {
       perm_pos:           [r?.perm_pos           ?? false],
       perm_warehouse:     [r?.perm_warehouse     ?? false],
       perm_expenses:      [r?.perm_expenses      ?? false],
+      perm_compras:       [r?.perm_compras       ?? false],
       perm_dashboard:     [r?.perm_dashboard     ?? false],
       perm_team:          [r?.perm_team          ?? false],
     });

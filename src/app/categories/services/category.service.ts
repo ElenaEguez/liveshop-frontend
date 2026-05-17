@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { unwrapList } from '../../shared/api-utils';
 import { PaginatedResponse } from '../../products/products.service';
 
 export interface Category {
@@ -19,10 +18,23 @@ export class CategoryService {
 
   constructor(private http: HttpClient) {}
 
-  getCategories(): Observable<Category[]> {
-    return this.http
-      .get<Category[] | PaginatedResponse<Category>>(this.apiUrl)
-      .pipe(map(data => unwrapList(data)));
+  getCategories(
+    page = 1,
+    pageSize = 10,
+    search?: string
+  ): Observable<PaginatedResponse<Category>> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('page_size', String(pageSize));
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<PaginatedResponse<Category>>(this.apiUrl, { params });
+  }
+
+  /** Todas las categorías (p. ej. filtros en dashboard). */
+  getAllCategories(): Observable<Category[]> {
+    return this.getCategories(1, 500).pipe(map(res => res.results ?? []));
   }
 
   createCategory(data: Partial<Category>): Observable<Category> {

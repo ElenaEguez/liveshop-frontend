@@ -57,7 +57,6 @@
 
             <div class="toggle-row">
               <mat-slide-toggle formControlName="mostrar_logo">Mostrar logo</mat-slide-toggle>
-              <mat-slide-toggle formControlName="mostrar_qr">Mostrar QR</mat-slide-toggle>
             </div>
 
             <!-- Logo del vendor -->
@@ -130,6 +129,9 @@
           <div class="ticket-preview-wrapper">
             <div class="ticket-preview" [style.width.px]="ticketWidthPx">
               <div class="tp-header">
+                <img *ngIf="ticketPreview.mostrar_logo && vendorLogo"
+                     [src]="vendorLogo" alt="Logo"
+                     class="tp-logo">
                 <div class="tp-store">{{ ticketPreview.nombre_empresa || 'Nombre empresa' }}</div>
                 <div class="tp-meta" *ngIf="ticketPreview.ruc_nit">NIT: {{ ticketPreview.ruc_nit }}</div>
                 <div class="tp-meta" *ngIf="ticketPreview.direccion">{{ ticketPreview.direccion }}</div>

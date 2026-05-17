@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Product, Category, PaginatedResponse, ProductService } from '../products.service';
 import { ProductFormComponent } from '../product-form/product-form.component';
 
@@ -29,8 +30,13 @@ export class ProductListComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
+
+  displayStock(product: Product): number {
+    return product.stock_disponible ?? product.stock ?? 0;
+  }
 
   ngOnInit(): void {
     this.loadCategories();
@@ -123,12 +129,20 @@ export class ProductListComponent implements OnInit {
   }
 
   deleteProduct(product: Product): void {
-    if (confirm('¿Está seguro de eliminar este producto?')) {
-      this.productService.deleteProduct(product.id!).subscribe(
-        () => this.loadProducts(),
-        error => console.error('Error deleting product:', error)
-      );
-    }
+    if (!confirm(`¿Eliminar el producto "${product.name}"?`)) return;
+    this.productService.deleteProduct(product.id!).subscribe({
+      next: () => {
+        this.snackBar.open('Producto eliminado.', 'Cerrar', { duration: 3000 });
+        this.loadProducts();
+      },
+      error: (err) => {
+        const msg = err.error?.detail
+          || err.error?.error
+          || (typeof err.error === 'string' ? err.error : null)
+          || 'No se puede eliminar el producto.';
+        this.snackBar.open(msg, 'Cerrar', { duration: 5000, panelClass: 'snack-error' });
+      },
+    });
   }
 
   onPageChange(page: number): void {

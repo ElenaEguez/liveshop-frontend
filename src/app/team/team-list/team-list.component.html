@@ -92,6 +92,9 @@
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef></mat-header-cell>
               <mat-cell *matCellDef="let m">
+                <button mat-icon-button matTooltip="Editar" (click)="openEditMember(m)">
+                  <mat-icon>edit</mat-icon>
+                </button>
                 <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDeleteMember(m)">
                   <mat-icon>delete_outline</mat-icon>
                 </button>

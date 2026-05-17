@@ -1,4 +1,17 @@
 .proveedores-container { padding: 16px; }
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+
+.proveedor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
 .header-actions {
   display: flex;
   justify-content: space-between;

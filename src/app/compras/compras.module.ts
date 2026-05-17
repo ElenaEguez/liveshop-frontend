@@ -14,12 +14,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ComprasRoutingModule } from './compras-routing.module';
 import { OrdenListComponent } from './orden-list/orden-list.component';
 import { OrdenFormComponent } from './orden-form/orden-form.component';
 import { OrdenDetailComponent } from './orden-detail/orden-detail.component';
 import { ProveedoresComponent } from './components/proveedores/proveedores.component';
+import { ProveedorDialogComponent } from './components/proveedor-dialog/proveedor-dialog.component';
 import { DevolucionProveedorComponent } from './devolucion-proveedor/devolucion-proveedor.component';
 
 @NgModule({
@@ -28,6 +32,7 @@ import { DevolucionProveedorComponent } from './devolucion-proveedor/devolucion-
     OrdenFormComponent,
     OrdenDetailComponent,
     ProveedoresComponent,
+    ProveedorDialogComponent,
     DevolucionProveedorComponent,
   ],
   imports: [
@@ -47,6 +52,9 @@ import { DevolucionProveedorComponent } from './devolucion-proveedor/devolucion-
     MatChipsModule,
     MatRadioModule,
     MatCheckboxModule,
+    MatDialogModule,
+    MatPaginatorModule,
+    MatSnackBarModule,
   ],
 })
 export class ComprasModule {}

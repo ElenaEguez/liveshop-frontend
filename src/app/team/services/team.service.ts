@@ -17,6 +17,7 @@ export interface CustomRole {
   perm_pos: boolean;
   perm_warehouse: boolean;
   perm_expenses: boolean;
+  perm_compras: boolean;
   created_at: string;
 }
 

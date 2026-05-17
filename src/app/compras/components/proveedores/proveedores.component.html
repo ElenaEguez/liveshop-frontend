@@ -2,112 +2,60 @@
 
   <div class="header-actions">
     <h2>Proveedores</h2>
-    <button mat-raised-button color="primary"
-            (click)="onNuevo()">
+    <button mat-raised-button color="primary" (click)="onNuevo()">
       <mat-icon>add</mat-icon> Nuevo proveedor
     </button>
   </div>
 
-  <!-- Lista -->
-  <mat-card *ngFor="let p of proveedores"
-            class="proveedor-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Buscar por nombre</mat-label>
+    <input matInput [formControl]="searchControl" placeholder="Nombre del proveedor">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <mat-card *ngFor="let p of proveedores" class="proveedor-card">
     <mat-card-content>
-      <div class="proveedor-info">
-        <div>
-          <strong>{{ p.nombre }}</strong>
-          <mat-chip-list *ngIf="!p.activo">
-            <mat-chip color="warn" selected class="chip-inactivo">
-              Inactivo
-            </mat-chip>
-          </mat-chip-list>
+      <div class="proveedor-row">
+        <div class="proveedor-info">
+          <div>
+            <strong>{{ p.nombre }}</strong>
+            <mat-chip-list *ngIf="!p.activo">
+              <mat-chip color="warn" selected class="chip-inactivo">Inactivo</mat-chip>
+            </mat-chip-list>
+          </div>
+          <div class="proveedor-datos">
+            <span *ngIf="p.contacto"><mat-icon>person</mat-icon> {{ p.contacto }}</span>
+            <span *ngIf="p.telefono"><mat-icon>phone</mat-icon> {{ p.telefono }}</span>
+            <span *ngIf="p.email"><mat-icon>email</mat-icon> {{ p.email }}</span>
+          </div>
+          <p *ngIf="p.notas" class="notas">{{ p.notas }}</p>
         </div>
-        <div class="proveedor-datos">
-          <span *ngIf="p.contacto">
-            <mat-icon>person</mat-icon> {{ p.contacto }}
-          </span>
-          <span *ngIf="p.telefono">
-            <mat-icon>phone</mat-icon> {{ p.telefono }}
-          </span>
-          <span *ngIf="p.email">
-            <mat-icon>email</mat-icon> {{ p.email }}
-          </span>
+        <div class="proveedor-acciones">
+          <button mat-icon-button type="button" (click)="onEditar(p)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button type="button" color="warn" (click)="onEliminar(p)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+          <button mat-icon-button type="button" (click)="onToggleActivo(p)"
+                  [matTooltip]="p.activo ? 'Desactivar' : 'Activar'">
+            <mat-icon>{{ p.activo ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+          </button>
         </div>
-        <p *ngIf="p.notas" class="notas">{{ p.notas }}</p>
-      </div>
-      <div class="proveedor-acciones">
-        <button mat-icon-button type="button" (click)="onEditar(p)"
-                matTooltip="Editar">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button type="button"
-                (click)="onToggleActivo(p)"
-                [matTooltip]="p.activo
-                  ? 'Desactivar' : 'Activar'">
-          <mat-icon>
-            {{ p.activo ? 'toggle_on' : 'toggle_off' }}
-          </mat-icon>
-        </button>
       </div>
     </mat-card-content>
   </mat-card>
 
-  <p *ngIf="proveedores.length === 0" class="empty-state">
+  <p *ngIf="!loading && proveedores.length === 0" class="empty-state">
     No hay proveedores registrados.
   </p>
 
-  <!-- Formulario crear/editar -->
-  <mat-card class="form-card" *ngIf="mostrarForm">
-    <mat-card-title>
-      {{ editandoId ? 'Editar' : 'Nuevo' }} proveedor
-    </mat-card-title>
-    <mat-card-content>
-      <form [formGroup]="form" class="proveedor-form">
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombre *</mat-label>
-          <input matInput formControlName="nombre">
-        </mat-form-field>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Contacto</mat-label>
-            <input matInput formControlName="contacto">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Teléfono</mat-label>
-            <input matInput formControlName="telefono">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email"
-                   type="email">
-          </mat-form-field>
-        </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Notas</mat-label>
-          <textarea matInput formControlName="notas"
-                    rows="2"></textarea>
-        </mat-form-field>
-
-        <div class="form-actions">
-          <button mat-button type="button"
-                  (click)="onCancelar()">
-            Cancelar
-          </button>
-          <button mat-raised-button color="primary"
-                  type="button"
-                  (click)="onGuardar()"
-                  [disabled]="form.invalid || guardando">
-            <mat-icon>save</mat-icon>
-            {{ guardando ? 'Guardando...' : 'Guardar' }}
-          </button>
-        </div>
-
-      </form>
-    </mat-card-content>
-  </mat-card>
+  <mat-paginator
+    [length]="totalCount"
+    [pageSize]="pageSize"
+    [pageIndex]="pageIndex"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="onPage($event)">
+  </mat-paginator>
 
 </div>

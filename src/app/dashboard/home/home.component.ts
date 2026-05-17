@@ -142,7 +142,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Data loading ──────────────────────────────────────────────────────────
 
   private loadCategories(): void {
-    this.categoryService.getCategories().subscribe({
+    this.categoryService.getAllCategories().subscribe({
       next: cats => (this.categories = cats),
       error: ()  => {}
     });

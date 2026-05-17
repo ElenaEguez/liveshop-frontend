@@ -92,6 +92,11 @@
         <mat-cell *matCellDef="let v">{{ v.created_at | date:'dd/MM/yy HH:mm' }}</mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="caja">
+        <mat-header-cell *matHeaderCellDef>Caja</mat-header-cell>
+        <mat-cell *matCellDef="let v">{{ v.caja_nombre || '—' }}</mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="cliente">
         <mat-header-cell *matHeaderCellDef>Cliente</mat-header-cell>
         <mat-cell *matCellDef="let v">{{ v.cliente_nombre }}</mat-cell>
@@ -139,7 +144,7 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
         <mat-cell *matCellDef="let v">
-          <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(v)">
+          <button mat-icon-button matTooltip="Ver productos vendidos" (click)="verDetalle(v)">
             <mat-icon>visibility</mat-icon>
           </button>
           <button mat-icon-button matTooltip="Reimprimir" (click)="reimprimir(v)">
