@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { PaginatedResponse } from '../products/products.service';
+import { unwrapList } from '../shared/api-utils';
 
 export interface Proveedor {
   id?: number;
@@ -179,9 +180,10 @@ export class ComprasService {
   }
 
   buscarProductos(query: string): Observable<ProductoLookup[]> {
-    return this.http.get<any[]>(this.productosUrl, { params: { search: query } }).pipe(
-      map((rows: any[]) =>
-        (rows || []).map((p: any) => {
+    return this.http.get<any[] | PaginatedResponse<any>>(this.productosUrl, {
+      params: { search: query },
+    }).pipe(
+      map((resp) => unwrapList(resp).map((p: any) => {
           const rawList = Array.isArray(p.variantes)
             ? p.variantes
             : Array.isArray(p.variants)
@@ -202,8 +204,7 @@ export class ComprasService {
             sku: p.sku || '',
             variantes,
           };
-        })
-      )
+        })),
     );
   }
 }

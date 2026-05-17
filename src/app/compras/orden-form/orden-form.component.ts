@@ -4,7 +4,6 @@ import {
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Subject } from 'rxjs';
 import {
   ComprasService, OrdenCompra, OrdenCompraItem,
   Proveedor, ProductoLookup, VarianteDetalle, OrdenCompraItemDistribucion
@@ -34,8 +33,6 @@ export class OrdenFormComponent implements OnInit {
   modoEdicion = false;
   /** Índice en `items` del ítem que se está editando desde el resumen. */
   itemEditandoIndex: number | null = null;
-
-  private busquedaSubject = new Subject<string>();
 
   constructor(
     private fb: FormBuilder,
@@ -128,9 +125,9 @@ export class OrdenFormComponent implements OnInit {
   }
 
   private configurarBusqueda(): void {
-    this.busquedaSubject.pipe(
+    this.itemForm.get('busqueda')?.valueChanges.pipe(
       debounceTime(300),
-      distinctUntilChanged()
+      distinctUntilChanged(),
     ).subscribe(query => {
       const q = (query || '').trim();
       if (q.length < 2) {
@@ -138,15 +135,17 @@ export class OrdenFormComponent implements OnInit {
         this.cdr.markForCheck();
         return;
       }
-      this.comprasService.buscarProductos(q).subscribe(p => {
-        this.productosFiltrados = p;
-        this.cdr.markForCheck();
+      this.comprasService.buscarProductos(q).subscribe({
+        next: p => {
+          this.productosFiltrados = p;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.productosFiltrados = [];
+          this.cdr.markForCheck();
+        },
       });
     });
-  }
-
-  onBusquedaChange(value: string): void {
-    this.busquedaSubject.next(value);
   }
 
   onSeleccionarProducto(producto: ProductoLookup): void {
