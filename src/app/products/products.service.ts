@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { unwrapList } from '../shared/api-utils';
 
@@ -108,10 +108,24 @@ export class ProductService {
     return this.http.delete<void>(`${this.apiUrl}/${id}/`);
   }
 
+  /** Todas las categorías del vendor (recorre páginas; el API pagina por defecto en 10). */
   getCategories(): Observable<Category[]> {
-    return this.http
-      .get<Category[] | PaginatedResponse<Category>>(`${this.apiUrl}/categories/`)
-      .pipe(map(data => unwrapList(data)));
+    const pageSize = 50;
+    let page = 1;
+    const fetchPage = (p: number) =>
+      this.http.get<PaginatedResponse<Category>>(`${this.apiUrl}/categories/`, {
+        params: new HttpParams().set('page', String(p)).set('page_size', String(pageSize)),
+      });
+
+    return fetchPage(page).pipe(
+      expand((res) => {
+        if (!res.next) return EMPTY;
+        page += 1;
+        return fetchPage(page);
+      }),
+      map((res) => unwrapList(res)),
+      reduce((acc, items) => acc.concat(items), [] as Category[])
+    );
   }
 
   getVariantes(productId: number): Observable<ProductVariant[]> {

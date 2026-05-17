@@ -17,7 +17,7 @@ export class CategoryListComponent implements OnInit {
   displayedColumns = ['name', 'description', 'actions'];
   searchControl = new FormControl('');
   pageIndex = 0;
-  pageSize = 10;
+  pageSize = 50;
   totalCount = 0;
   loading = false;
 
