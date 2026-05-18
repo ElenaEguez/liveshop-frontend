@@ -1,236 +1,357 @@
 <div class="conteo-detail" *ngIf="conteo">
 
+
+
   <div class="detail-header">
+
     <button mat-icon-button type="button" (click)="onVolver()">
+
       <mat-icon>arrow_back</mat-icon>
+
     </button>
+
     <div>
+
       <h2>Conteo — {{ conteo.almacen_nombre }}</h2>
+
       <p class="fecha">{{ conteo.fecha | date:'dd/MM/yyyy' }}
+
         · Por {{ conteo.creado_por_nombre }}</p>
+
     </div>
+
     <mat-chip-list *ngIf="conteo.estado">
+
       <mat-chip
+
         [color]="conteo.estado === 'aprobado'
+
           ? 'primary'
+
           : conteo.estado === 'cancelado'
+
           ? 'warn' : 'accent'"
+
         selected>
+
         {{ conteo.estado }}
+
       </mat-chip>
+
     </mat-chip-list>
+
   </div>
+
+
 
   <div class="resumen-cards">
+
     <mat-card class="resumen-card">
+
       <mat-card-content>
+
         <div class="resumen-num">{{ conteo.items?.length || 0 }}</div>
+
         <div class="resumen-label">Ítems contados</div>
+
       </mat-card-content>
+
     </mat-card>
+
     <mat-card class="resumen-card"
+
               [class.tiene-dif]="conteo.items_con_diferencia! > 0">
+
       <mat-card-content>
+
         <div class="resumen-num">
+
           {{ conteo.items_con_diferencia || 0 }}
+
         </div>
+
         <div class="resumen-label">Con diferencia</div>
+
       </mat-card-content>
+
     </mat-card>
+
     <mat-card class="resumen-card">
+
       <mat-card-content>
+
         <div class="resumen-num">
+
           {{ conteo.total_diferencias || 0 }}
+
         </div>
+
         <div class="resumen-label">Total unidades</div>
+
       </mat-card-content>
+
     </mat-card>
+
   </div>
 
+
+
   <mat-card class="section-card"
-            *ngIf="puedeMostrarFormularioConteo()">
-    <mat-card-title>
-      {{ conteo.estado === 'cerrado'
-        ? 'Corregir conteo (dueña / almacén)'
-        : 'Registrar conteo de producto' }}
-    </mat-card-title>
+
+            *ngIf="mostrarFormularioConteo()"
+
+            [class.form-readonly]="!formularioHabilitado()">
+
+    <mat-card-title>Registrar conteo de producto</mat-card-title>
+
     <mat-card-content>
+
       <p class="hint-cerrado" *ngIf="conteo.estado === 'cerrado'">
-        Conteo cerrado: puede ajustar el stock físico o las notas de un ítem
-        buscando de nuevo el mismo producto; los totales se recalculan antes de aprobar.
+
+        Conteo cerrado. Pendiente de revisión por administración.
+
       </p>
-      <div class="item-form">
+
+      <fieldset class="item-form" [disabled]="!formularioHabilitado()">
+
         <div class="producto-search">
-          <mat-form-field appearance="outline"
-                          class="search-field">
+
+          <mat-form-field appearance="outline" class="search-field">
+
             <mat-label>Buscar producto</mat-label>
+
             <input matInput #busqInput
+
                    (input)="onBusqueda(busqInput.value)"
+
                    autocomplete="off">
+
             <mat-icon matSuffix>search</mat-icon>
+
           </mat-form-field>
-          <div class="search-results"
-               *ngIf="productosFiltrados.length > 0">
+
+          <div class="search-results" *ngIf="productosFiltrados.length > 0">
+
             <div class="search-item"
+
                  *ngFor="let p of productosFiltrados"
+
                  (click)="onSeleccionarProducto(p)">
+
               <span class="producto-name">{{ p.name }}</span>
+
             </div>
+
           </div>
+
         </div>
 
+
+
         <mat-form-field appearance="outline"
+
                         *ngIf="variantesDisponibles.length > 0">
+
           <mat-label>Variante (talla / color)</mat-label>
-          <mat-select [(ngModel)]="varianteSeleccionada">
-            <mat-option [value]="null">
-              Borrador rápido (sin variante — obligatorio antes de aprobar)
+
+          <mat-select [(ngModel)]="varianteSeleccionada"
+
+                      (selectionChange)="onVarianteChange()">
+
+            <mat-option [value]="null">Seleccione variante</mat-option>
+
+            <mat-option *ngFor="let v of variantesDisponibles" [value]="v.id">
+
+              <span class="color-dot" [style.background]="v.color_hex"></span>
+
+              {{ v.talla }} / {{ v.color }} — Stock: {{ stockVarianteLabel(v.id) }}
+
             </mat-option>
-            <mat-option *ngFor="let v of variantesDisponibles"
-                        [value]="v.id">
-              <span class="color-dot"
-                    [style.background]="v.color_hex"></span>
-              {{ v.talla }} / {{ v.color }}
-            </mat-option>
+
           </mat-select>
+
         </mat-form-field>
 
-        <mat-form-field appearance="outline"
-                        class="field-stock">
+
+
+        <mat-form-field appearance="outline" class="field-stock">
+
+          <mat-label>Stock en sistema</mat-label>
+
+          <input matInput [value]="etiquetaStockSistema()" disabled>
+
+        </mat-form-field>
+
+
+
+        <mat-form-field appearance="outline" class="field-stock">
+
           <mat-label>Stock físico</mat-label>
-          <input matInput type="number"
-                 [(ngModel)]="stockFisico" min="0">
+
+          <input matInput type="number" [(ngModel)]="stockFisico" min="0">
+
         </mat-form-field>
 
-        <mat-form-field appearance="outline"
-                        class="field-notas">
+
+
+        <mat-form-field appearance="outline" class="field-notas">
+
           <mat-label>Notas</mat-label>
+
           <input matInput [(ngModel)]="notaItem">
+
         </mat-form-field>
 
-        <button mat-raised-button color="primary"
-                type="button"
+
+
+        <button mat-raised-button color="primary" type="button"
+
                 (click)="onAgregarItem()"
-                [disabled]="!productoSeleccionado
-                  || guardandoItem">
+
+                [disabled]="!productoSeleccionado || guardandoItem || !formularioHabilitado()">
+
           <mat-icon>add</mat-icon>
+
           {{ guardandoItem ? 'Guardando...' : 'Registrar' }}
+
         </button>
-      </div>
+
+      </fieldset>
+
     </mat-card-content>
+
   </mat-card>
 
+
+
   <mat-card *ngIf="conteo.items && conteo.items.length > 0">
+
     <mat-card-title>Ítems del conteo</mat-card-title>
+
     <mat-card-content>
+
       <mat-table [dataSource]="conteo.items">
 
         <ng-container matColumnDef="producto">
-          <mat-header-cell *matHeaderCellDef>
-            Producto
-          </mat-header-cell>
-          <mat-cell *matCellDef="let i">
-            {{ i.producto_nombre }}
-          </mat-cell>
+
+          <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+
+          <mat-cell *matCellDef="let i">{{ i.producto_nombre }}</mat-cell>
+
         </ng-container>
 
         <ng-container matColumnDef="variante">
-          <mat-header-cell *matHeaderCellDef>
-            Variante
-          </mat-header-cell>
+
+          <mat-header-cell *matHeaderCellDef>Variante</mat-header-cell>
+
           <mat-cell *matCellDef="let i">
+
             <ng-container *ngIf="i.variante_detalle">
-              <span class="color-dot"
-                    [style.background]="
-                      i.variante_detalle.color_hex">
-              </span>
-              {{ i.variante_detalle.talla }} /
-              {{ i.variante_detalle.color }}
+
+              <span class="color-dot" [style.background]="i.variante_detalle.color_hex"></span>
+
+              {{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}
+
             </ng-container>
+
             <span *ngIf="!i.variante_detalle" class="text-muted">
+
               Sin variante (conteo a nivel producto)
+
             </span>
+
           </mat-cell>
+
         </ng-container>
 
         <ng-container matColumnDef="sistema">
-          <mat-header-cell *matHeaderCellDef>
-            En sistema
-          </mat-header-cell>
-          <mat-cell *matCellDef="let i">
-            {{ i.stock_sistema }}
-          </mat-cell>
+
+          <mat-header-cell *matHeaderCellDef>En sistema</mat-header-cell>
+
+          <mat-cell *matCellDef="let i">{{ i.stock_sistema }}</mat-cell>
+
         </ng-container>
 
         <ng-container matColumnDef="fisico">
-          <mat-header-cell *matHeaderCellDef>
-            Físico
-          </mat-header-cell>
-          <mat-cell *matCellDef="let i">
-            {{ i.stock_fisico }}
-          </mat-cell>
+
+          <mat-header-cell *matHeaderCellDef>Físico</mat-header-cell>
+
+          <mat-cell *matCellDef="let i">{{ i.stock_fisico }}</mat-cell>
+
         </ng-container>
 
         <ng-container matColumnDef="diferencia">
-          <mat-header-cell *matHeaderCellDef>
-            Diferencia
-          </mat-header-cell>
+
+          <mat-header-cell *matHeaderCellDef>Diferencia</mat-header-cell>
+
           <mat-cell *matCellDef="let i">
+
             <span [class]="getDifColor(i.diferencia)">
-              {{ i.diferencia > 0 ? '+' : '' }}
-              {{ i.diferencia }}
+
+              {{ i.diferencia > 0 ? '+' : '' }}{{ i.diferencia }}
+
             </span>
+
           </mat-cell>
+
         </ng-container>
 
         <ng-container matColumnDef="notas">
-          <mat-header-cell *matHeaderCellDef>
-            Notas
-          </mat-header-cell>
-          <mat-cell *matCellDef="let i">
-            {{ i.notas || '—' }}
-          </mat-cell>
+
+          <mat-header-cell *matHeaderCellDef>Notas</mat-header-cell>
+
+          <mat-cell *matCellDef="let i">{{ i.notas || '—' }}</mat-cell>
+
         </ng-container>
 
-        <mat-header-row *matHeaderRowDef="columnas">
-        </mat-header-row>
-        <mat-row
-          *matRowDef="let r; columns: columnas;">
-        </mat-row>
+        <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
+
+        <mat-row *matRowDef="let r; columns: columnas;"></mat-row>
+
       </mat-table>
+
     </mat-card-content>
+
   </mat-card>
 
+
+
   <p class="aviso-variantes" *ngIf="itemsPendientesVariante().length > 0">
+
     <mat-icon>warning</mat-icon>
+
     {{ itemsPendientesVariante().length }} ítem(s) sin variante.
+
     Deben completarse con talla/color antes de aprobar el conteo.
+
   </p>
 
+
+
   <div class="form-actions">
+
     <button mat-raised-button type="button"
+
             *ngIf="conteo.estado === 'abierto' && puedeCerrar()"
+
             (click)="onCerrar()">
+
       <mat-icon>lock</mat-icon> Cerrar conteo
+
     </button>
-    <button mat-raised-button color="primary"
-            type="button"
-            *ngIf="conteo.estado === 'cerrado' && puedeAprobar()"
-            [disabled]="itemsPendientesVariante().length > 0"
-            (click)="onAprobar()">
-      <mat-icon>check_circle</mat-icon> Aprobar y ajustar stock
-    </button>
-    <button mat-raised-button color="warn"
-            type="button"
-            *ngIf="(conteo.estado === 'abierto' || conteo.estado === 'cerrado')
-              && puedeCancelar()"
-            (click)="onCancelar()">
-      <mat-icon>cancel</mat-icon> Cancelar
-    </button>
+
   </div>
 
+
+
 </div>
 
+
+
 <div *ngIf="cargando" class="loading-center">
+
   <mat-spinner diameter="40"></mat-spinner>
+
 </div>
+
+

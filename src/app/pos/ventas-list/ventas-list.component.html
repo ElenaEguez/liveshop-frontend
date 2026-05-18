@@ -44,9 +44,9 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Rol</mat-label>
-        <mat-select [(ngModel)]="filters.rol" (ngModelChange)="load()">
-          <mat-option value="">Todos</mat-option>
-          <mat-option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</mat-option>
+        <mat-select [(ngModel)]="filters.rol_id" (ngModelChange)="load()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let r of roles" [value]="r.id">{{ r.nombre }}</mat-option>
         </mat-select>
       </mat-form-field>
 

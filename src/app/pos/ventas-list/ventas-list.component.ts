@@ -23,22 +23,21 @@ export class VentasListComponent implements OnInit {
 
   sucursales: Sucursal[] = [];
   cajeros: Array<{ id: number; nombre: string }> = [];
-  roles: Array<{ value: string; label: string }> = [];
+  roles: Array<{ id: number; nombre: string }> = [];
   metodoPagoTipos = [
     { value: '', label: 'Todos' },
     { value: 'efectivo', label: 'Efectivo' },
     { value: 'qr', label: 'QR' },
-    { value: 'billetera', label: 'Billetera' },
-    { value: 'transferencia', label: 'Transferencia' },
     { value: 'tarjeta', label: 'Tarjeta' },
-    { value: 'credito', label: 'Crédito' },
+    { value: 'mixto', label: 'Mixto' },
+    { value: 'otro', label: 'Otro' },
   ];
   filters = {
     periodo: 'hoy',
     sucursal_id: null as number | null,
     status: '',
     cajero_id: null as number | null,
-    rol: '',
+    rol_id: null as number | null,
     metodo_pago_tipo: '',
   };
   resumen = { total_ventas: '0', total_cobrado: '0', cantidad_ventas: 0 };
@@ -55,21 +54,51 @@ export class VentasListComponent implements OnInit {
 
   ngOnInit(): void {
     this.posService.getSucursales().subscribe(s => this.sucursales = s);
+    this.loadFiltrosOpciones();
     this.load();
+  }
+
+  private periodoApi(): string {
+    const periodoMap: Record<string, string> = {
+      hoy: 'today', '7d': 'week', '30d': 'month', año: 'year',
+    };
+    return periodoMap[this.filters.periodo] || 'today';
+  }
+
+  loadFiltrosOpciones(): void {
+    this.posService.getVentasFiltros({ periodo: this.periodoApi() }).subscribe({
+      next: (data) => {
+        this.cajeros = data?.cajeros ?? [];
+        this.roles = data?.roles ?? [];
+        if (
+          this.filters.cajero_id != null
+          && !this.cajeros.some(c => c.id === this.filters.cajero_id)
+        ) {
+          this.filters.cajero_id = null;
+        }
+        if (
+          this.filters.rol_id != null
+          && !this.roles.some(r => r.id === this.filters.rol_id)
+        ) {
+          this.filters.rol_id = null;
+        }
+      },
+      error: () => {
+        this.cajeros = [];
+        this.roles = [];
+      },
+    });
   }
 
   load(): void {
     this.loading = true;
-    const periodoMap: Record<string, string> = {
-      hoy: 'today', '7d': 'week', '30d': 'month', año: 'year',
-    };
-    const periodoApi = periodoMap[this.filters.periodo] || 'today';
+    const periodoApi = this.periodoApi();
     this.posService.getVentas({
       periodo:     periodoApi,
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status:      this.filters.status || undefined,
       cajero_id:   this.filters.cajero_id ?? undefined,
-      rol: this.filters.rol || undefined,
+      rol_id:      this.filters.rol_id ?? undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
       page:        this.pageIndex + 1,
       page_size:   this.pageSize,
@@ -87,40 +116,14 @@ export class VentasListComponent implements OnInit {
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status: this.filters.status || undefined,
       cajero_id: this.filters.cajero_id ?? undefined,
-      rol: this.filters.rol || undefined,
+      rol_id: this.filters.rol_id ?? undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
     }).subscribe({
       next: res => (this.resumen = res),
       error: () => {},
     });
 
-    // Cargar cajeros desde turnos del periodo (no depende de ventas de la página actual)
-    this.posService.getTurnos(periodoApi).subscribe({
-      next: turnos => {
-        const map = new Map<number, string>();
-        const roleSet = new Set<string>();
-        const rolesTmp: Array<{ value: string; label: string }> = [];
-        for (const t of turnos || []) {
-          const id = t?.usuario;
-          if (!id) continue;
-          const nombreBase = t?.usuario_nombre || t?.usuario_email || `Usuario ${id}`;
-          const nombre = t?.usuario_rol_nombre ? `${nombreBase} — ${t.usuario_rol_nombre}` : nombreBase;
-          if (!map.has(id)) map.set(id, nombre);
-          if (t?.usuario_rol_nombre && !roleSet.has(t.usuario_rol_nombre)) {
-            roleSet.add(t.usuario_rol_nombre);
-            rolesTmp.push({ value: t.usuario_rol_nombre, label: t.usuario_rol_nombre });
-          } else if (!t?.usuario_rol_nombre && !roleSet.has('owner')) {
-            roleSet.add('owner');
-            rolesTmp.push({ value: 'owner', label: 'Propietario' });
-          }
-        }
-        this.cajeros = Array.from(map.entries())
-          .map(([id, nombre]) => ({ id, nombre }))
-          .sort((a, b) => a.nombre.localeCompare(b.nombre));
-        this.roles = rolesTmp.sort((a, b) => a.label.localeCompare(b.label));
-      },
-      error: () => {},
-    });
+    this.loadFiltrosOpciones();
   }
 
   onPage(e: PageEvent): void {
@@ -135,7 +138,7 @@ export class VentasListComponent implements OnInit {
       sucursal_id: null,
       status: '',
       cajero_id: null,
-      rol: '',
+      rol_id: null,
       metodo_pago_tipo: '',
     };
     this.pageIndex = 0;
@@ -194,7 +197,6 @@ export class VentasListComponent implements OnInit {
         const idx = this.ventas.findIndex(v => v.id === venta.id);
         if (idx >= 0) {
           this.ventas[idx] = result.ventaActualizada;
-          // Crear nuevo array para que Angular detecte el cambio en la tabla
           this.ventas = [...this.ventas];
         }
       }

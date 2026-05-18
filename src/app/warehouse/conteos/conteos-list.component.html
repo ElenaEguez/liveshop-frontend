@@ -15,6 +15,37 @@
     </div>
   </div>
 
+  <mat-card class="filters-card">
+    <div class="filters-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Almacén</mat-label>
+        <mat-select [(ngModel)]="filtroAlmacenId"
+                    (selectionChange)="onFiltrosChange()">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let a of almacenes" [value]="a.id">
+            {{ a.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Desde</mat-label>
+        <input matInput type="date" [(ngModel)]="fechaDesde"
+               (change)="onFiltrosChange()">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hasta</mat-label>
+        <input matInput type="date" [(ngModel)]="fechaHasta"
+               (change)="onFiltrosChange()">
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="limpiarFiltros()">
+        <mat-icon>clear</mat-icon> Limpiar
+      </button>
+    </div>
+  </mat-card>
+
   <div *ngIf="cargando" class="loading-center">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
@@ -62,7 +93,7 @@
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let c">
-        <button mat-icon-button (click)="onVer(c.id!)"
+        <button mat-icon-button (click)="onVer(c.id!); $event.stopPropagation()"
                 matTooltip="Ver detalle">
           <mat-icon>visibility</mat-icon>
         </button>
@@ -76,6 +107,14 @@
       (click)="onVer(r.id!)"
       class="clickable-row"></mat-row>
   </mat-table>
+
+  <mat-paginator *ngIf="!cargando && totalItems > 0"
+                 [length]="totalItems"
+                 [pageSize]="pageSize"
+                 [pageSizeOptions]="[10, 20, 50]"
+                 [pageIndex]="currentPage - 1"
+                 (page)="onPageChange($event)">
+  </mat-paginator>
 
   <p *ngIf="!cargando && conteos.length === 0"
      class="empty-state">

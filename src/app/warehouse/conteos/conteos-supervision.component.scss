@@ -55,3 +55,56 @@
 mat-table {
   width: 100%;
 }
+
+.filters-card {
+  margin-bottom: 16px;
+}
+
+.filters-card mat-form-field {
+  min-width: 200px;
+}
+
+mat-cell button + button {
+  margin-left: 6px;
+}
+
+.revision-card {
+  margin-top: 20px;
+
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.revision-meta {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+
+.items-revision-table {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.inline-input {
+  width: 72px;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.inline-notas {
+  width: 140px;
+}
+
+.revision-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sobrante { color: #2e7d32; font-weight: 600; }
+.faltante { color: #c62828; font-weight: 600; }

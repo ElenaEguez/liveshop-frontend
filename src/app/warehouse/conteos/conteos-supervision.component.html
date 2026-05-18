@@ -1,78 +1,599 @@
 <div class="supervision-page">
+
   <div class="header">
+
     <button mat-icon-button type="button" (click)="onVolverListaConteos()" matTooltip="Ir a todos los conteos">
+
       <mat-icon>arrow_back</mat-icon>
+
     </button>
+
     <div>
+
       <h1>Control de conteo físico</h1>
+
       <p class="sub">
-        Conteos <strong>cerrados</strong> pendientes de su decisión: revise las diferencias,
-        apruebe para aplicar los ajustes al inventario o cancele el conteo.
+
+        Revise conteos cerrados, edite cantidades si hace falta, apruebe o cancele.
+
+        Solo el propietario puede aprobar.
+
       </p>
+
     </div>
+
   </div>
+
+
 
   <mat-card class="info-card" *ngIf="!puedeOperar()">
+
     <mat-card-content>
+
       <mat-icon color="warn">lock</mat-icon>
-      Su usuario no tiene permiso de <strong>almacén</strong> para aprobar o cancelar conteos.
-      Pida al administrador el rol con permiso «Almacén / transferencias».
+
+      Su usuario no tiene permiso de <strong>almacén</strong> para gestionar conteos.
+
     </mat-card-content>
+
   </mat-card>
 
-  <div class="loading" *ngIf="cargando">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
 
-  <mat-card *ngIf="!cargando">
+
+  <mat-card class="filters-card">
+
+    <mat-form-field appearance="outline">
+
+      <mat-label>Almacén</mat-label>
+
+      <mat-select [(ngModel)]="filtroAlmacenId" (selectionChange)="onFiltroAlmacenChange()">
+
+        <mat-option [value]="null">Todos</mat-option>
+
+        <mat-option *ngFor="let a of almacenes" [value]="a.id">{{ a.nombre }}</mat-option>
+
+      </mat-select>
+
+    </mat-form-field>
+
+  </mat-card>
+
+
+
+  <mat-tab-group [(selectedIndex)]="tabIndex" (selectedIndexChange)="onTabChange($event)">
+
+    <mat-tab label="Pendientes">
+
+      <div class="loading" *ngIf="cargandoPendientes">
+
+        <mat-spinner diameter="40"></mat-spinner>
+
+      </div>
+
+
+
+      <mat-card *ngIf="!cargandoPendientes">
+
+        <mat-card-content>
+
+          <mat-table [dataSource]="conteosPendientes">
+
+            <ng-container matColumnDef="almacen">
+
+              <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.almacen_nombre }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="creado">
+
+              <mat-header-cell *matHeaderCellDef>Creado</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="fecha">
+
+              <mat-header-cell *matHeaderCellDef>Fecha conteo</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="creador">
+
+              <mat-header-cell *matHeaderCellDef>Registrado por</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.creado_por_nombre || '—' }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="items">
+
+              <mat-header-cell *matHeaderCellDef>Ítems</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.items?.length || 0 }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="diferencias">
+
+              <mat-header-cell *matHeaderCellDef>Diferencias</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">
+
+                <span [class.hay-dif]="(c.items_con_diferencia || 0) > 0">
+
+                  {{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.
+
+                </span>
+
+              </mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="acciones">
+
+              <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">
+
+                <button mat-stroked-button color="primary" type="button" (click)="onRevisar(c)">
+
+                  <mat-icon>visibility</mat-icon>
+
+                  Revisar
+
+                </button>
+
+                <button mat-raised-button color="primary" type="button"
+
+                        *ngIf="puedeAprobar()"
+
+                        [disabled]="procesandoId === c.id || itemsPendientesVariante(c) > 0"
+
+                        (click)="onAprobar(c, $event)">
+
+                  <mat-icon>check_circle</mat-icon>
+
+                  Aprobar
+
+                </button>
+
+                <button mat-stroked-button color="warn" type="button"
+
+                        *ngIf="puedeOperar()"
+
+                        [disabled]="procesandoId === c.id"
+
+                        (click)="onCancelar(c, $event)">
+
+                  <mat-icon>cancel</mat-icon>
+
+                  Cancelar
+
+                </button>
+
+              </mat-cell>
+
+            </ng-container>
+
+
+
+            <mat-header-row *matHeaderRowDef="columnasPendientes"></mat-header-row>
+
+            <mat-row *matRowDef="let row; columns: columnasPendientes;"></mat-row>
+
+          </mat-table>
+
+
+
+          <mat-paginator *ngIf="totalPendientes > 0"
+
+                         [length]="totalPendientes"
+
+                         [pageSize]="pageSizePendientes"
+
+                         [pageSizeOptions]="[10, 20, 50]"
+
+                         [pageIndex]="pagePendientes - 1"
+
+                         (page)="onPagePendientes($event)">
+
+          </mat-paginator>
+
+
+
+          <p *ngIf="conteosPendientes.length === 0" class="empty">
+
+            No hay conteos pendientes de aprobación.
+
+          </p>
+
+        </mat-card-content>
+
+      </mat-card>
+
+    </mat-tab>
+
+
+
+    <mat-tab label="Historial">
+
+      <div class="loading" *ngIf="cargandoHistorial">
+
+        <mat-spinner diameter="40"></mat-spinner>
+
+      </div>
+
+
+
+      <mat-card *ngIf="!cargandoHistorial">
+
+        <mat-card-content>
+
+          <mat-table [dataSource]="conteosHistorial">
+
+            <ng-container matColumnDef="almacen">
+
+              <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.almacen_nombre }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="fecha">
+
+              <mat-header-cell *matHeaderCellDef>Fecha conteo</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="estado">
+
+              <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.estado }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="creador">
+
+              <mat-header-cell *matHeaderCellDef>Registrado por</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.creado_por_nombre || '—' }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="aprobado">
+
+              <mat-header-cell *matHeaderCellDef>Aprobación</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">
+
+                <ng-container *ngIf="c.estado === 'aprobado'">
+
+                  {{ c.aprobado_por_nombre || '—' }}
+
+                  <small *ngIf="c.updated_at"> · {{ c.updated_at | date:'dd/MM/yy HH:mm' }}</small>
+
+                </ng-container>
+
+                <span *ngIf="c.estado === 'cancelado'">—</span>
+
+              </mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="items">
+
+              <mat-header-cell *matHeaderCellDef>Ítems</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">{{ c.items?.length || 0 }}</mat-cell>
+
+            </ng-container>
+
+
+
+            <ng-container matColumnDef="diferencias">
+
+              <mat-header-cell *matHeaderCellDef>Diferencias</mat-header-cell>
+
+              <mat-cell *matCellDef="let c">
+
+                {{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.
+
+              </mat-cell>
+
+            </ng-container>
+
+
+
+            <mat-header-row *matHeaderRowDef="columnasHistorial"></mat-header-row>
+
+            <mat-row *matRowDef="let row; columns: columnasHistorial;"
+
+                     class="clickable-row"
+
+                     (click)="onRevisar(row)"></mat-row>
+
+          </mat-table>
+
+
+
+          <mat-paginator *ngIf="totalHistorial > 0"
+
+                         [length]="totalHistorial"
+
+                         [pageSize]="pageSizeHistorial"
+
+                         [pageSizeOptions]="[10, 20, 50]"
+
+                         [pageIndex]="pageHistorial - 1"
+
+                         (page)="onPageHistorial($event)">
+
+          </mat-paginator>
+
+
+
+          <p *ngIf="conteosHistorial.length === 0" class="empty">
+
+            No hay conteos en el historial.
+
+          </p>
+
+        </mat-card-content>
+
+      </mat-card>
+
+    </mat-tab>
+
+  </mat-tab-group>
+
+
+
+  <mat-card class="revision-card" *ngIf="conteoRevisando || cargandoDetalle">
+
+    <mat-card-title>
+
+      Detalle — {{ conteoRevisando?.almacen_nombre || 'Cargando...' }}
+
+      <button mat-icon-button type="button" (click)="cerrarRevision()" matTooltip="Cerrar detalle">
+
+        <mat-icon>close</mat-icon>
+
+      </button>
+
+    </mat-card-title>
+
     <mat-card-content>
-      <mat-table [dataSource]="conteos">
-        <ng-container matColumnDef="almacen">
-          <mat-header-cell *matHeaderCellDef>Almacén</mat-header-cell>
-          <mat-cell *matCellDef="let c">{{ c.almacen_nombre }}</mat-cell>
-        </ng-container>
 
-        <ng-container matColumnDef="fecha">
-          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
-          <mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy' }}</mat-cell>
-        </ng-container>
+      <div class="loading" *ngIf="cargandoDetalle">
 
-        <ng-container matColumnDef="creador">
-          <mat-header-cell *matHeaderCellDef>Registrado por</mat-header-cell>
-          <mat-cell *matCellDef="let c">{{ c.creado_por_nombre || '—' }}</mat-cell>
-        </ng-container>
+        <mat-spinner diameter="36"></mat-spinner>
 
-        <ng-container matColumnDef="items">
-          <mat-header-cell *matHeaderCellDef>Ítems</mat-header-cell>
-          <mat-cell *matCellDef="let c">{{ c.items?.length || 0 }}</mat-cell>
-        </ng-container>
+      </div>
 
-        <ng-container matColumnDef="diferencias">
-          <mat-header-cell *matHeaderCellDef>Diferencias</mat-header-cell>
-          <mat-cell *matCellDef="let c">
-            <span [class.hay-dif]="(c.items_con_diferencia || 0) > 0">
-              {{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.
-            </span>
-          </mat-cell>
-        </ng-container>
 
-        <ng-container matColumnDef="acciones">
-          <mat-header-cell *matHeaderCellDef></mat-header-cell>
-          <mat-cell *matCellDef="let c">
-            <button mat-stroked-button color="primary" type="button" (click)="onRevisar(c.id!)">
-              <mat-icon>visibility</mat-icon>
-              Revisar y decidir
-            </button>
-          </mat-cell>
-        </ng-container>
 
-        <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: columnas;"></mat-row>
-      </mat-table>
+      <ng-container *ngIf="conteoRevisando && !cargandoDetalle">
 
-      <p *ngIf="conteos.length === 0" class="empty">
-        No hay conteos pendientes de aprobación. Los conteos cerrados aparecerán aquí hasta que se aprueben o cancelen.
-      </p>
+        <p class="revision-meta">
+
+          {{ conteoRevisando.creado_por_nombre }} ·
+
+          {{ conteoRevisando.created_at | date:'dd/MM/yyyy HH:mm' }} ·
+
+          Estado: <strong>{{ conteoRevisando.estado }}</strong>
+
+        </p>
+
+
+
+        <mat-table [dataSource]="conteoRevisando.items || []" class="items-revision-table">
+
+          <ng-container matColumnDef="producto">
+
+            <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">{{ i.producto_nombre }}</mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="variante">
+
+            <mat-header-cell *matHeaderCellDef>Variante</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">
+
+              <ng-container *ngIf="i.variante_detalle">
+
+                {{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}
+
+              </ng-container>
+
+              <span *ngIf="!i.variante_detalle">—</span>
+
+            </mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="sistema">
+
+            <mat-header-cell *matHeaderCellDef>Sistema</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">{{ i.stock_sistema }}</mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="fisico">
+
+            <mat-header-cell *matHeaderCellDef>Físico</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">
+
+              <ng-container *ngIf="itemEditandoId !== i.id">{{ i.stock_fisico }}</ng-container>
+
+              <input *ngIf="itemEditandoId === i.id" type="number" min="0"
+
+                     [(ngModel)]="editStockFisico" class="inline-input">
+
+            </mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="diferencia">
+
+            <mat-header-cell *matHeaderCellDef>Dif.</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">
+
+              <span [class]="getDifColor(i.diferencia)">{{ i.diferencia }}</span>
+
+            </mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="notas">
+
+            <mat-header-cell *matHeaderCellDef>Notas</mat-header-cell>
+
+            <mat-cell *matCellDef="let i">
+
+              <ng-container *ngIf="itemEditandoId !== i.id">{{ i.notas || '—' }}</ng-container>
+
+              <input *ngIf="itemEditandoId === i.id" type="text"
+
+                     [(ngModel)]="editNotas" class="inline-input inline-notas">
+
+            </mat-cell>
+
+          </ng-container>
+
+
+
+          <ng-container matColumnDef="acciones_item">
+
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+
+            <mat-cell *matCellDef="let i">
+
+              <ng-container *ngIf="!revisionSoloLectura() && puedeEditarItems()">
+
+                <button mat-icon-button *ngIf="itemEditandoId !== i.id"
+
+                        (click)="onEditarItem(i)" matTooltip="Editar">
+
+                  <mat-icon>edit</mat-icon>
+
+                </button>
+
+                <ng-container *ngIf="itemEditandoId === i.id">
+
+                  <button mat-icon-button color="primary"
+
+                          [disabled]="guardandoItem"
+
+                          (click)="onGuardarItem(i)" matTooltip="Guardar">
+
+                    <mat-icon>save</mat-icon>
+
+                  </button>
+
+                  <button mat-icon-button (click)="onCancelarEdicionItem()">
+
+                    <mat-icon>close</mat-icon>
+
+                  </button>
+
+                </ng-container>
+
+              </ng-container>
+
+            </mat-cell>
+
+          </ng-container>
+
+
+
+          <mat-header-row *matHeaderRowDef="columnasItems"></mat-header-row>
+
+          <mat-row *matRowDef="let row; columns: columnasItems;"></mat-row>
+
+        </mat-table>
+
+
+
+        <div class="revision-actions" *ngIf="conteoRevisando.estado === 'cerrado'">
+
+          <button mat-raised-button color="primary" type="button"
+
+                  *ngIf="puedeAprobar()"
+
+                  [disabled]="procesandoId === conteoRevisando.id || itemsPendientesVariante(conteoRevisando) > 0"
+
+                  (click)="onAprobar(conteoRevisando)">
+
+            <mat-icon>check_circle</mat-icon> Aprobar conteo
+
+          </button>
+
+          <button mat-stroked-button color="warn" type="button"
+
+                  *ngIf="puedeOperar()"
+
+                  [disabled]="procesandoId === conteoRevisando.id"
+
+                  (click)="onCancelar(conteoRevisando)">
+
+            <mat-icon>cancel</mat-icon> Cancelar conteo
+
+          </button>
+
+        </div>
+
+      </ng-container>
+
     </mat-card-content>
+
   </mat-card>
+
 </div>
+
+

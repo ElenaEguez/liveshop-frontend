@@ -36,6 +36,7 @@ export interface ConteoItem {
   id?: number;
   producto: number;
   producto_nombre?: string;
+  producto_requiere_variante?: boolean;
   variante?: number | null;
   variante_detalle?: {
     id: number;
@@ -61,7 +62,15 @@ export interface ConteoFisico {
   total_diferencias?: number;
   items_con_diferencia?: number;
   created_at?: string;
+  updated_at?: string;
   aprobado_por_nombre?: string;
+}
+
+export interface ConteosPaginatedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: ConteoFisico[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -76,10 +85,43 @@ export class WarehouseExtraService {
     return (r?.results as T[]) || [];
   }
 
-  getTransferencias(): Observable<Transferencia[]> {
+  getTransferencias(params?: {
+    page?: number;
+    page_size?: number;
+    estado?: string;
+  }): Observable<any> {
+    let httpParams = new HttpParams();
+    const paginatedRequest = params?.page != null;
+    if (params?.page != null) {
+      httpParams = httpParams.set('page', String(params.page));
+    }
+    if (params?.page_size != null) {
+      httpParams = httpParams.set('page_size', String(params.page_size));
+    }
+    if (params?.estado) {
+      httpParams = httpParams.set('estado', params.estado);
+    }
     return this.http.get<any>(
-      `${this.base}/transferencias/`
-    ).pipe(map(r => this.asArray<Transferencia>(r)));
+      `${this.base}/transferencias/`,
+      { params: httpParams },
+    ).pipe(
+      map((r) => {
+        if (paginatedRequest) {
+          return r;
+        }
+        return this.asArray<Transferencia>(r);
+      }),
+    );
+  }
+
+  actualizarTransferencia(
+    id: number,
+    data: { notas?: string; items: { producto: number; variante?: number | null; cantidad: number }[] },
+  ): Observable<Transferencia> {
+    return this.http.patch<Transferencia>(
+      `${this.base}/transferencias/${id}/`,
+      data,
+    );
   }
 
   getTransferencia(id: number): Observable<Transferencia> {
@@ -103,15 +145,37 @@ export class WarehouseExtraService {
       `${this.base}/transferencias/${id}/cancelar/`, {});
   }
 
-  getConteos(params?: { estado?: string }): Observable<ConteoFisico[]> {
+  getConteos(params?: {
+    estado?: string;
+    almacen_id?: number;
+    fecha_desde?: string;
+    fecha_hasta?: string;
+    page?: number;
+    page_size?: number;
+  }): Observable<ConteosPaginatedResponse> {
     let hp = new HttpParams();
     if (params?.estado) {
       hp = hp.set('estado', params.estado);
     }
-    return this.http.get<any>(
+    if (params?.almacen_id != null) {
+      hp = hp.set('almacen_id', String(params.almacen_id));
+    }
+    if (params?.fecha_desde) {
+      hp = hp.set('fecha_desde', params.fecha_desde);
+    }
+    if (params?.fecha_hasta) {
+      hp = hp.set('fecha_hasta', params.fecha_hasta);
+    }
+    if (params?.page != null) {
+      hp = hp.set('page', String(params.page));
+    }
+    if (params?.page_size != null) {
+      hp = hp.set('page_size', String(params.page_size));
+    }
+    return this.http.get<ConteosPaginatedResponse>(
       `${this.base}/conteos/`,
-      { params: hp }
-    ).pipe(map(r => this.asArray<ConteoFisico>(r)));
+      { params: hp },
+    );
   }
 
   getConteo(id: number): Observable<ConteoFisico> {
@@ -144,6 +208,17 @@ export class WarehouseExtraService {
   cancelarConteo(id: number): Observable<ConteoFisico> {
     return this.http.post<ConteoFisico>(
       `${this.base}/conteos/${id}/cancelar/`, {});
+  }
+
+  editarItemConteo(
+    conteoId: number,
+    itemId: number,
+    data: { stock_fisico?: number; notas?: string },
+  ): Observable<ConteoItem> {
+    return this.http.patch<ConteoItem>(
+      `${this.base}/conteos/${conteoId}/editar-item/${itemId}/`,
+      data,
+    );
   }
 
   buscarProductos(query: string): Observable<any[]> {
@@ -190,12 +265,16 @@ export class WarehouseExtraService {
   getStockEnAlmacen(
     productoId: number,
     almacenId: number,
+    varianteId?: number | null,
   ): Observable<number> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('product_id', String(productoId))
       .set('almacen_id', String(almacenId))
       .set('use_warehouse_stock', '1')
       .set('page_size', '1');
+    if (varianteId != null) {
+      params = params.set('variante_id', String(varianteId));
+    }
     return this.http.get<any>(
       `${environment.apiUrl}/products/inventories/`,
       { params },

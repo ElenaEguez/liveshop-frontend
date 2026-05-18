@@ -254,12 +254,30 @@ export class PosService {
     return this.http.post<VentaPOS>(`${API}/pos/ventas/`, payload);
   }
 
+  getVentasFiltros(filters?: {
+    periodo?: string;
+    fecha_desde?: string;
+    fecha_hasta?: string;
+  }): Observable<{
+    cajeros: Array<{ id: number; nombre: string }>;
+    roles: Array<{ id: number; nombre: string }>;
+  }> {
+    let params = new HttpParams();
+    if (filters?.periodo) params = params.set('periodo', filters.periodo);
+    if (filters?.fecha_desde) params = params.set('fecha_desde', filters.fecha_desde);
+    if (filters?.fecha_hasta) params = params.set('fecha_hasta', filters.fecha_hasta);
+    return this.http.get<{
+      cajeros: Array<{ id: number; nombre: string }>;
+      roles: Array<{ id: number; nombre: string }>;
+    }>(`${API}/pos/ventas/filtros/`, { params });
+  }
+
   getVentas(filters?: {
     periodo?: string;
     sucursal_id?: number;
     status?: string;
     cajero_id?: number;
-    rol?: string;
+    rol_id?: number;
     metodo_pago_tipo?: string;
     page?: number;
     page_size?: number;
@@ -269,7 +287,7 @@ export class PosService {
     if (filters?.sucursal_id) params = params.set('sucursal_id', String(filters.sucursal_id));
     if (filters?.status)     params = params.set('status', filters.status);
     if (filters?.cajero_id)  params = params.set('cajero_id', String(filters.cajero_id));
-    if (filters?.rol) params = params.set('rol', filters.rol);
+    if (filters?.rol_id != null) params = params.set('rol_id', String(filters.rol_id));
     if (filters?.metodo_pago_tipo) params = params.set('metodo_pago_tipo', filters.metodo_pago_tipo);
     if (filters?.page)       params = params.set('page', String(filters.page));
     if (filters?.page_size)  params = params.set('page_size', String(filters.page_size));
@@ -347,7 +365,7 @@ export class PosService {
     pageSize = 20,
     semana?: number | null,
     cajeroId?: number | null,
-    rol?: string | null,
+    rolId?: number | null,
     sucursalId?: number | null,
     metodoPagoTipo?: string | null,
   ): Observable<ArqueosResponse> {
@@ -357,7 +375,7 @@ export class PosService {
       .set('page_size', String(pageSize));
     if (semana != null)    params = params.set('semana', String(semana));
     if (cajeroId != null)  params = params.set('cajero_id', String(cajeroId));
-    if (rol) params = params.set('rol', rol);
+    if (rolId != null) params = params.set('rol_id', String(rolId));
     if (sucursalId != null) params = params.set('sucursal_id', String(sucursalId));
     if (metodoPagoTipo) params = params.set('metodo_pago_tipo', metodoPagoTipo);
     return this.http.get<ArqueosResponse>(`${API}/pos/turnos/arqueos/`, { params });
@@ -368,7 +386,7 @@ export class PosService {
     sucursal_id?: number;
     status?: string;
     cajero_id?: number;
-    rol?: string;
+    rol_id?: number;
     metodo_pago_tipo?: string;
   }): Observable<VentasResumenResponse> {
     let params = new HttpParams();
@@ -376,7 +394,7 @@ export class PosService {
     if (filters?.sucursal_id) params = params.set('sucursal_id', String(filters.sucursal_id));
     if (filters?.status) params = params.set('status', filters.status);
     if (filters?.cajero_id) params = params.set('cajero_id', String(filters.cajero_id));
-    if (filters?.rol) params = params.set('rol', filters.rol);
+    if (filters?.rol_id != null) params = params.set('rol_id', String(filters.rol_id));
     if (filters?.metodo_pago_tipo) params = params.set('metodo_pago_tipo', filters.metodo_pago_tipo);
     return this.http.get<VentasResumenResponse>(`${API}/pos/ventas/resumen/`, { params });
   }

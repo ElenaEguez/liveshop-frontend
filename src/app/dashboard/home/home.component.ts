@@ -5,7 +5,6 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import * as XLSX from 'xlsx';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -18,7 +17,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import {
   DashboardData,
   DashboardService,
-  MovimientoCaja,
   SalesByProduct,
   SalesDashboardData,
   SalesDashboardParams,
@@ -40,16 +38,13 @@ import {
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  // ── State ─────────────────────────────────────────────────────────────────
   loading = false;
   error   = false;
 
-  // ── Filters ───────────────────────────────────────────────────────────────
   selectedPeriod: 'week' | 'month' | 'year' | 'day' = 'month';
   selectedMonth: number = new Date().getMonth() + 1;
   selectedYear:  number = new Date().getFullYear();
-  selectedDate:  string = new Date().toISOString().slice(0, 10);  // YYYY-MM-DD
-  selectedCategoryId: number | null = null;
+  selectedDate:  string = new Date().toISOString().slice(0, 10);
   selectedCanal: 'todos' | 'live' | 'tienda' | 'web' = 'todos';
 
   readonly months = [
@@ -61,12 +56,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return [y - 2, y - 1, y, y + 1];
   })();
 
-  // ── Data ──────────────────────────────────────────────────────────────────
   salesData: SalesDashboardData | null = null;
   vendorData: DashboardData | null = null;
   categories: Category[] = [];
 
-  // ── Table ─────────────────────────────────────────────────────────────────
   tableDataSource = new MatTableDataSource<SalesByProduct>([]);
   displayedColumns = ['product_name', 'category', 'units_sold', 'revenue', 'detalle'];
   tableFilterCategory = '';
@@ -97,19 +90,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.from(set).sort();
   }
 
-  // ── Movimientos de Caja ───────────────────────────────────────────────────
-  movimientos: MovimientoCaja[] = [];
-  movPage = 1;
-  movPages = 1;
-  movCount = 0;
-  movLoading = false;
-  movPeriod = 'today';
-  movCols = ['fecha', 'caja', 'tipo', 'usuario', 'detalle', 'monto'];
-
   @ViewChild(MatSort)      sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  // ── Socket ────────────────────────────────────────────────────────────────
   private socketSub?: Subscription;
 
   constructor(
@@ -121,12 +104,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     public  router:               Router
   ) {}
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
-
   ngOnInit(): void {
     this.loadCategories();
     this.loadSalesDashboard();
-    this.loadMovimientos();
     this.connectSocket();
   }
 
@@ -138,8 +118,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.socketSub?.unsubscribe();
   }
-
-  // ── Data loading ──────────────────────────────────────────────────────────
 
   private loadCategories(): void {
     this.categoryService.getAllCategories().subscribe({
@@ -153,7 +131,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.error   = false;
     const params: SalesDashboardParams = {
       period: this.selectedPeriod,
-      ...(this.selectedCategoryId != null && { category_id: this.selectedCategoryId }),
       canal: this.selectedCanal,
     };
 
@@ -182,7 +159,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const vendorPeriodo = this.selectedPeriod === 'day' ? 'today' : this.selectedPeriod;
-    this.dashboardService.getDashboardData(vendorPeriodo).subscribe({
+    this.dashboardService.getDashboardData({
+      periodo: vendorPeriodo,
+      year: this.selectedYear,
+      month: this.selectedMonth,
+      date: this.selectedPeriod === 'day' ? this.selectedDate : undefined,
+    }).subscribe({
       next: data => (this.vendorData = data),
       error: () => {}
     });
@@ -198,66 +180,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedMonth = now.getMonth() + 1;
     this.selectedYear = now.getFullYear();
     this.selectedDate = now.toISOString().slice(0, 10);
-    this.selectedCategoryId = null;
     this.selectedCanal = 'todos';
     this.loadSalesDashboard();
   }
-
-  loadMovimientos(page = 1): void {
-    this.movLoading = true;
-    this.movPage = page;
-    this.dashboardService.getMovimientosCaja(this.movPeriod, page, 10).subscribe({
-      next: res => {
-        this.movimientos = res.results;
-        this.movCount = res.count;
-        this.movPages = res.pages;
-        this.movLoading = false;
-      },
-      error: () => { this.movLoading = false; },
-    });
-  }
-
-  descargarXLSX(): void {
-    // Fetch all records for current period (large page_size)
-    this.dashboardService.getMovimientosCaja(this.movPeriod, 1, 10000).subscribe({
-      next: res => {
-        const rows = res.results.map(m => ({
-          'Fecha': m.fecha,
-          'Caja': m.caja,
-          'Tipo': m.tipo,
-          'Usuario': m.usuario,
-          'Detalle': m.detalle,
-          'Monto (Bs.)': m.monto,
-        }));
-        const ws = XLSX.utils.json_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
-        const periodoLabel: Record<string, string> = {
-          today: 'hoy', week: 'semana', month: 'mes', year: 'año'
-        };
-        const suffix = periodoLabel[this.movPeriod] || this.movPeriod;
-        XLSX.writeFile(wb, `movimientos_caja_${suffix}.xlsx`);
-      },
-      error: () => {},
-    });
-  }
-
-  setMovPeriod(p: string): void {
-    this.movPeriod = p;
-    this.loadMovimientos(1);
-  }
-
-  movTipoBadgeClass(tipo: string): string {
-    tipo = tipo.toLowerCase();
-    if (tipo === 'apertura') return 'badge-apertura';
-    if (tipo.includes('cierre')) return 'badge-cierre';
-    if (tipo === 'ingresoventa') return 'badge-venta';
-    if (tipo === 'ingreso') return 'badge-ingreso';
-    if (tipo === 'egreso') return 'badge-egreso';
-    return '';
-  }
-
-  // ── Table local filter ────────────────────────────────────────────────────
 
   applyTableFilter(): void {
     if (!this.salesData) return;
@@ -296,11 +221,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applyTableFilter();
   }
 
-  get pagedProductRows(): SalesByProduct[] {
+  /** Filas visibles en móvil; misma página que MatPaginator de la tabla. */
+  get mobileProductRows(): SalesByProduct[] {
     const data = this.tableDataSource.data;
-    const pageSize = this.paginator?.pageSize || 10;
-    const pageIndex = this.paginator?.pageIndex || 0;
-    return data.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
+    if (!this.paginator) return data;
+    const start = this.paginator.pageIndex * this.paginator.pageSize;
+    return data.slice(start, start + this.paginator.pageSize);
   }
 
   private escapeRegExp(value: string): string {
@@ -324,14 +250,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // ── Canal-aware stat helpers ──────────────────────────────────────────────
-
   get canalOrders(): number {
     if (!this.salesData) return 0;
     if (this.selectedCanal === 'tienda') return this.salesData.pos_total_orders || 0;
     if (this.selectedCanal === 'web')    return this.salesData.web_total_orders || 0;
     if (this.selectedCanal === 'live')   return this.liveOrders;
-    // todos
     if (this.salesData.canal === 'todos') return this.salesData.total_orders || 0;
     return this.liveOrders + (this.salesData.pos_total_orders || 0) + (this.salesData.web_total_orders || 0);
   }
@@ -341,7 +264,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.selectedCanal === 'tienda') return +this.salesData.pos_total_revenue || 0;
     if (this.selectedCanal === 'web')    return +this.salesData.web_total_revenue || 0;
     if (this.selectedCanal === 'live')   return this.liveRevenue;
-    // todos
     if (this.salesData.canal === 'todos') return +this.salesData.total_revenue || 0;
     return this.liveRevenue + (+this.salesData.pos_total_revenue || 0) + (+this.salesData.web_total_revenue || 0);
   }
@@ -371,8 +293,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return labels[this.selectedCanal] || 'Todos los canales';
   }
 
-  // ── Chart helpers ─────────────────────────────────────────────────────────
-
   get maxRevenue(): number {
     if (!this.salesData?.sales_by_period?.length) return 1;
     return (
@@ -383,8 +303,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   getBarWidth(revenue: string): number {
     return Math.round((parseFloat(revenue) / this.maxRevenue) * 100);
   }
-
-  // ── Gastos helpers ────────────────────────────────────────────────────────
 
   get maxGasto(): number {
     if (!this.salesData?.gastos_por_categoria?.length) return 1;
@@ -403,15 +321,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return !!this.salesData?.missing_cost_data;
   }
 
-  // ── Métodos de pago helpers ───────────────────────────────────────────────
-
   get metodosPagoArray(): { nombre: string; monto: number; cantidad: number }[] {
     const map = this.vendorData?.ventas_por_metodo_pago;
     if (!map) return [];
     return Object.entries(map)
       .map(([nombre, v]) => ({
         nombre,
-        monto: Number((v as any)?.monto ?? (v as any)?.total ?? 0),
+        monto: Number((v as VentaMetodoPago)?.monto ?? (v as VentaMetodoPago)?.total ?? 0),
         cantidad: Number(v?.cantidad ?? 0),
       }))
       .sort((a, b) => b.monto - a.monto);
@@ -431,16 +347,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return 'attach_money';
   }
 
-  // ── WebSocket ─────────────────────────────────────────────────────────────
-
   private connectSocket(): void {
     this.socketSub = this.vendorSocket.events
-      .pipe(
-        debounceTime(400)
-      )
+      .pipe(debounceTime(400))
       .subscribe(() => {
         this.loadSalesDashboard();
-        this.loadMovimientos(this.movPage);
       });
 
     this.vendorProfileService.getProfile().subscribe({

@@ -14,6 +14,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { NuevaDevolucionComponent } from './nueva-devolucion/nueva-devolucion.component';
 import { HistorialDevolucionesComponent } from './historial-devoluciones/historial-devoluciones.component';
@@ -43,6 +45,8 @@ const routes: Routes = [
     MatRadioModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatSelectModule,
+    MatPaginatorModule,
   ],
 })
 export class DevolucionesModule {}

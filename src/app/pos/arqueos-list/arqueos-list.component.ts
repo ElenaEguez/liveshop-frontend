@@ -6,9 +6,6 @@ import {
   TotalCajero, TotalMetodo,
 } from '../pos.service';
 
-interface CajeroOpcion { id: number; nombre: string; rol?: string | null; }
-interface RolOpcion { value: string; label: string; }
-
 @Component({
   selector: 'app-arqueos-list',
   templateUrl: './arqueos-list.component.html',
@@ -26,11 +23,11 @@ export class ArqueosListComponent implements OnInit {
 
   // Filtros
   sucursales: Sucursal[] = [];
-  cajeros: CajeroOpcion[] = [];
-  roles: RolOpcion[] = [];
+  cajeros: Array<{ id: number; nombre: string }> = [];
+  roles: Array<{ id: number; nombre: string }> = [];
   selectedSucursal: number | null = null;
   selectedCajero: number | null = null;
-  selectedRol: string | null = null;
+  selectedRolId: number | null = null;
   selectedMetodoPagoTipo: string | null = null;
 
   // Totales
@@ -54,56 +51,38 @@ export class ArqueosListComponent implements OnInit {
     private snack: MatSnackBar,
   ) {}
 
-  private buildCajeros(turnos: TurnoCaja[], totales: TotalCajero[]): CajeroOpcion[] {
-    const seen = new Set<number>();
-    const list: CajeroOpcion[] = [];
-
-    for (const t of turnos) {
-      if (t.usuario && !seen.has(t.usuario)) {
-        seen.add(t.usuario);
-        list.push({
-          id: t.usuario,
-          nombre: t.usuario_nombre || t.usuario_email || `Usuario ${t.usuario}`,
-          rol: t.usuario_rol_nombre || null,
-        });
-      }
-    }
-    for (const c of totales) {
-      if (!seen.has(c.id)) {
-        seen.add(c.id);
-        list.push({ id: c.id, nombre: c.nombre, rol: null });
-      }
-    }
-
-    return list.sort((a, b) => a.nombre.localeCompare(b.nombre));
-  }
-
   ngOnInit(): void {
     this.posService.getSucursales().subscribe({
       next: s => { this.sucursales = s.filter(x => x.activa); },
       error: () => {},
     });
+    this.loadFiltrosOpciones();
     this.load();
   }
 
-  private buildRoles(turnos: TurnoCaja[]): RolOpcion[] {
-    const seen = new Set<string>();
-    const out: RolOpcion[] = [];
-    for (const t of turnos) {
-      if (t.usuario_rol_nombre) {
-        const key = `role_name:${t.usuario_rol_nombre}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          out.push({ value: t.usuario_rol_nombre, label: t.usuario_rol_nombre });
+  private loadFiltrosOpciones(): void {
+    this.posService.getVentasFiltros({ periodo: this.periodo }).subscribe({
+      next: (data) => {
+        this.cajeros = data?.cajeros ?? [];
+        this.roles = data?.roles ?? [];
+        if (
+          this.selectedCajero != null
+          && !this.cajeros.some(c => c.id === this.selectedCajero)
+        ) {
+          this.selectedCajero = null;
         }
-      } else if (t.usuario && t.usuario_email) {
-        if (!seen.has('owner')) {
-          seen.add('owner');
-          out.push({ value: 'owner', label: 'Propietario' });
+        if (
+          this.selectedRolId != null
+          && !this.roles.some(r => r.id === this.selectedRolId)
+        ) {
+          this.selectedRolId = null;
         }
-      }
-    }
-    return out.sort((a, b) => a.label.localeCompare(b.label));
+      },
+      error: () => {
+        this.cajeros = [];
+        this.roles = [];
+      },
+    });
   }
 
   load(p = 1): void {
@@ -111,7 +90,7 @@ export class ArqueosListComponent implements OnInit {
     this.page = p;
     this.posService.getArqueos(
       this.periodo, p, 20, this.semana,
-      this.selectedCajero, this.selectedRol, this.selectedSucursal, this.selectedMetodoPagoTipo,
+      this.selectedCajero, this.selectedRolId, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         this.turnos            = res.results;
@@ -119,14 +98,6 @@ export class ArqueosListComponent implements OnInit {
         this.pages             = res.pages;
         this.totalesPorCajero  = res.totales_por_cajero ?? [];
         this.totalesPorMetodo  = res.totales_por_metodo ?? [];
-        this.cajeros = this.buildCajeros(this.turnos, this.totalesPorCajero);
-        this.roles = this.buildRoles(this.turnos);
-        if (this.selectedCajero && !this.cajeros.some(c => c.id === this.selectedCajero)) {
-          this.selectedCajero = null;
-        }
-        if (this.selectedRol && !this.roles.some(r => r.value === this.selectedRol)) {
-          this.selectedRol = null;
-        }
         this.loading = false;
       },
       error: (err) => {
@@ -140,6 +111,7 @@ export class ArqueosListComponent implements OnInit {
   setPeriodo(v: string): void {
     this.periodo = v;
     this.semana  = null;
+    this.loadFiltrosOpciones();
     this.load(1);
   }
 
@@ -156,7 +128,7 @@ export class ArqueosListComponent implements OnInit {
   clearFilters(): void {
     this.selectedSucursal = null;
     this.selectedCajero = null;
-    this.selectedRol = null;
+    this.selectedRolId = null;
     this.selectedMetodoPagoTipo = null;
     this.semana = null;
     this.load(1);
@@ -208,10 +180,9 @@ export class ArqueosListComponent implements OnInit {
   }
 
   descargarXLSX(): void {
-    // Descarga todos los registros del período
     this.posService.getArqueos(
       this.periodo, 1, 1000, this.semana,
-      this.selectedCajero, this.selectedRol, this.selectedSucursal, this.selectedMetodoPagoTipo,
+      this.selectedCajero, this.selectedRolId, this.selectedSucursal, this.selectedMetodoPagoTipo,
     ).subscribe({
       next: res => {
         const rows = res.results.map(t => ({

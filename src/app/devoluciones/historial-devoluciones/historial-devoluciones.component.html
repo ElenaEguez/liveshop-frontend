@@ -9,6 +9,26 @@
     </button>
   </div>
 
+  <mat-card class="filters-card">
+    <div class="filters-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Desde</mat-label>
+        <input matInput type="date" [(ngModel)]="fechaDesde"
+               (change)="onFiltrosChange()">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hasta</mat-label>
+        <input matInput type="date" [(ngModel)]="fechaHasta"
+               (change)="onFiltrosChange()">
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="limpiarFiltros()">
+        <mat-icon>clear</mat-icon> Limpiar
+      </button>
+    </div>
+  </mat-card>
+
   <div *ngIf="cargando" class="loading-center">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
@@ -35,14 +55,12 @@
       </mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="resolucion">
+    <ng-container matColumnDef="metodo">
       <mat-header-cell *matHeaderCellDef>
-        Resolución
+        Método devolución
       </mat-header-cell>
       <mat-cell *matCellDef="let d">
-        <mat-chip [color]="getColorResolucion(d.tipo_resolucion)" selected>
-          {{ d.tipo_resolucion === 'cambio' ? 'Cambio' : 'Dinero' }}
-        </mat-chip>
+        {{ d.metodo_pago_devolucion_nombre || '—' }}
       </mat-cell>
     </ng-container>
 
@@ -76,6 +94,14 @@
     <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
     <mat-row *matRowDef="let r; columns: columnas;"></mat-row>
   </mat-table>
+
+  <mat-paginator *ngIf="!cargando && totalItems > 0"
+                 [length]="totalItems"
+                 [pageSize]="pageSize"
+                 [pageSizeOptions]="[10, 20, 50]"
+                 [pageIndex]="currentPage - 1"
+                 (page)="onPageChange($event)">
+  </mat-paginator>
 
   <p *ngIf="!cargando && devoluciones.length === 0"
      class="empty-state">

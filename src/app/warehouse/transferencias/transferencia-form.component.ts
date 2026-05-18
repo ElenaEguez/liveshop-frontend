@@ -2,7 +2,7 @@ import {
   Component, OnInit, ChangeDetectorRef
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
@@ -26,6 +26,8 @@ export class TransferenciaFormComponent implements OnInit {
   guardando = false;
   stockActual: number | null = null;
   cargandoStock = false;
+  modoEdicion = false;
+  transferenciaId: number | null = null;
   private busqueda$ = new Subject<string>();
 
   columnas = ['producto', 'variante', 'stock_actual', 'cantidad', 'eliminar'];
@@ -34,6 +36,7 @@ export class TransferenciaFormComponent implements OnInit {
     private fb: FormBuilder,
     private svc: WarehouseExtraService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -43,6 +46,17 @@ export class TransferenciaFormComponent implements OnInit {
       this.almacenes = a;
       this.cdr.markForCheck();
     });
+    const idParam = this.route.snapshot.paramMap.get('id');
+    const editPath = this.route.snapshot.url.some((s) => s.path === 'edit');
+    if (idParam && editPath) {
+      const tid = Number(idParam);
+      if (!Number.isNaN(tid) && tid > 0) {
+        this.modoEdicion = true;
+        this.transferenciaId = tid;
+        this.cargarTransferencia(tid);
+      }
+    }
+
     this.busqueda$.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -61,8 +75,8 @@ export class TransferenciaFormComponent implements OnInit {
 
   private initForms(): void {
     this.form = this.fb.group({
-      almacen_origen: [null, Validators.required],
-      almacen_destino: [null, Validators.required],
+      almacen_origen: [{ value: null, disabled: false }, Validators.required],
+      almacen_destino: [{ value: null, disabled: false }, Validators.required],
       notas: [''],
     });
     this.itemForm = this.fb.group({
@@ -93,9 +107,11 @@ export class TransferenciaFormComponent implements OnInit {
       return;
     }
     this.cargandoStock = true;
+    const varianteId = this.itemForm?.value?.variante ?? null;
     this.svc.getStockEnAlmacen(
       this.productoSeleccionado.id,
       almacenId,
+      varianteId,
     ).subscribe({
       next: (stock) => {
         this.stockActual = stock;
@@ -116,7 +132,7 @@ export class TransferenciaFormComponent implements OnInit {
       return;
     }
     this.items.forEach((item, idx) => {
-      this.svc.getStockEnAlmacen(item.producto, almacenId).subscribe({
+      this.svc.getStockEnAlmacen(item.producto, almacenId, item.variante ?? null).subscribe({
         next: (stock) => {
           this.items = this.items.map((row, i) =>
             i === idx ? { ...row, stock_actual: stock } : row
@@ -182,9 +198,43 @@ export class TransferenciaFormComponent implements OnInit {
     this.svc.getStockEnAlmacen(
       this.productoSeleccionado.id,
       almacenId,
+      v.variante || null,
     ).subscribe({
       next: (stock) => agregar(stock),
       error: () => agregar(0),
+    });
+  }
+
+  private cargarTransferencia(id: number): void {
+    this.svc.getTransferencia(id).subscribe({
+      next: (t) => {
+        if (t.estado !== 'pendiente') {
+          alert('Solo se pueden editar transferencias pendientes.');
+          this.router.navigate(['/almacen/transferencias', id]);
+          return;
+        }
+        this.form.patchValue({
+          almacen_origen: t.almacen_origen,
+          almacen_destino: t.almacen_destino,
+          notas: t.notas || '',
+        });
+        this.form.get('almacen_origen')?.disable();
+        this.form.get('almacen_destino')?.disable();
+        this.items = (t.items || []).map((i) => ({
+          producto: i.producto,
+          producto_nombre: i.producto_nombre,
+          variante: i.variante ?? null,
+          variante_detalle: i.variante_detalle ?? null,
+          cantidad: i.cantidad,
+          stock_actual: i.stock_actual,
+        }));
+        this.refrescarStockItems();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        alert('No se pudo cargar la transferencia.');
+        this.router.navigate(['/almacen/transferencias']);
+      },
     });
   }
 
@@ -204,13 +254,33 @@ export class TransferenciaFormComponent implements OnInit {
       return;
     }
     this.guardando = true;
+    const raw = this.form.getRawValue();
+    const itemsPayload = this.items.map(i => ({
+      producto: i.producto,
+      variante: i.variante || null,
+      cantidad: i.cantidad,
+    }));
+
+    if (this.modoEdicion && this.transferenciaId) {
+      this.svc.actualizarTransferencia(this.transferenciaId, {
+        notas: raw.notas,
+        items: itemsPayload,
+      }).subscribe({
+        next: (t) => {
+          this.guardando = false;
+          this.router.navigate(['/almacen/transferencias', t.id]);
+        },
+        error: (err) => {
+          this.guardando = false;
+          alert(err.error?.error || err.error?.detail || 'Error al actualizar transferencia');
+        },
+      });
+      return;
+    }
+
     const payload = {
-      ...this.form.value,
-      items: this.items.map(i => ({
-        producto: i.producto,
-        variante: i.variante || null,
-        cantidad: i.cantidad,
-      }))
+      ...raw,
+      items: itemsPayload,
     };
     this.svc.crearTransferencia(payload).subscribe({
       next: (t) => {

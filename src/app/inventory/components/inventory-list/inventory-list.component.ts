@@ -88,6 +88,7 @@ export class InventoryListComponent implements OnInit {
   loadInventory(): void {
     const filters: any = {};
     if (this.selectedAlmacenId)  filters.almacen_id = this.selectedAlmacenId;
+    if (this.selectedSucursalId) filters.sucursal_id = this.selectedSucursalId;
     if (this.selectedCategoryId) filters.category   = this.selectedCategoryId;
     if (this.searchControl.value) filters.search    = this.searchControl.value;
     filters.page = this.currentPage + 1;
@@ -132,12 +133,7 @@ export class InventoryListComponent implements OnInit {
   }
 
   onSucursalChange(): void {
-    if (this.selectedAlmacenId) {
-      const stillValid = this.almacenesForSelect.some(a => a.id === this.selectedAlmacenId);
-      if (!stillValid) {
-        this.selectedAlmacenId = null;
-      }
-    }
+    this.selectedAlmacenId = null;
     this.currentPage = 0;
     this.loadInventory();
   }

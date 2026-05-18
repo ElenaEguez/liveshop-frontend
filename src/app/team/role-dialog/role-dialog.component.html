@@ -29,16 +29,19 @@
       Los cambios aplican la próxima vez que el miembro inicie sesión.
     </div>
 
-    <div class="perm-list">
-      <div *ngFor="let mod of modules" class="perm-row">
-        <mat-checkbox [formControlName]="mod.key" color="primary">
-          <div class="perm-label">
-            <span class="perm-name">{{ mod.label }}</span>
-            <span class="perm-desc">{{ mod.description }}</span>
-          </div>
-        </mat-checkbox>
+    <ng-container *ngFor="let section of sections">
+      <p class="perm-section-title">{{ section.title }}</p>
+      <div class="perm-list">
+        <div *ngFor="let mod of section.modules" class="perm-row">
+          <mat-checkbox [formControlName]="mod.key" color="primary">
+            <div class="perm-label">
+              <span class="perm-name">{{ mod.label }}</span>
+              <span class="perm-desc">{{ mod.description }}</span>
+            </div>
+          </mat-checkbox>
+        </div>
       </div>
-    </div>
+    </ng-container>
 
   </form>
 </mat-dialog-content>

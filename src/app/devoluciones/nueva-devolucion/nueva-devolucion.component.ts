@@ -1,10 +1,11 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   DevolucionesService,
   VentaParaDevolucion,
   VentaItemParaDevolucion,
   DevolucionPayload,
+  MetodoPagoOption,
 } from '../../payments/devoluciones.service';
 
 @Component({
@@ -12,15 +13,15 @@ import {
   templateUrl: './nueva-devolucion.component.html',
   styleUrls: ['./nueva-devolucion.component.scss'],
 })
-export class NuevaDevolucionComponent {
+export class NuevaDevolucionComponent implements OnInit {
   busquedaTicket = '';
-  busquedaId = '';
   buscando = false;
   errorBusqueda = '';
 
   venta: VentaParaDevolucion | null = null;
 
-  tipoResolucion: 'cambio' | 'devolucion_dinero' = 'cambio';
+  metodosPago: MetodoPagoOption[] = [];
+  metodoPagoDevolucionId: number | null = null;
   motivo = '';
   procesando = false;
 
@@ -32,6 +33,16 @@ export class NuevaDevolucionComponent {
     private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+    this.svc.getMetodosPago().subscribe({
+      next: (list) => {
+        this.metodosPago = list;
+        this.cdr.markForCheck();
+      },
+      error: () => {},
+    });
+  }
+
   onBuscarPorTicket(): void {
     if (!this.busquedaTicket.trim()) {
       return;
@@ -39,18 +50,12 @@ export class NuevaDevolucionComponent {
     this.buscar(this.svc.buscarVentaPorTicket(this.busquedaTicket.trim()));
   }
 
-  onBuscarPorId(): void {
-    if (!this.busquedaId.trim()) {
-      return;
-    }
-    this.buscar(this.svc.buscarVentaPorId(+this.busquedaId.trim()));
-  }
-
   private buscar(obs: any): void {
     this.buscando = true;
     this.errorBusqueda = '';
     this.venta = null;
     this.devolucionCreada = null;
+    this.metodoPagoDevolucionId = null;
 
     obs.subscribe({
       next: (venta: VentaParaDevolucion) => {
@@ -103,7 +108,11 @@ export class NuevaDevolucionComponent {
   }
 
   get puedeConfirmar(): boolean {
-    return this.itemsSeleccionados.length > 0 && !this.procesando;
+    return (
+      this.itemsSeleccionados.length > 0
+      && this.metodoPagoDevolucionId != null
+      && !this.procesando
+    );
   }
 
   onConfirmar(): void {
@@ -112,10 +121,8 @@ export class NuevaDevolucionComponent {
     }
 
     const msg =
-      this.tipoResolucion === 'devolucion_dinero'
-        ? `¿Confirmar devolución de dinero por ` +
-          `Bs. ${this.montoEstimado.toFixed(2)}?`
-        : `¿Confirmar cambio de producto?`;
+      `¿Confirmar devolución de dinero por ` +
+      `Bs. ${this.montoEstimado.toFixed(2)}?`;
 
     if (!confirm(msg)) {
       return;
@@ -124,7 +131,8 @@ export class NuevaDevolucionComponent {
     this.procesando = true;
     const payload: DevolucionPayload = {
       venta: this.venta.id,
-      tipo_resolucion: this.tipoResolucion,
+      tipo_resolucion: 'devolucion_dinero',
+      metodo_pago_devolucion: this.metodoPagoDevolucionId!,
       motivo: this.motivo,
       items: this.itemsSeleccionados.map((i) => ({
         venta_item: i.id,
@@ -150,7 +158,7 @@ export class NuevaDevolucionComponent {
     this.venta = null;
     this.devolucionCreada = null;
     this.busquedaTicket = '';
-    this.busquedaId = '';
+    this.metodoPagoDevolucionId = null;
     this.motivo = '';
   }
 

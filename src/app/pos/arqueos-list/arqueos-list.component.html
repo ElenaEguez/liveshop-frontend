@@ -37,17 +37,15 @@
       <mat-label>Usuario</mat-label>
       <mat-select [(ngModel)]="selectedCajero" (ngModelChange)="onCajeroChange()">
         <mat-option [value]="null">Todos</mat-option>
-        <mat-option *ngFor="let c of cajeros" [value]="c.id">
-          {{ c.nombre }}<span *ngIf="c.rol"> — {{ c.rol }}</span>
-        </mat-option>
+        <mat-option *ngFor="let c of cajeros" [value]="c.id">{{ c.nombre }}</mat-option>
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Rol</mat-label>
-      <mat-select [(ngModel)]="selectedRol" (ngModelChange)="onRolChange()">
+      <mat-select [(ngModel)]="selectedRolId" (ngModelChange)="onRolChange()">
         <mat-option [value]="null">Todos</mat-option>
-        <mat-option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</mat-option>
+        <mat-option *ngFor="let r of roles" [value]="r.id">{{ r.nombre }}</mat-option>
       </mat-select>
     </mat-form-field>
 

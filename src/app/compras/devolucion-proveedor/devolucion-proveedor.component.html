@@ -3,12 +3,55 @@
     <h2>Devolución a proveedor</h2>
     <p class="sub">
       Descuenta stock del almacén de la línea (o el elegido en modo por producto) y, si hay variante, el
-      stock de esa variante. Queda registrado como salida en el kardex del producto.
+      stock de esa variante. No se permite devolver si ya hubo ventas registradas en ese almacén.
     </p>
   </div>
 
   <mat-card>
     <mat-card-content>
+      <section class="busqueda-section" *ngIf="modo === 'orden'">
+        <h3 class="h3">Buscar por proveedor u orden</h3>
+        <div class="busqueda-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Proveedor</mat-label>
+            <mat-select
+              [(ngModel)]="filtroProveedorId"
+              (selectionChange)="onProveedorChange()"
+            >
+              <mat-option [value]="null">Todos</mat-option>
+              <mat-option *ngFor="let p of proveedores" [value]="p.id">{{ p.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Buscar orden o producto</mat-label>
+            <input
+              matInput
+              [formControl]="busquedaControl"
+              placeholder="Nº orden, proveedor, producto…"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <p *ngIf="cargandoBusqueda" class="muted">Buscando…</p>
+
+        <div class="resultados-busqueda" *ngIf="resultadosBusqueda.length && !cargandoBusqueda">
+          <button
+            type="button"
+            class="resultado-item"
+            *ngFor="let o of resultadosBusqueda"
+            [class.selected]="ordenSeleccionadaId === o.orden_id"
+            (click)="seleccionarOrdenBusqueda(o)"
+          >
+            <strong>{{ o.numero_orden }}</strong>
+            — {{ o.proveedor_nombre || 'Proveedor' }}
+            — {{ o.fecha }}
+            <span *ngIf="o.almacen"> — {{ o.almacen }}</span>
+          </button>
+        </div>
+      </section>
+
       <mat-radio-group
         class="modo-row"
         [(ngModel)]="modo"
@@ -85,8 +128,7 @@
       <ng-container *ngIf="modo === 'orden'">
         <h3 class="h3">Orden recibida</h3>
         <p class="hint">
-          Solo se listan órdenes en estado «recibida». Las cantidades a devolver no pueden superar las de la
-          compra; el stock en almacén se valida al registrar.
+          Solo órdenes «recibida». Las líneas con ventas posteriores a la compra no se pueden devolver.
         </p>
         <mat-form-field appearance="outline" class="full">
           <mat-label>Orden de compra</mat-label>
@@ -105,6 +147,12 @@
         <p *ngIf="cargandoOrdenes" class="muted">Cargando órdenes…</p>
         <p *ngIf="cargandoDetalleOrden" class="muted">Cargando ítems…</p>
 
+        <div class="orden-actions" *ngIf="lineasOrden.length && !cargandoDetalleOrden">
+          <button mat-stroked-button type="button" (click)="devolverTodaLaOrden()">
+            Devolver toda la orden (líneas permitidas)
+          </button>
+        </div>
+
         <div *ngIf="lineasOrden.length && !cargandoDetalleOrden" class="tabla-orden-wrap">
           <table class="tabla-orden">
             <thead>
@@ -113,23 +161,36 @@
                 <th>Variante</th>
                 <th>Almacén</th>
                 <th>Cant. orden</th>
+                <th>Ya devuelto</th>
                 <th>A devolver</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let row of lineasOrden">
-                <td>{{ row.productoNombre }}</td>
+              <tr
+                *ngFor="let row of lineasOrden"
+                [class.item-bloqueado]="!row.puedeDevolver"
+              >
+                <td>
+                  {{ row.productoNombre }}
+                  <mat-icon
+                    *ngIf="!row.puedeDevolver"
+                    class="icon-block"
+                    matTooltip="Ya tiene ventas registradas, no se puede devolver"
+                  >block</mat-icon>
+                </td>
                 <td>{{ row.varianteLabel }}</td>
                 <td>{{ almacenNombre(row.almacenId) }}</td>
                 <td>{{ row.cantidadComprada }}</td>
+                <td>{{ row.cantidadYaDevuelta }}</td>
                 <td>
                   <mat-form-field appearance="outline" class="qty-inline">
                     <input
                       matInput
                       type="number"
                       min="0"
-                      [max]="row.cantidadComprada"
+                      [max]="row.maxDevolver"
                       [(ngModel)]="row.cantidad"
+                      [disabled]="!row.puedeDevolver"
                     />
                   </mat-form-field>
                 </td>
@@ -138,6 +199,8 @@
           </table>
         </div>
       </ng-container>
+
+      <p class="resumen" *ngIf="resumenDevolucion">{{ resumenDevolucion }}</p>
 
       <div class="actions">
         <button mat-raised-button color="warn" (click)="enviar()" [disabled]="enviando">

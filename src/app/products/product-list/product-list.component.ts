@@ -35,6 +35,10 @@ export class ProductListComponent implements OnInit {
   ) {}
 
   displayStock(product: Product): number {
+    const real = (product as Product & { stock_real?: number }).stock_real;
+    if (real != null) {
+      return real;
+    }
     return product.stock_disponible ?? product.stock ?? 0;
   }
 

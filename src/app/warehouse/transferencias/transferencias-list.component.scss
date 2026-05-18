@@ -22,3 +22,11 @@
   text-align: center;
   color: #888;
 }
+
+.filters-bar {
+  margin-bottom: 16px;
+
+  .filter-field {
+    min-width: 180px;
+  }
+}

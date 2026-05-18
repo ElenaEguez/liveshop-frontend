@@ -18,14 +18,12 @@
         {{ devolucionCreada.venta_ticket }}
       </p>
       <p>
-        <strong>Tipo:</strong>
-        {{ devolucionCreada.tipo_resolucion === 'cambio'
-           ? 'Cambio de producto'
-           : 'Devolución de dinero' }}
-      </p>
-      <p *ngIf="devolucionCreada.tipo_resolucion === 'devolucion_dinero'">
         <strong>Monto a devolver:</strong>
         Bs. {{ devolucionCreada.monto_devuelto | number:'1.2-2' }}
+      </p>
+      <p *ngIf="devolucionCreada.metodo_pago_devolucion_nombre">
+        <strong>Método de devolución:</strong>
+        {{ devolucionCreada.metodo_pago_devolucion_nombre }}
       </p>
       <p>
         <strong>Procesado por:</strong>
@@ -56,20 +54,6 @@
         <button mat-raised-button color="primary"
                 (click)="onBuscarPorTicket()"
                 [disabled]="buscando || !busquedaTicket.trim()">
-          Buscar
-        </button>
-
-        <span class="o-separator">o</span>
-
-        <mat-form-field appearance="outline">
-          <mat-label>ID de venta</mat-label>
-          <input matInput [(ngModel)]="busquedaId"
-                 type="number"
-                 (keyup.enter)="onBuscarPorId()">
-        </mat-form-field>
-        <button mat-raised-button
-                (click)="onBuscarPorId()"
-                [disabled]="buscando || !busquedaId.trim()">
           Buscar
         </button>
       </div>
@@ -188,33 +172,23 @@
     </mat-card>
 
     <mat-card *ngIf="itemsSeleccionados.length > 0">
-      <mat-card-title>Tipo de resolución</mat-card-title>
+      <mat-card-title>Devolución de dinero</mat-card-title>
       <mat-card-content>
 
-        <mat-radio-group [(ngModel)]="tipoResolucion"
-                         class="radio-group">
-          <mat-radio-button value="cambio">
-            <div class="radio-option">
-              <mat-icon>swap_horiz</mat-icon>
-              <div>
-                <strong>Cambio de producto</strong>
-                <p>El cliente recibe otro producto</p>
-              </div>
-            </div>
-          </mat-radio-button>
-          <mat-radio-button value="devolucion_dinero">
-            <div class="radio-option">
-              <mat-icon>payments</mat-icon>
-              <div>
-                <strong>Devolución de dinero</strong>
-                <p>
-                  Se devuelve
-                  Bs. {{ montoEstimado | number:'1.2-2' }}
-                </p>
-              </div>
-            </div>
-          </mat-radio-button>
-        </mat-radio-group>
+        <p class="tipo-hint">
+          Monto a devolver:
+          <strong>Bs. {{ montoEstimado | number:'1.2-2' }}</strong>
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Método de devolución</mat-label>
+          <mat-select [(ngModel)]="metodoPagoDevolucionId" required>
+            <mat-option [value]="null" disabled>Seleccione...</mat-option>
+            <mat-option *ngFor="let m of metodosPago" [value]="m.id">
+              {{ m.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
 
         <mat-form-field appearance="outline"
                         class="full-width"

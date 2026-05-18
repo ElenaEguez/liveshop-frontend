@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ComprasService, OrdenCompra, OrdenCompraItem, OrdenCompraItemDistribucion } from '../compras.service';
 
 @Component({
@@ -18,7 +19,8 @@ export class OrdenDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private comprasService: ComprasService
+    private comprasService: ComprasService,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +48,23 @@ export class OrdenDetailComponent implements OnInit {
 
   confirmar(): void {
     if (!this.orden?.id) return;
-    this.comprasService.confirmarOrden(this.orden.id).subscribe((o) => (this.orden = o));
+    if (!confirm('¿Confirmar esta orden? Esta acción no se puede deshacer.')) {
+      return;
+    }
+    this.comprasService.confirmarOrden(this.orden.id).subscribe({
+      next: (o) => {
+        this.orden = o;
+        this.snackBar.open('Orden confirmada correctamente', 'Cerrar', { duration: 4000 });
+      },
+      error: (err) => {
+        const msg = err.error?.error || err.error?.detail || 'No se pudo confirmar la orden';
+        this.snackBar.open(
+          typeof msg === 'string' ? msg : 'No se pudo confirmar la orden',
+          'Cerrar',
+          { duration: 5000 },
+        );
+      },
+    });
   }
 
   cancelar(): void {

@@ -1,10 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { FormControl } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import {
   ComprasService,
   OrdenCompra,
   OrdenCompraItem,
   ProductoLookup,
+  Proveedor,
 } from '../compras.service';
 import { ProductService } from '../../products/products.service';
 
@@ -27,7 +31,37 @@ interface LineaOrdenRow {
   varianteLabel: string;
   almacenId: number | null;
   cantidadComprada: number;
+  cantidadYaDevuelta: number;
+  maxDevolver: number;
   cantidad: number;
+  puedeDevolver: boolean;
+  productoId?: number;
+  varianteId?: number | null;
+}
+
+interface DevolucionBuscarItem {
+  item_id: number;
+  orden_item_id: number;
+  orden_distribucion_id: number | null;
+  producto_id: number;
+  producto_nombre: string;
+  variante_id: number | null;
+  variante_descripcion: string;
+  cantidad_comprada: number;
+  cantidad_ya_devuelta: number;
+  puede_devolver: boolean;
+  almacen_id: number;
+}
+
+interface DevolucionBuscarOrden {
+  orden_id: number;
+  numero_orden: string;
+  proveedor_id: number | null;
+  proveedor_nombre: string;
+  fecha: string;
+  almacen: string;
+  almacen_id: number | null;
+  items: DevolucionBuscarItem[];
 }
 
 @Component({
@@ -35,7 +69,7 @@ interface LineaOrdenRow {
   templateUrl: './devolucion-proveedor.component.html',
   styleUrls: ['./devolucion-proveedor.component.scss'],
 })
-export class DevolucionProveedorComponent implements OnInit {
+export class DevolucionProveedorComponent implements OnInit, OnDestroy {
   modo: 'producto' | 'orden' = 'producto';
   documentoRef = '';
   notas = '';
@@ -46,12 +80,21 @@ export class DevolucionProveedorComponent implements OnInit {
   mensaje = '';
   error = '';
 
+  proveedores: Proveedor[] = [];
+  filtroProveedorId: number | null = null;
+  busquedaControl = new FormControl('');
+  resultadosBusqueda: DevolucionBuscarOrden[] = [];
+  cargandoBusqueda = false;
+  ordenSeleccionadaInfo: DevolucionBuscarOrden | null = null;
+
   ordenesRecibidas: OrdenCompra[] = [];
   ordenSeleccionadaId: number | null = null;
   lineasOrden: LineaOrdenRow[] = [];
   cargandoOrdenes = false;
   cargandoDetalleOrden = false;
   private ordenPreseleccionId: number | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly busqueda$ = new Subject<string>();
 
   constructor(
     private compras: ComprasService,
@@ -78,20 +121,157 @@ export class DevolucionProveedorComponent implements OnInit {
       error: () => {},
     });
 
+    this.compras.getProveedores().subscribe({
+      next: (rows) => { this.proveedores = rows || []; },
+      error: () => {},
+    });
+
+    this.busqueda$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.ejecutarBusqueda());
+
+    this.busquedaControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((v) => {
+        this.busqueda$.next((v || '').trim());
+      });
+
     if (this.modo === 'orden') {
       this.cargarOrdenesRecibidas();
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onModoChange(): void {
     this.mensaje = '';
     this.error = '';
+    this.resultadosBusqueda = [];
+    this.ordenSeleccionadaInfo = null;
     if (this.modo === 'orden') {
       this.cargarOrdenesRecibidas();
     } else {
       this.ordenSeleccionadaId = null;
       this.lineasOrden = [];
     }
+  }
+
+  onProveedorChange(): void {
+    this.ordenSeleccionadaId = null;
+    this.ordenSeleccionadaInfo = null;
+    this.lineasOrden = [];
+    this.ejecutarBusqueda();
+  }
+
+  ejecutarBusqueda(): void {
+    const q = (this.busquedaControl.value || '').trim();
+    if (!q && this.filtroProveedorId == null) {
+      this.resultadosBusqueda = [];
+      return;
+    }
+    this.cargandoBusqueda = true;
+    this.compras.buscarDevolucion({
+      q: q || undefined,
+      proveedor_id: this.filtroProveedorId ?? undefined,
+    }).subscribe({
+      next: (rows) => {
+        this.resultadosBusqueda = rows || [];
+        this.cargandoBusqueda = false;
+      },
+      error: () => {
+        this.cargandoBusqueda = false;
+        this.resultadosBusqueda = [];
+      },
+    });
+  }
+
+  seleccionarOrdenBusqueda(orden: DevolucionBuscarOrden): void {
+    this.ordenSeleccionadaId = orden.orden_id;
+    this.ordenSeleccionadaInfo = orden;
+    this.aplicarItemsBusqueda(orden);
+  }
+
+  private aplicarItemsBusqueda(orden: DevolucionBuscarOrden): void {
+    this.lineasOrden = (orden.items || []).map((it) => {
+      const maxDev = Math.max(
+        0,
+        it.cantidad_comprada - (it.cantidad_ya_devuelta || 0),
+      );
+      return {
+        tipo: it.orden_distribucion_id ? 'distribucion' as const : 'item' as const,
+        ordenItemId: it.orden_item_id,
+        distribucionId: it.orden_distribucion_id ?? undefined,
+        productoNombre: it.producto_nombre,
+        varianteLabel: it.variante_descripcion || '—',
+        almacenId: it.almacen_id,
+        cantidadComprada: it.cantidad_comprada,
+        cantidadYaDevuelta: it.cantidad_ya_devuelta || 0,
+        maxDevolver: maxDev,
+        puedeDevolver: it.puede_devolver && maxDev > 0,
+        cantidad: 0,
+        productoId: it.producto_id,
+        varianteId: it.variante_id,
+      };
+    });
+  }
+
+  cargarDetalleOrdenPorId(id: number): void {
+    this.cargandoDetalleOrden = true;
+    this.compras.buscarDevolucion({ orden_id: id }).subscribe({
+      next: (rows) => {
+        this.cargandoDetalleOrden = false;
+        const orden = rows?.[0];
+        if (orden) {
+          this.ordenSeleccionadaInfo = orden;
+          this.aplicarItemsBusqueda(orden);
+        } else {
+          this.compras.getOrden(id).subscribe({
+            next: (o) => this.aplicarDetalleOrdenLegacy(o),
+            error: () => {
+              this.error = 'No se pudo cargar la orden.';
+            },
+          });
+        }
+      },
+      error: () => {
+        this.cargandoDetalleOrden = false;
+        this.error = 'No se pudo cargar la orden.';
+      },
+    });
+  }
+
+  devolverTodaLaOrden(): void {
+    this.lineasOrden = this.lineasOrden.map((r) => {
+      if (!r.puedeDevolver) {
+        return { ...r, cantidad: 0 };
+      }
+      return { ...r, cantidad: r.maxDevolver };
+    });
+  }
+
+  get resumenDevolucion(): string {
+    if (this.modo === 'orden') {
+      const activas = this.lineasOrden.filter((r) => r.cantidad > 0 && r.puedeDevolver);
+      if (!activas.length) {
+        return '';
+      }
+      const variantes = activas.length;
+      const prov = this.ordenSeleccionadaInfo?.proveedor_nombre
+        || this.ordenesRecibidas.find((o) => o.id === this.ordenSeleccionadaId)?.proveedor_data?.nombre
+        || 'proveedor';
+      const alm = this.ordenSeleccionadaInfo?.almacen
+        || this.almacenNombre(activas[0].almacenId);
+      return `Devolviendo ${variantes} línea${variantes !== 1 ? 's' : ''} al proveedor ${prov}, almacén ${alm}`;
+    }
+    const lineas = this.lineas.filter((l) => l.producto && l.almacen && l.cantidad > 0);
+    if (!lineas.length) {
+      return '';
+    }
+    const alm = this.almacenNombre(lineas[0].almacen);
+    return `Devolviendo ${lineas.length} producto${lineas.length !== 1 ? 's' : ''}, almacén ${alm}`;
   }
 
   cargarOrdenesRecibidas(): void {
@@ -103,22 +283,8 @@ export class DevolucionProveedorComponent implements OnInit {
         const pending = this.ordenPreseleccionId;
         if (pending != null) {
           this.ordenPreseleccionId = null;
-          const exists = this.ordenesRecibidas.some((o) => o.id === pending);
-          if (exists) {
-            this.ordenSeleccionadaId = pending;
-            this.cargarDetalleOrden(pending);
-          } else {
-            this.compras.getOrden(pending).subscribe({
-              next: (o) => {
-                if (o.estado === 'recibida' && o.id) {
-                  this.ordenesRecibidas = [o, ...this.ordenesRecibidas.filter((x) => x.id !== o.id)];
-                  this.ordenSeleccionadaId = o.id;
-                  this.aplicarDetalleOrden(o);
-                }
-              },
-              error: () => {},
-            });
-          }
+          this.ordenSeleccionadaId = pending;
+          this.cargarDetalleOrdenPorId(pending);
         }
       },
       error: () => {
@@ -130,27 +296,14 @@ export class DevolucionProveedorComponent implements OnInit {
   onOrdenSeleccionada(id: number | null): void {
     this.error = '';
     this.lineasOrden = [];
+    this.ordenSeleccionadaInfo = null;
     if (id == null || id <= 0) {
       return;
     }
-    this.cargarDetalleOrden(id);
+    this.cargarDetalleOrdenPorId(id);
   }
 
-  cargarDetalleOrden(id: number): void {
-    this.cargandoDetalleOrden = true;
-    this.compras.getOrden(id).subscribe({
-      next: (o) => {
-        this.cargandoDetalleOrden = false;
-        this.aplicarDetalleOrden(o);
-      },
-      error: () => {
-        this.cargandoDetalleOrden = false;
-        this.error = 'No se pudo cargar la orden.';
-      },
-    });
-  }
-
-  private aplicarDetalleOrden(o: OrdenCompra): void {
+  private aplicarDetalleOrdenLegacy(o: OrdenCompra): void {
     const rows: LineaOrdenRow[] = [];
     for (const it of o.items || []) {
       const pname = it.producto_nombre || '—';
@@ -169,6 +322,9 @@ export class DevolucionProveedorComponent implements OnInit {
             varianteLabel: vl,
             almacenId: almId,
             cantidadComprada: d.cantidad,
+            cantidadYaDevuelta: 0,
+            maxDevolver: d.cantidad,
+            puedeDevolver: true,
             cantidad: 0,
           });
         }
@@ -180,6 +336,9 @@ export class DevolucionProveedorComponent implements OnInit {
           varianteLabel: this.labelVariante(it),
           almacenId: almId,
           cantidadComprada: it.cantidad,
+          cantidadYaDevuelta: 0,
+          maxDevolver: it.cantidad,
+          puedeDevolver: true,
           cantidad: 0,
         });
       }
@@ -313,7 +472,7 @@ export class DevolucionProveedorComponent implements OnInit {
         return;
       }
       const items = this.lineasOrden
-        .filter((r) => r.cantidad > 0)
+        .filter((r) => r.cantidad > 0 && r.puedeDevolver)
         .map((r) => {
           if (r.tipo === 'distribucion') {
             return {
@@ -327,7 +486,7 @@ export class DevolucionProveedorComponent implements OnInit {
           };
         });
       if (!items.length) {
-        this.error = 'Indique al menos una cantidad a devolver en las líneas de la orden.';
+        this.error = 'Indique al menos una cantidad a devolver en líneas permitidas.';
         return;
       }
       this.enviando = true;
@@ -345,6 +504,9 @@ export class DevolucionProveedorComponent implements OnInit {
             this.lineasOrden = this.lineasOrden.map((r) => ({ ...r, cantidad: 0 }));
             this.documentoRef = '';
             this.notas = '';
+            if (oid) {
+              this.cargarDetalleOrdenPorId(oid);
+            }
           },
           error: (err) => {
             this.enviando = false;

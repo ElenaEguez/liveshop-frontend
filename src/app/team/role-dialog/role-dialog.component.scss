@@ -14,6 +14,15 @@
 
 .full-width { width: 100%; }
 
+.perm-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 12px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .perm-list {
   display: flex;
   flex-direction: column;

@@ -150,15 +150,28 @@ export class TeamListComponent implements OnInit {
 
   permSummary(role: CustomRole): string {
     const labels: string[] = [];
-    if (role.perm_dashboard)    labels.push('Dashboard');
-    if (role.perm_products)     labels.push('Productos');
-    if (role.perm_categories)   labels.push('Categorías');
-    if (role.perm_inventory)    labels.push('Inventario');
-    if (role.perm_live_sessions)labels.push('Lives');
-    if (role.perm_my_store)     labels.push('Mi Tienda');
-    if (role.perm_orders)       labels.push('Pedidos');
-    if (role.perm_payments)     labels.push('Pagos');
-    if (role.perm_team)         labels.push('Equipo');
+    if (role.perm_dashboard)       labels.push('Dashboard');
+    if (role.perm_expenses)        labels.push('Gastos');
+    if (role.perm_pos)             labels.push('POS');
+    if (role.perm_arqueos)         labels.push('Arqueos');
+    if (role.perm_ventas_pos)      labels.push('Ventas');
+    if (role.perm_devoluciones)    labels.push('Devoluciones');
+    if (role.perm_inventory)       labels.push('Inventario');
+    if (role.perm_conteos)         labels.push('Conteos');
+    if (role.perm_conteos_control) labels.push('Ctrl. conteos');
+    if (role.perm_transferencias)  labels.push('Transferencias');
+    if (role.perm_almacen)         labels.push('Almacén');
+    if (role.perm_compras)         labels.push('Compras');
+    if (role.perm_proveedores)     labels.push('Proveedores');
+    if (role.perm_products)        labels.push('Productos');
+    if (role.perm_categories)      labels.push('Categorías');
+    if (role.perm_live_sessions)   labels.push('Lives');
+    if (role.perm_my_store)        labels.push('Mi Tienda');
+    if (role.perm_orders)          labels.push('Pedidos');
+    if (role.perm_payments)        labels.push('Pagos');
+    if (role.perm_team)            labels.push('Equipo');
+    if (role.perm_configuracion)   labels.push('Config.');
+    if (role.perm_ecommerce_orders)labels.push('Pedidos Web');
     return labels.length ? labels.join(', ') : 'Sin accesos';
   }
 }

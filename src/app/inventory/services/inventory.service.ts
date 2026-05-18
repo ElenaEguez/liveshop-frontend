@@ -63,6 +63,7 @@ export interface Inventory {
 
 export interface InventoryFilters {
   almacen_id?: number;
+  sucursal_id?: number;
   category?: number;
   search?: string;
   talla?: string;
@@ -81,6 +82,7 @@ export class InventoryService {
   getInventory(filters?: InventoryFilters): Observable<any> {
     let params = new HttpParams();
     if (filters?.almacen_id) params = params.set('almacen_id', filters.almacen_id.toString());
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id.toString());
     if (filters?.category)   params = params.set('category',   filters.category.toString());
     if (filters?.search)     params = params.set('search',     filters.search);
     if (filters?.talla)      params = params.set('talla',      filters.talla);

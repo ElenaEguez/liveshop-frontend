@@ -36,54 +36,6 @@
     </div>
   </mat-card>
 
-  <!-- Turnos de Caja -->
-  <mat-card class="table-card turnos-card" *ngIf="turnos.length > 0">
-    <div class="section-title">
-      <mat-icon>point_of_sale</mat-icon>
-      Movimientos de Caja (Turnos POS)
-    </div>
-    <mat-table [dataSource]="turnos">
-
-      <ng-container matColumnDef="caja">
-        <mat-header-cell *matHeaderCellDef>Caja / Turno</mat-header-cell>
-        <mat-cell *matCellDef="let t">
-          <mat-icon class="caja-icon">point_of_sale</mat-icon>
-          <span>{{ t.caja_nombre || 'Caja #' + t.caja }}</span>
-          <span class="turno-date">{{ t.fecha_apertura | date:'dd/MM HH:mm' }}</span>
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="apertura">
-        <mat-header-cell *matHeaderCellDef>Apertura</mat-header-cell>
-        <mat-cell *matCellDef="let t">Bs. {{ t.monto_apertura | number:'1.2-2' }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="ventas">
-        <mat-header-cell *matHeaderCellDef>Ventas</mat-header-cell>
-        <mat-cell *matCellDef="let t" class="positive-val">Bs. {{ t.total_ventas | number:'1.2-2' }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="retiros">
-        <mat-header-cell *matHeaderCellDef>Retiros</mat-header-cell>
-        <mat-cell *matCellDef="let t" class="negative-val">
-          {{ (+t.total_retiros > 0) ? ('Bs. ' + (t.total_retiros | number:'1.2-2')) : '—' }}
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
-        <mat-cell *matCellDef="let t">
-          <span class="turno-badge" [class.abierto]="t.status === 'abierto'" [class.cerrado]="t.status === 'cerrado'">
-            {{ t.status === 'abierto' ? 'Abierto' : 'Cerrado' }}
-          </span>
-        </mat-cell>
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="turnosCols"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: turnosCols;"></mat-row>
-    </mat-table>
-  </mat-card>
-
   <!-- Tabla por categoría -->
   <mat-card class="table-card">
     <div class="loading-shade" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>

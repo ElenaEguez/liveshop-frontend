@@ -21,22 +21,32 @@ export class PermissionsService {
     return this.getPayload()?.perms?.[key] === true;
   }
 
-  canViewProducts():    boolean { return this.perm('products'); }
-  canViewCategories():  boolean { return this.perm('categories'); }
-  canViewInventory():   boolean { return this.perm('inventory'); }
-  canViewLiveSessions():boolean { return this.perm('live_sessions'); }
-  canViewMyStore():     boolean { return this.perm('my_store'); }
-  canViewOrders():      boolean { return this.perm('orders'); }
-  canConfirmPayments(): boolean { return this.perm('payments'); }
-  canManageTeam():      boolean { return this.perm('team'); }
-  canViewDashboard():   boolean { return this.perm('dashboard'); }
-
-  canUsePOS():       boolean { return this.perm('pos') || this.isVendorOwner(); }
-  canUseWarehouse(): boolean { return this.perm('warehouse') || this.isVendorOwner(); }
-  canUseExpenses():  boolean { return this.perm('expenses') || this.isVendorOwner(); }
-  canUseSettings():  boolean { return this.isVendorOwner(); }
-
-  canViewCompras(): boolean { return this.perm('compras'); }
+  canViewProducts():       boolean { return this.perm('products'); }
+  canViewCategories():     boolean { return this.perm('categories'); }
+  canViewInventory():      boolean { return this.perm('inventory'); }
+  canViewLiveSessions():   boolean { return this.perm('live_sessions'); }
+  canViewMyStore():        boolean { return this.perm('my_store'); }
+  canViewOrders():         boolean { return this.perm('orders'); }
+  canConfirmPayments():    boolean { return this.perm('payments'); }
+  canManageTeam():         boolean { return this.perm('team'); }
+  canViewDashboard():      boolean { return this.perm('dashboard'); }
+  canUsePOS():             boolean { return this.perm('pos'); }
+  canViewArqueos():        boolean { return this.perm('arqueos'); }
+  canViewVentasPos():      boolean { return this.perm('ventas_pos'); }
+  canViewDevoluciones():   boolean { return this.perm('devoluciones'); }
+  canViewConteos():        boolean { return this.perm('conteos'); }
+  canViewConteosControl(): boolean { return this.perm('conteos_control'); }
+  canViewTransferencias(): boolean { return this.perm('transferencias'); }
+  canViewAlmacen():        boolean { return this.perm('almacen'); }
+  canUseWarehouse():       boolean {
+    return this.perm('warehouse') || this.canViewAlmacen()
+      || this.canViewTransferencias() || this.canViewConteosControl();
+  }
+  canUseExpenses():        boolean { return this.perm('expenses'); }
+  canViewCompras():        boolean { return this.perm('compras'); }
+  canViewProveedores():    boolean { return this.perm('proveedores'); }
+  canUseSettings():        boolean { return this.perm('configuracion'); }
+  canViewEcommerceOrders(): boolean { return this.perm('ecommerce_orders'); }
 
   /** True if any catalog sub-module is permitted */
   canManageCatalog(): boolean {

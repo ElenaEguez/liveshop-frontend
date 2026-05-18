@@ -69,6 +69,7 @@ export interface SalesDashboardData {
   sales_by_period: SalesByPeriod[];
   total_ingresos_caja: string;
   total_retiros_caja: string;
+  ingresos_contado_arqueo: string;
 }
 
 export interface MovimientoCaja {
@@ -103,9 +104,25 @@ export class DashboardService {
 
   constructor(private http: HttpClient) {}
 
-  getDashboardData(periodo = 'month'): Observable<DashboardData> {
-    const params = new HttpParams().set('periodo', periodo);
-    return this.http.get<DashboardData>(this.vendorDashboardUrl, { params });
+  getDashboardData(params: {
+    periodo?: string;
+    year?: number;
+    month?: number;
+    date?: string;
+  } = {}): Observable<DashboardData> {
+    let httpParams = new HttpParams();
+    const periodo = params.periodo ?? 'month';
+    httpParams = httpParams.set('periodo', periodo);
+    if (params.year != null) {
+      httpParams = httpParams.set('year', String(params.year));
+    }
+    if (params.month != null) {
+      httpParams = httpParams.set('month', String(params.month));
+    }
+    if (params.date) {
+      httpParams = httpParams.set('date', params.date);
+    }
+    return this.http.get<DashboardData>(this.vendorDashboardUrl, { params: httpParams });
   }
 
   getMovimientosCaja(period = 'today', page = 1, pageSize = 10): Observable<MovimientosCajaResponse> {

@@ -50,17 +50,6 @@
     <div class="filter-group filter-group-commerce">
       <span class="filter-group-label">Alcance</span>
 
-      <!-- Category selector -->
-      <mat-form-field appearance="outline" class="filter-field filter-field-category">
-        <mat-label>Categoría</mat-label>
-        <mat-select [(ngModel)]="selectedCategoryId">
-          <mat-option [value]="null">Todas las categorías</mat-option>
-          <mat-option *ngFor="let cat of categories" [value]="cat.id">
-            {{ cat.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
       <!-- Filtro por canal de venta -->
       <mat-button-toggle-group
         [(ngModel)]="selectedCanal"
@@ -153,7 +142,12 @@
             <mat-icon style="color:#16a34a;">storefront</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Bs.&nbsp;{{ (salesData.pos_total_revenue || '0') | number:'1.2-2' }}</p>
+        <p class="stat-footer">
+          Bs.&nbsp;{{ (salesData.pos_total_revenue || '0') | number:'1.2-2' }}
+          <span *ngIf="+(salesData.ingresos_contado_arqueo || 0) > 0" class="stat-footer-sub">
+            · Bs.&nbsp;{{ salesData.ingresos_contado_arqueo | number:'1.2-2' }} (contado en arqueo)
+          </span>
+        </p>
       </div>
 
       <!-- Ventas Web (ecommerce) -->
@@ -233,7 +227,7 @@
             </mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Utilidad bruta − (gastos operativos + retiros)</p>
+        <p class="stat-footer">Utilidad bruta − gastos operativos</p>
         <p *ngIf="showMissingCostWarning" class="stat-warning">
           Costo no configurado en uno o más productos.
         </p>
@@ -313,41 +307,6 @@
             <span class="bar-value">Bs.&nbsp;{{ m.monto | number:'1.2-2' }}</span>
             <span class="bar-orders">{{ m.cantidad }} venta{{ m.cantidad !== 1 ? 's' : '' }}</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── FLUJO DE CAJA ─────────────────────────────────────────────── -->
-    <div class="section-card flujo-caja-card"
-         *ngIf="(+salesData.total_ingresos_caja > 0) || (+salesData.total_retiros_caja > 0)">
-      <h3 class="section-title">
-        <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
-        Flujo de Caja (Turnos POS)
-      </h3>
-      <div class="flujo-rows">
-        <div class="flujo-row ingreso">
-          <span class="flujo-label">
-            <mat-icon>add_circle_outline</mat-icon> Ingresos manuales de caja
-          </span>
-          <span class="flujo-value positive">
-            + Bs.&nbsp;{{ +salesData.total_ingresos_caja | number:'1.2-2' }}
-          </span>
-        </div>
-        <div class="flujo-row retiro">
-          <span class="flujo-label">
-            <mat-icon>remove_circle_outline</mat-icon> Retiros de caja
-          </span>
-          <span class="flujo-value negative">
-            - Bs.&nbsp;{{ +salesData.total_retiros_caja | number:'1.2-2' }}
-          </span>
-        </div>
-        <div class="flujo-row neto">
-          <span class="flujo-label"><strong>Neto movimientos de caja</strong></span>
-          <span class="flujo-value"
-                [class.positive]="+salesData.total_ingresos_caja - +salesData.total_retiros_caja >= 0"
-                [class.negative]="+salesData.total_ingresos_caja - +salesData.total_retiros_caja < 0">
-            <strong>Bs.&nbsp;{{ (+salesData.total_ingresos_caja - +salesData.total_retiros_caja) | number:'1.2-2' }}</strong>
-          </span>
         </div>
       </div>
     </div>
@@ -481,7 +440,7 @@
       </div>
 
       <div class="mobile-card-list sales-mobile-list">
-        <div *ngFor="let row of pagedProductRows" class="mobile-data-card">
+        <div *ngFor="let row of mobileProductRows" class="mobile-data-card">
           <div class="mobile-card-header">
             <div>
               <div class="mobile-card-title">{{ row.product_name }}</div>
@@ -521,126 +480,6 @@
     </div>
 
   </ng-container>
-
-  <!-- ══════════════════════════════════════════════════════════════════════
-       MOVIMIENTOS DE CAJA
-  ══════════════════════════════════════════════════════════════════════════ -->
-  <div class="section-card mov-caja-card">
-    <div class="mov-header">
-      <h3 class="section-title" style="margin:0;">
-        <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
-        Movimientos de Caja
-        <span class="mov-realtime">
-          <span class="realtime-dot"></span> En Tiempo real
-        </span>
-      </h3>
-      <div class="mov-period-btns">
-        <button *ngFor="let p of [{v:'today',l:'Hoy'},{v:'week',l:'Semana'},{v:'month',l:'Mes'},{v:'year',l:'Año'}]"
-                mat-stroked-button class="mov-period-btn"
-                [class.active]="movPeriod === p.v"
-                (click)="setMovPeriod(p.v)">{{ p.l }}</button>
-        <button mat-stroked-button class="mov-period-btn xlsx-btn" (click)="descargarXLSX()">
-          <mat-icon>download</mat-icon> Descargar XLSX
-        </button>
-      </div>
-    </div>
-
-    <div class="mov-loading" *ngIf="movLoading"><mat-spinner diameter="36"></mat-spinner></div>
-
-    <div class="table-wrapper responsive-table-wrapper" *ngIf="!movLoading">
-      <mat-table [dataSource]="movimientos" class="mov-table">
-
-        <ng-container matColumnDef="fecha">
-          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
-          <mat-cell *matCellDef="let m">{{ m.fecha | date:'dd-MM-yyyy HH:mm:ss' }}</mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="caja">
-          <mat-header-cell *matHeaderCellDef>Caja</mat-header-cell>
-          <mat-cell *matCellDef="let m">{{ m.caja }}</mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="tipo">
-          <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
-          <mat-cell *matCellDef="let m">
-            <span class="mov-badge" [ngClass]="movTipoBadgeClass(m.tipo)">{{ m.tipo }}</span>
-          </mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="usuario">
-          <mat-header-cell *matHeaderCellDef>Usuario</mat-header-cell>
-          <mat-cell *matCellDef="let m">{{ m.usuario }}</mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="detalle">
-          <mat-header-cell *matHeaderCellDef>Detalle</mat-header-cell>
-          <mat-cell *matCellDef="let m" class="detalle-cell">{{ m.detalle }}</mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="monto">
-          <mat-header-cell *matHeaderCellDef class="col-num">Monto</mat-header-cell>
-          <mat-cell *matCellDef="let m" class="col-num">
-            <strong [class.mov-ingreso]="m.tipo !== 'EGRESO'"
-                    [class.mov-egreso]="m.tipo === 'EGRESO'">
-              Bs {{ m.monto | number:'1.2-2' }}
-            </strong>
-          </mat-cell>
-        </ng-container>
-
-        <mat-header-row *matHeaderRowDef="movCols"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: movCols;"></mat-row>
-
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell no-data-cell" [attr.colspan]="movCols.length">
-            Sin movimientos en este período.
-          </td>
-        </tr>
-      </mat-table>
-    </div>
-
-    <div class="mobile-card-list cash-mobile-list" *ngIf="!movLoading">
-      <div *ngFor="let m of movimientos" class="mobile-data-card cash-mobile-card">
-        <div class="mobile-card-header">
-          <div>
-            <div class="mobile-card-title">{{ m.caja }}</div>
-            <div class="mobile-card-subtitle">{{ m.fecha | date:'dd-MM-yyyy HH:mm:ss' }}</div>
-          </div>
-          <span class="mov-badge" [ngClass]="movTipoBadgeClass(m.tipo)">{{ m.tipo }}</span>
-        </div>
-
-        <div class="mobile-label-row">
-          <span>Usuario</span>
-          <strong>{{ m.usuario }}</strong>
-        </div>
-        <div class="mobile-label-row">
-          <span>Detalle</span>
-          <strong>{{ m.detalle }}</strong>
-        </div>
-        <div class="mobile-label-row mobile-total-row">
-          <span>Monto</span>
-          <strong [class.mov-ingreso]="m.tipo !== 'EGRESO'"
-                  [class.mov-egreso]="m.tipo === 'EGRESO'">
-            Bs {{ m.monto | number:'1.2-2' }}
-          </strong>
-        </div>
-      </div>
-
-      <div *ngIf="movimientos.length === 0" class="mobile-empty-state">
-        Sin movimientos en este período.
-      </div>
-    </div>
-
-    <!-- Paginación manual -->
-    <div class="mov-pagination" *ngIf="movPages > 1">
-      <button mat-icon-button [disabled]="movPage === 1" (click)="loadMovimientos(movPage - 1)">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <span class="mov-page-label">{{ movPage }} de {{ movPages }}</span>
-      <button mat-icon-button [disabled]="movPage === movPages" (click)="loadMovimientos(movPage + 1)">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-    </div>
-  </div>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        ACCIONES RÁPIDAS

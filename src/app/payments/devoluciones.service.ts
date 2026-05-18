@@ -39,9 +39,17 @@ export interface DevolucionItem {
   cantidad: number;
 }
 
+export interface MetodoPagoOption {
+  id: number;
+  nombre: string;
+  tipo: string;
+  activo: boolean;
+}
+
 export interface DevolucionPayload {
   venta: number;
-  tipo_resolucion: 'cambio' | 'devolucion_dinero';
+  tipo_resolucion: 'devolucion_dinero';
+  metodo_pago_devolucion: number;
   motivo: string;
   items: DevolucionItem[];
 }
@@ -55,9 +63,18 @@ export interface Devolucion {
   tipo_resolucion: string;
   motivo: string;
   monto_devuelto: number;
+  metodo_pago_devolucion?: number;
+  metodo_pago_devolucion_nombre?: string;
   procesado_por_nombre: string;
   created_at: string;
   items: any[];
+}
+
+export interface DevolucionesPaginatedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Devolucion[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -74,11 +91,11 @@ export class DevolucionesService {
     );
   }
 
-  buscarVentaPorId(id: number): Observable<VentaParaDevolucion> {
-    const params = new HttpParams().set('id', id.toString());
-    return this.http.get<VentaParaDevolucion>(
-      `${this.base}/devoluciones/buscar-venta/`,
-      { params }
+  getMetodosPago(): Observable<MetodoPagoOption[]> {
+    return this.http.get<MetodoPagoOption[]>(
+      `${environment.apiUrl}/pos/metodos-pago/`,
+    ).pipe(
+      map((r) => (Array.isArray(r) ? r : []).filter((m) => m.activo)),
     );
   }
 
@@ -89,9 +106,32 @@ export class DevolucionesService {
     );
   }
 
-  getDevoluciones(): Observable<Devolucion[]> {
-    return this.http
-      .get<any>(`${this.base}/devoluciones/`)
-      .pipe(map((r) => (Array.isArray(r) ? r : r.results || [])));
+  getDevoluciones(params?: {
+    page?: number;
+    page_size?: number;
+    fecha_desde?: string;
+    fecha_hasta?: string;
+    venta?: number;
+  }): Observable<DevolucionesPaginatedResponse> {
+    let hp = new HttpParams();
+    if (params?.page != null) {
+      hp = hp.set('page', String(params.page));
+    }
+    if (params?.page_size != null) {
+      hp = hp.set('page_size', String(params.page_size));
+    }
+    if (params?.fecha_desde) {
+      hp = hp.set('fecha_desde', params.fecha_desde);
+    }
+    if (params?.fecha_hasta) {
+      hp = hp.set('fecha_hasta', params.fecha_hasta);
+    }
+    if (params?.venta != null) {
+      hp = hp.set('venta', String(params.venta));
+    }
+    return this.http.get<DevolucionesPaginatedResponse>(
+      `${this.base}/devoluciones/`,
+      { params: hp },
+    );
   }
 }

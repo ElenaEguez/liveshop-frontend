@@ -9,13 +9,18 @@ import { PermisosService } from '../core/services/permisos.service';
 import { VendorProfileService } from '../my-store/services/vendor-profile.service';
 import { EcommerceOrdersService } from '../ecommerce-orders/ecommerce-orders.service';
 
-type NavPermission = 'always' | 'products' | 'categories' | 'inventory' | 'live_sessions' | 'my_store' | 'orders' | 'payments' | 'team' | 'dashboard' | 'pos' | 'warehouse' | 'expenses' | 'settings' | 'ecommerce_orders' | 'compras';
+type JwtPermKey =
+  | 'dashboard' | 'expenses' | 'pos' | 'arqueos' | 'ventas_pos' | 'devoluciones'
+  | 'conteos' | 'conteos_control' | 'transferencias' | 'almacen' | 'inventory'
+  | 'compras' | 'proveedores' | 'products' | 'categories' | 'team' | 'configuracion'
+  | 'my_store' | 'live_sessions' | 'orders' | 'payments' | 'ecommerce_orders';
 
 interface NavItem {
   label: string;
   icon: string;
   route: string;
-  permission: NavPermission;
+  jwtPerm: JwtPermKey;
+  moduloApi: string;
 }
 
 @Component({
@@ -32,64 +37,59 @@ export class LayoutComponent implements OnInit {
   pendingEcomOrders = 0;
 
   private allNavItems: NavItem[] = [
-    { label: 'Dashboard',       icon: 'dashboard',           route: '/dashboard',              permission: 'dashboard'        },
-    { label: 'Gastos',          icon: 'receipt_long',        route: '/gastos',                 permission: 'expenses'         },
-    { label: 'Vender',          icon: 'point_of_sale',       route: '/vendor/pos',             permission: 'pos'              },
-    { label: 'Arqueos Caja',    icon: 'calculate',           route: '/vendor/arqueos',         permission: 'pos'              },
-    { label: 'Ventas POS',      icon: 'receipt',             route: '/vendor/ventas',          permission: 'pos'              },
-    { label: 'Devoluciones',    icon: 'assignment_return',   route: '/devoluciones',           permission: 'pos'              },
-    { label: 'Conteo físico',   icon: 'fact_check',          route: '/almacen/conteos',        permission: 'inventory'        },
-    { label: 'Control conteos', icon: 'verified_user',       route: '/almacen/conteos-control', permission: 'warehouse'        },
-    { label: 'Transferencias',  icon: 'swap_horiz',          route: '/almacen/transferencias', permission: 'warehouse'        },
-    { label: 'Almacén',         icon: 'warehouse',           route: '/almacen',                permission: 'warehouse'        },
-    { label: 'Inventario',      icon: 'inventory',           route: '/inventory',              permission: 'inventory'        },
-    { label: 'Compras',         icon: 'shopping_basket',     route: '/compras',                permission: 'compras'          },
-    { label: 'Proveedores',     icon: 'business',            route: '/compras/proveedores',    permission: 'compras'          },
-    { label: 'Productos',       icon: 'inventory_2',         route: '/products',               permission: 'products'         },
-    { label: 'Categorías',      icon: 'category',            route: '/categories',             permission: 'categories'       },
-    { label: 'Equipo',          icon: 'group',               route: '/team',                   permission: 'team'             },
-    { label: 'Configuración',   icon: 'settings',            route: '/configuracion',          permission: 'settings'         },
-    { label: 'Mi Tienda',       icon: 'storefront',          route: '/my-store',               permission: 'my_store'         },
-    { label: 'Lives',           icon: 'live_tv',             route: '/live-sessions',          permission: 'live_sessions'    },
-    { label: 'Pedidos',         icon: 'shopping_cart',       route: '/orders',                 permission: 'orders'           },
-    { label: 'Pagos',           icon: 'credit_card',         route: '/payments',               permission: 'payments'         },
-    { label: 'Pedidos Web',     icon: 'shopping_bag',        route: '/ecommerce-orders',       permission: 'ecommerce_orders' },
+    { label: 'Dashboard',       icon: 'dashboard',           route: '/dashboard',              jwtPerm: 'dashboard',        moduloApi: 'dashboard'        },
+    { label: 'Gastos',          icon: 'receipt_long',        route: '/gastos',                 jwtPerm: 'expenses',         moduloApi: 'expenses'         },
+    { label: 'Vender',          icon: 'point_of_sale',       route: '/vendor/pos',             jwtPerm: 'pos',              moduloApi: 'pos'              },
+    { label: 'Arqueos Caja',    icon: 'calculate',           route: '/vendor/arqueos',         jwtPerm: 'arqueos',          moduloApi: 'arqueos'          },
+    { label: 'Ventas POS',      icon: 'receipt',             route: '/vendor/ventas',          jwtPerm: 'ventas_pos',       moduloApi: 'ventas_pos'       },
+    { label: 'Devoluciones',    icon: 'assignment_return',   route: '/devoluciones',           jwtPerm: 'devoluciones',     moduloApi: 'devoluciones'     },
+    { label: 'Conteo físico',   icon: 'fact_check',          route: '/almacen/conteos',        jwtPerm: 'conteos',          moduloApi: 'conteos'          },
+    { label: 'Control conteos', icon: 'verified_user',       route: '/almacen/conteos-control', jwtPerm: 'conteos_control', moduloApi: 'conteos_control'  },
+    { label: 'Transferencias',  icon: 'swap_horiz',          route: '/almacen/transferencias', jwtPerm: 'transferencias',   moduloApi: 'transferencias'   },
+    { label: 'Almacén',         icon: 'warehouse',           route: '/almacen',                jwtPerm: 'almacen',          moduloApi: 'almacen'          },
+    { label: 'Inventario',      icon: 'inventory',           route: '/inventory',              jwtPerm: 'inventory',        moduloApi: 'inventory'        },
+    { label: 'Compras',         icon: 'shopping_basket',     route: '/compras',                jwtPerm: 'compras',          moduloApi: 'compras'          },
+    { label: 'Proveedores',     icon: 'business',            route: '/compras/proveedores',    jwtPerm: 'proveedores',      moduloApi: 'proveedores'      },
+    { label: 'Productos',       icon: 'inventory_2',         route: '/products',               jwtPerm: 'products',         moduloApi: 'products'         },
+    { label: 'Categorías',      icon: 'category',            route: '/categories',             jwtPerm: 'categories',       moduloApi: 'categories'       },
+    { label: 'Equipo',          icon: 'group',               route: '/team',                   jwtPerm: 'team',             moduloApi: 'team'             },
+    { label: 'Configuración',   icon: 'settings',            route: '/configuracion',          jwtPerm: 'configuracion',    moduloApi: 'configuracion'    },
+    { label: 'Mi Tienda',       icon: 'storefront',          route: '/my-store',               jwtPerm: 'my_store',         moduloApi: 'my_store'         },
+    { label: 'Lives',           icon: 'live_tv',             route: '/live-sessions',          jwtPerm: 'live_sessions',    moduloApi: 'livestream'       },
+    { label: 'Pedidos',         icon: 'shopping_cart',       route: '/orders',                 jwtPerm: 'orders',           moduloApi: 'pedidos'          },
+    { label: 'Pagos',           icon: 'credit_card',         route: '/payments',               jwtPerm: 'payments',         moduloApi: 'pagos'            },
+    { label: 'Pedidos Web',     icon: 'shopping_bag',        route: '/ecommerce-orders',       jwtPerm: 'ecommerce_orders', moduloApi: 'ecommerce_orders' },
   ];
 
-  private moduloApiForItem(item: NavItem): string | null {
-    if (item.route === '/almacen/conteos-control') {
-      return 'almacen';
+  private jwtPermOk(key: JwtPermKey): boolean {
+    const p = this.permissions;
+    switch (key) {
+      case 'dashboard':        return p.canViewDashboard();
+      case 'expenses':         return p.canUseExpenses();
+      case 'pos':              return p.canUsePOS();
+      case 'arqueos':          return p.canViewArqueos();
+      case 'ventas_pos':       return p.canViewVentasPos();
+      case 'devoluciones':     return p.canViewDevoluciones();
+      case 'conteos':          return p.canViewConteos();
+      case 'conteos_control':  return p.canViewConteosControl();
+      case 'transferencias':   return p.canViewTransferencias();
+      case 'almacen':          return p.canViewAlmacen();
+      case 'inventory':        return p.canViewInventory();
+      case 'compras':          return p.canViewCompras();
+      case 'proveedores':      return p.canViewProveedores();
+      case 'products':         return p.canViewProducts();
+      case 'categories':       return p.canViewCategories();
+      case 'team':             return p.canManageTeam();
+      case 'configuracion':    return p.canUseSettings();
+      case 'my_store':         return p.canViewMyStore();
+      case 'live_sessions':    return p.canViewLiveSessions();
+      case 'orders':           return p.canViewOrders();
+      case 'payments':         return p.canConfirmPayments();
+      case 'ecommerce_orders': return p.canViewEcommerceOrders();
+      default:                 return true;
     }
-    if (item.route === '/compras/proveedores') {
-      return 'compras';
-    }
-    if (item.route === '/devoluciones') {
-      return 'pos';
-    }
-    const map: Partial<Record<NavPermission, string>> = {
-      dashboard: 'reportes',
-      pos: 'pos',
-      warehouse: 'inventario',
-      inventory: 'inventario',
-      expenses: 'reportes',
-      compras: 'compras',
-      settings: 'configuracion',
-      products: 'productos',
-      categories: 'productos',
-      live_sessions: 'livestream',
-      orders: 'pedidos',
-      payments: 'pagos',
-      my_store: 'configuracion',
-      team: 'configuracion',
-      ecommerce_orders: 'reportes',
-    };
-    return map[item.permission] ?? null;
   }
 
-  /**
-   * Mientras cargan permisos API, JWT (PermissionsService) ya filtró con legacyOk;
-   * puede() solo aplica cuando hay snapshot de MisPermisos.
-   */
   private seeModuleViaApi(moduloApi: string): boolean {
     if (this.permisosService.permisos) {
       return this.permisosService.puede(moduloApi);
@@ -98,32 +98,9 @@ export class LayoutComponent implements OnInit {
   }
 
   get navItems(): NavItem[] {
-    const p = this.permissions;
     return this.allNavItems.filter(item => {
-      let legacyOk: boolean;
-      switch (item.permission) {
-        case 'always':       legacyOk = true; break;
-        case 'products':     legacyOk = p.canViewProducts(); break;
-        case 'categories':   legacyOk = p.canViewCategories(); break;
-        case 'inventory':    legacyOk = p.canViewInventory(); break;
-        case 'live_sessions':legacyOk = p.canViewLiveSessions(); break;
-        case 'orders':       legacyOk = p.canViewOrders(); break;
-        case 'payments':     legacyOk = p.canConfirmPayments(); break;
-        case 'my_store':     legacyOk = p.canViewMyStore(); break;
-        case 'team':         legacyOk = p.canManageTeam(); break;
-        case 'dashboard':    legacyOk = p.canViewDashboard(); break;
-        case 'pos':          legacyOk = p.canUsePOS(); break;
-        case 'warehouse':    legacyOk = p.canUseWarehouse(); break;
-        case 'expenses':     legacyOk = p.canUseExpenses(); break;
-        case 'compras':      legacyOk = p.canViewCompras(); break;
-        case 'settings':     legacyOk = p.canUseSettings(); break;
-        case 'ecommerce_orders': legacyOk = p.canViewMyStore() || p.canViewOrders(); break;
-        default:                 legacyOk = true;
-      }
-      if (!legacyOk) return false;
-      const mk = this.moduloApiForItem(item);
-      if (!mk) return true;
-      return this.seeModuleViaApi(mk);
+      if (!this.jwtPermOk(item.jwtPerm)) return false;
+      return this.seeModuleViaApi(item.moduloApi);
     });
   }
 
@@ -152,7 +129,6 @@ export class LayoutComponent implements OnInit {
         }
       });
 
-    // Read store name from JWT payload
     const token = this.authService.getToken();
     if (token) {
       try {
@@ -167,13 +143,11 @@ export class LayoutComponent implements OnInit {
       this.permisosService.cargarPermisos().subscribe({ error: () => {} });
     }
 
-    // Load pending ecommerce orders count
     this.ecomOrdersService.getPendingCount().subscribe({
       next: (res) => { this.pendingEcomOrders = res.count; },
       error: () => {}
     });
 
-    // Load logo from API
     this.vendorProfileService.getProfile().subscribe({
       next: (profile) => {
         if (profile.logo) {

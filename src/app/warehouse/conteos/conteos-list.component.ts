@@ -2,6 +2,7 @@ import {
   Component, OnInit, ChangeDetectorRef
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
 import {
   WarehouseExtraService, ConteoFisico
 } from '../services/warehouse-extra.service';
@@ -16,9 +17,17 @@ import { PermissionsService } from '../../shared/permissions.service';
 export class ConteosListComponent implements OnInit {
 
   conteos: ConteoFisico[] = [];
+  almacenes: Array<{ id: number; nombre: string }> = [];
   cargando = true;
   columnas = ['almacen', 'fecha', 'estado',
     'diferencias', 'acciones'];
+
+  filtroAlmacenId: number | null = null;
+  fechaDesde = '';
+  fechaHasta = '';
+  currentPage = 1;
+  totalItems = 0;
+  pageSize = 20;
 
   constructor(
     private svc: WarehouseExtraService,
@@ -28,13 +37,45 @@ export class ConteosListComponent implements OnInit {
     private permissions: PermissionsService,
   ) {}
 
-  ngOnInit(): void { this.cargar(); }
+  ngOnInit(): void {
+    this.svc.getAlmacenes().subscribe({
+      next: (list) => {
+        this.almacenes = (list || []).map((a: any) => ({
+          id: a.id,
+          nombre: a.nombre || `Almacén ${a.id}`,
+        }));
+        this.cdr.markForCheck();
+      },
+      error: () => {},
+    });
+    this.cargar();
+  }
 
   cargar(): void {
     this.cargando = true;
-    this.svc.getConteos().subscribe({
+    const params: {
+      page: number;
+      page_size: number;
+      almacen_id?: number;
+      fecha_desde?: string;
+      fecha_hasta?: string;
+    } = {
+      page: this.currentPage,
+      page_size: this.pageSize,
+    };
+    if (this.filtroAlmacenId != null) {
+      params.almacen_id = this.filtroAlmacenId;
+    }
+    if (this.fechaDesde) {
+      params.fecha_desde = this.fechaDesde;
+    }
+    if (this.fechaHasta) {
+      params.fecha_hasta = this.fechaHasta;
+    }
+    this.svc.getConteos(params).subscribe({
       next: (data) => {
-        this.conteos = data;
+        this.conteos = data?.results ?? [];
+        this.totalItems = data?.count ?? 0;
         this.cargando = false;
         this.cdr.markForCheck();
       },
@@ -43,6 +84,25 @@ export class ConteosListComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onFiltrosChange(): void {
+    this.currentPage = 1;
+    this.cargar();
+  }
+
+  limpiarFiltros(): void {
+    this.filtroAlmacenId = null;
+    this.fechaDesde = '';
+    this.fechaHasta = '';
+    this.currentPage = 1;
+    this.cargar();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.cargar();
   }
 
   onNuevo(): void {

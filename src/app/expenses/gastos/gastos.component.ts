@@ -4,7 +4,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExpensesService, CategoriaGasto } from '../expenses.service';
 import { GastoDialogComponent } from '../gasto-dialog/gasto-dialog.component';
 import { HistorialGastosDialogComponent } from '../historial-gastos-dialog/historial-gastos-dialog.component';
-import { PosService } from '../../pos/pos.service';
 
 interface CatRow {
   categoria: CategoriaGasto;
@@ -25,12 +24,8 @@ export class GastosComponent implements OnInit {
   showDatePicker = false;
   displayedColumns = ['categoria', 'total', 'acciones'];
 
-  turnos: any[] = [];
-  turnosCols = ['caja', 'apertura', 'ventas', 'retiros', 'status'];
-
   constructor(
     private svc: ExpensesService,
-    private posSvc: PosService,
     private dialog: MatDialog,
     private snack: MatSnackBar,
   ) {}
@@ -39,26 +34,11 @@ export class GastosComponent implements OnInit {
     this.load();
   }
 
-  private get turnosPeriodo(): string {
-    const map: Record<string, string> = {
-      '7d': 'week', '30d': 'month', 'año': 'year', 'hoy': 'today', 'todo': 'all',
-    };
-    return map[this.activePeriodo] || 'today';
-  }
-
   load(): void {
     this.loading = true;
     const periodoMap: Record<string,string> = {
       '7d': 'week', '30d': 'month', 'año': 'year', 'hoy': 'today',
     };
-
-    // Load turno movements alongside expenses
-    const tp = this.turnosPeriodo;
-    if (tp !== 'all') {
-      this.posSvc.getTurnos(tp).subscribe({ next: t => this.turnos = t, error: () => {} });
-    } else {
-      this.posSvc.getTurnos('month').subscribe({ next: t => this.turnos = t, error: () => {} });
-    }
 
     this.svc.getCategorias().subscribe({
       next: cats => {
@@ -72,7 +52,6 @@ export class GastosComponent implements OnInit {
 
         this.svc.getGastos(filters).subscribe({
           next: res => {
-            // Build totals per category
             const totals = new Map<number | null, { total: number; count: number }>();
             for (const g of res.results) {
               const key = g.categoria ?? null;
@@ -82,7 +61,6 @@ export class GastosComponent implements OnInit {
               entry.count++;
             }
 
-            // For "Sin categoría"
             const sinCat: CategoriaGasto = { id: 0, nombre: 'Sin categoría' };
             const allCats = [...cats];
             if (totals.has(null)) allCats.unshift(sinCat);

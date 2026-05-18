@@ -18,6 +18,16 @@ export interface CustomRole {
   perm_warehouse: boolean;
   perm_expenses: boolean;
   perm_compras: boolean;
+  perm_arqueos: boolean;
+  perm_ventas_pos: boolean;
+  perm_devoluciones: boolean;
+  perm_conteos: boolean;
+  perm_conteos_control: boolean;
+  perm_transferencias: boolean;
+  perm_almacen: boolean;
+  perm_proveedores: boolean;
+  perm_configuracion: boolean;
+  perm_ecommerce_orders: boolean;
   created_at: string;
 }
 

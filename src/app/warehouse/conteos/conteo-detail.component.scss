@@ -128,3 +128,8 @@
   padding: 10px 12px;
   margin: 0 0 12px;
 }
+
+.section-card.form-readonly fieldset[disabled] {
+  opacity: 0.75;
+  pointer-events: none;
+}

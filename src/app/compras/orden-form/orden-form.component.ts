@@ -3,6 +3,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   ComprasService, OrdenCompra, OrdenCompraItem,
@@ -39,7 +40,8 @@ export class OrdenFormComponent implements OnInit {
     private comprasService: ComprasService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -480,6 +482,19 @@ export class OrdenFormComponent implements OnInit {
     };
   }
 
+  private mensajeGuardado(estado: string): string {
+    if (estado === 'borrador') {
+      return 'Guardado como borrador';
+    }
+    if (estado === 'pendiente') {
+      return 'Orden enviada a pendiente';
+    }
+    if (estado === 'recibida') {
+      return 'Orden confirmada y recibida';
+    }
+    return 'Orden guardada';
+  }
+
   onGuardarBorrador(): void { this.guardar('borrador'); }
 
   onEnviarPendiente(): void {
@@ -507,6 +522,8 @@ export class OrdenFormComponent implements OnInit {
     op.subscribe({
       next: (orden) => {
         this.guardando = false;
+        const msg = this.mensajeGuardado(orden.estado || estado);
+        this.snackBar.open(msg, 'Cerrar', { duration: 4000 });
         this.router.navigate(['/compras', orden.id]);
       },
       error: (err) => {

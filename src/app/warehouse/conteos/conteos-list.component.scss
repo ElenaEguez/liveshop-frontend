@@ -18,6 +18,18 @@
   gap: 8px;
   align-items: center;
 }
+
+.filters-card {
+  margin-bottom: 16px;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
 .loading-center {
   display: flex;
   justify-content: center;

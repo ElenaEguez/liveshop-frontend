@@ -3,7 +3,7 @@
     <button mat-icon-button type="button" (click)="onVolver()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h2>Nueva Transferencia</h2>
+    <h2>{{ modoEdicion ? 'Editar transferencia' : 'Nueva Transferencia' }}</h2>
   </div>
 
   <form [formGroup]="form">
@@ -186,7 +186,7 @@
               (click)="onGuardar()"
               [disabled]="guardando || items.length === 0">
         <mat-icon>swap_horiz</mat-icon>
-        Crear transferencia
+        {{ modoEdicion ? 'Guardar cambios' : 'Crear transferencia' }}
       </button>
     </div>
   </form>

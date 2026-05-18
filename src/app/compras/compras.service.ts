@@ -132,13 +132,35 @@ export class ComprasService {
     return this.http.get<any>(this.almacenesUrl);
   }
 
-  getOrdenes(params?: { estado?: string }): Observable<OrdenCompra[]> {
+  getOrdenes(params?: {
+    page?: number;
+    page_size?: number;
+    proveedor_id?: number;
+    estado?: string;
+  }): Observable<any> {
     let httpParams = new HttpParams();
+    const paginatedRequest = params?.page != null;
+
+    if (params?.page != null) {
+      httpParams = httpParams.set('page', String(params.page));
+    }
+    if (params?.page_size != null) {
+      httpParams = httpParams.set('page_size', String(params.page_size));
+    } else if (!paginatedRequest) {
+      httpParams = httpParams.set('page_size', '500');
+    }
+    if (params?.proveedor_id != null) {
+      httpParams = httpParams.set('proveedor_id', String(params.proveedor_id));
+    }
     if (params?.estado) {
       httpParams = httpParams.set('estado', params.estado);
     }
+
     return this.http.get<any>(this.ordenesUrl, { params: httpParams }).pipe(
       map((res) => {
+        if (paginatedRequest) {
+          return res;
+        }
         if (Array.isArray(res)) {
           return res as OrdenCompra[];
         }
@@ -146,8 +168,12 @@ export class ComprasService {
           return res.results as OrdenCompra[];
         }
         return [];
-      })
+      }),
     );
+  }
+
+  eliminarOrden(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.ordenesUrl}${id}/`);
   }
 
   getOrden(id: number): Observable<OrdenCompra> {
@@ -168,6 +194,30 @@ export class ComprasService {
 
   cancelarOrden(id: number): Observable<OrdenCompra> {
     return this.http.post<OrdenCompra>(`${this.ordenesUrl}${id}/cancelar/`, {});
+  }
+
+  buscarDevolucion(params?: {
+    proveedor_id?: number;
+    producto_id?: number;
+    orden_id?: number;
+    q?: string;
+  }): Observable<any[]> {
+    let httpParams = new HttpParams();
+    if (params?.proveedor_id != null) {
+      httpParams = httpParams.set('proveedor_id', String(params.proveedor_id));
+    }
+    if (params?.producto_id != null) {
+      httpParams = httpParams.set('producto_id', String(params.producto_id));
+    }
+    if (params?.orden_id != null) {
+      httpParams = httpParams.set('orden_id', String(params.orden_id));
+    }
+    if (params?.q) {
+      httpParams = httpParams.set('q', params.q);
+    }
+    return this.http.get<any[]>(`${environment.apiUrl}/compras/buscar-devolucion/`, {
+      params: httpParams,
+    });
   }
 
   registrarDevolucionProveedor(payload: {
