@@ -152,27 +152,80 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm.get('internal_code')!.setValue(code);
   }
 
-  printBarcodeLabel(slot: 'top' | 'bottom' = 'top'): void {
+  /** Puede imprimir si hay código interno o código de barras. */
+  get canPrintLabel(): boolean {
+    const code = String(this.productForm.get('internal_code')?.value || '').trim();
     const barcode = String(this.productForm.get('barcode')?.value || '').trim();
-    const name = String(this.productForm.get('name')?.value || '').trim();
+    return !!(code || barcode);
+  }
+
+  private getLabelPrintPayload(): {
+    codigo: string;
+    talla: string;
+    precio: string;
+    barcodeScan: string;
+    name: string;
+  } | null {
     const internalCode = String(this.productForm.get('internal_code')?.value || '').trim();
-    const priceRaw = this.productForm.get('price')?.value;
-    const price = priceRaw != null && priceRaw !== '' ? String(priceRaw) : '';
-    if (!barcode) {
-      this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
+    const barcode = String(this.productForm.get('barcode')?.value || '').trim();
+    const codigo = internalCode || barcode;
+    if (!codigo) {
+      return null;
+    }
+    return {
+      codigo,
+      talla: this.getLabelTalla(),
+      precio: this.getLabelPrecio(),
+      barcodeScan: barcode || codigo,
+      name: String(this.productForm.get('name')?.value || '').trim(),
+    };
+  }
+
+  private getLabelTalla(): string {
+    const arr = this.productForm.get('variants') as FormArray | null;
+    if (!arr?.length) {
+      return '—';
+    }
+    const lines: string[] = [];
+    for (const ctrl of arr.controls) {
+      const size = String(ctrl.get('size')?.value || '').trim();
+      const color = String(ctrl.get('color')?.value || '').trim();
+      const part = [size, color].filter(Boolean).join(' / ');
+      if (part) {
+        lines.push(part);
+      }
+    }
+    if (!lines.length) {
+      return '—';
+    }
+    if (lines.length === 1) {
+      return lines[0];
+    }
+    return `${lines[0]} (+${lines.length - 1})`;
+  }
+
+  private getLabelPrecio(): string {
+    const fromProduct = this.data.product?.price;
+    if (fromProduct != null && !Number.isNaN(Number(fromProduct))) {
+      const n = Number(fromProduct);
+      const formatted = Number.isInteger(n) ? String(n) : n.toFixed(2);
+      return `${formatted} bs.`;
+    }
+    return '—';
+  }
+
+  printBarcodeLabel(slot: 'top' | 'bottom' = 'top'): void {
+    const payload = this.getLabelPrintPayload();
+    if (!payload) {
+      this.snackBar.open('Ingresa código interno o código de barras', 'Cerrar', { duration: 3000 });
       return;
     }
-    const canvas = this.renderBarcodeCanvas(barcode, true);
-    if (!canvas) {
-      this.snackBar.open(
-        'No se pudo generar el código de barras. Use 13 dígitos (EAN-13) o un texto válido.',
-        'Cerrar',
-        { duration: 4500 },
-      );
-      return;
+    let barcodeDataUrl = '';
+    const canvas = this.renderBarcodeCanvas(payload.barcodeScan, true);
+    if (canvas) {
+      barcodeDataUrl = canvas.toDataURL('image/png');
     }
-    const dataUrl = canvas.toDataURL('image/png');
-    const html = this.buildLabelPrintHtml(name, barcode, dataUrl, internalCode, price, slot);
+    const html = this.buildLabelPrintHtml(payload, barcodeDataUrl, slot);
     const win = window.open('', '_blank', 'width=320,height=400');
     if (win) {
       try {
@@ -194,18 +247,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   downloadBarcodeLabelPng(): void {
-    const barcode = String(this.productForm.get('barcode')?.value || '').trim();
-    const name = String(this.productForm.get('name')?.value || 'producto').trim();
-    if (!barcode) {
-      this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
+    const payload = this.getLabelPrintPayload();
+    if (!payload) {
+      this.snackBar.open('Ingresa código interno o código de barras', 'Cerrar', { duration: 3000 });
       return;
     }
-    const canvas = this.renderBarcodeCanvas(barcode, true);
+    const canvas = this.renderBarcodeCanvas(payload.barcodeScan, true);
     if (!canvas) {
       this.snackBar.open('No se pudo generar la imagen del código.', 'Cerrar', { duration: 4000 });
       return;
     }
-    const safeName = name.replace(/[^\w\-]+/g, '_').slice(0, 48) || 'producto';
+    const safeName = payload.name.replace(/[^\w\-]+/g, '_').slice(0, 48) || 'producto';
     canvas.toBlob((blob) => {
       if (!blob) {
         this.snackBar.open('No se pudo crear el archivo.', 'Cerrar', { duration: 3000 });
@@ -214,7 +266,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `etiqueta-${safeName}-${barcode}.png`;
+      a.download = `etiqueta-${safeName}-${payload.codigo}.png`;
       a.rel = 'noopener';
       document.body.appendChild(a);
       a.click();
@@ -244,11 +296,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const onlyDigits = trimmed.replace(/\D/g, '');
     try {
       const labelOpts = {
-        width: 1.05,
-        height: 14,
-        displayValue: true,
-        fontSize: 6,
-        margin: 1,
+        width: 0.95,
+        height: 10,
+        displayValue: false,
+        margin: 0,
         textMargin: 0,
         background: '#ffffff',
         lineColor: '#000000',
@@ -278,11 +329,11 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       }
       JsBarcode(canvas, trimmed, {
         format: 'CODE128',
-        width: forLabel ? 1.05 : 1,
-        height: forLabel ? 14 : 32,
-        displayValue: forLabel,
+        width: forLabel ? 0.95 : 1,
+        height: forLabel ? 10 : 32,
+        displayValue: !forLabel,
         fontSize: forLabel ? 6 : 12,
-        margin: forLabel ? 1 : 2,
+        margin: forLabel ? 0 : 2,
         textMargin: forLabel ? 0 : 2,
         background: '#ffffff',
         lineColor: '#000000',
@@ -302,19 +353,19 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   private buildLabelPrintHtml(
-    productName: string,
-    barcode: string,
+    payload: { codigo: string; talla: string; precio: string; name: string },
     imageDataUrl: string,
-    internalCode = '',
-    price = '',
     slot: 'top' | 'bottom' = 'top',
   ): string {
-    const nameEsc = this.escapeHtml(this.truncateForLabel(productName || '—', 42));
-    const codeEsc = this.escapeHtml(barcode);
-    const intEsc = internalCode ? this.escapeHtml(this.truncateForLabel(internalCode, 18)) : '';
-    const priceEsc = price ? this.escapeHtml(`Bs.${price}`) : '';
-    const metaParts = [intEsc, priceEsc].filter(Boolean);
-    const metaLine = metaParts.length ? metaParts.join(' · ') : '';
+    const codigoEsc = this.escapeHtml(this.truncateForLabel(payload.codigo, 22));
+    const tallaEsc = this.escapeHtml(this.truncateForLabel(payload.talla, 18));
+    const precioEsc = this.escapeHtml(payload.precio);
+    const nameEsc = payload.name
+      ? `<div class="prod-name">${this.escapeHtml(this.truncateForLabel(payload.name, 28))}</div>`
+      : '';
+    const barcodeBlock = imageDataUrl
+      ? `<div class="barcode-wrap"><img class="barcode-img" src="${imageDataUrl}" alt="" /></div>`
+      : '';
     const w = ProductFormComponent.LABEL_W_MM;
     const slotH = ProductFormComponent.LABEL_SLOT_H_MM;
     const sheetH = ProductFormComponent.SHEET_H_MM;
@@ -329,8 +380,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       margin: 0;
       padding: 0;
       background: #fff;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -338,15 +387,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     font-family: Arial, Helvetica, sans-serif;
     width: ${w}mm;
     height: ${sheetH}mm;
-    position: relative;
     background: #fff;
     overflow: hidden;
   }
-  .sheet {
-    width: ${w}mm;
-    height: ${sheetH}mm;
-    position: relative;
-  }
+  .sheet { width: ${w}mm; height: ${sheetH}mm; position: relative; }
   .label-slot {
     position: absolute;
     left: 0;
@@ -355,71 +399,85 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     height: ${slotH}mm;
     max-height: ${slotH}mm;
     overflow: hidden;
-    padding: 0.5mm 1mm 0.4mm;
+    padding: 0.8mm 1.2mm;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.35mm;
     text-align: center;
   }
-  .text-block {
-    flex: 0 0 auto;
-    width: 100%;
-    max-height: 9mm;
-    overflow: hidden;
-  }
   .prod-name {
-    font-size: 5pt;
+    font-size: 4.5pt;
     font-weight: 700;
-    line-height: 1.05;
-    max-height: 5.5mm;
+    line-height: 1;
+    max-height: 4mm;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .field {
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .field-label {
+    font-size: 4pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: #111;
+  }
+  .field-value {
+    margin-top: 0.15mm;
+    font-size: 7pt;
+    font-weight: 700;
+    line-height: 1.1;
+    padding: 0.25mm 0.5mm;
+    border: 0.2mm solid #000;
+    border-radius: 0.8mm;
+    min-height: 3.2mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     word-break: break-word;
     width: 100%;
   }
-  .meta-line {
-    font-size: 4.5pt;
-    line-height: 1.05;
-    margin-top: 0.3mm;
-    max-height: 3mm;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: 100%;
-    color: #111;
-  }
+  .field-value.precio { font-size: 7.5pt; }
   .barcode-wrap {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 16mm;
     width: 100%;
+    flex-shrink: 0;
+    margin-top: 0.2mm;
     display: flex;
-    align-items: flex-end;
     justify-content: center;
     overflow: hidden;
+    max-height: 7mm;
   }
   .barcode-img {
-    width: ${w - 2}mm;
+    width: ${w - 3}mm;
     max-width: 100%;
-    max-height: 15.5mm;
+    max-height: 6.5mm;
     height: auto;
     object-fit: contain;
-    object-position: center bottom;
     display: block;
   }
 </style></head><body>
   <div class="sheet">
     <div class="label-slot">
-      <div class="text-block">
-        <div class="prod-name">${nameEsc}</div>
-        ${metaLine ? `<div class="meta-line">${metaLine}</div>` : ''}
+      ${nameEsc}
+      <div class="field">
+        <div class="field-label">Codigo</div>
+        <div class="field-value">${codigoEsc}</div>
       </div>
-      <div class="barcode-wrap">
-        <img class="barcode-img" src="${imageDataUrl}" alt="${codeEsc}" />
+      <div class="field">
+        <div class="field-label">Talla</div>
+        <div class="field-value">${tallaEsc}</div>
       </div>
+      <div class="field">
+        <div class="field-label">Precio</div>
+        <div class="field-value precio">${precioEsc}</div>
+      </div>
+      ${barcodeBlock}
     </div>
   </div>
   <script>window.addEventListener('load', function () {
