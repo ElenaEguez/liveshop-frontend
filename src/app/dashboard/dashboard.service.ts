@@ -71,6 +71,9 @@ export interface SalesDashboardData {
   total_retiros_caja: string;
   ingresos_contado_arqueo: string;
   efectivo_esperado_arqueo: string;
+  ventas_por_metodo_pago?: { [nombre: string]: VentaMetodoPago };
+  /** 'actual' = sin filtro de período (pendientes globales) */
+  pending_payment_scope?: string;
 }
 
 export interface MovimientoCaja {
@@ -126,12 +129,31 @@ export class DashboardService {
     return this.http.get<DashboardData>(this.vendorDashboardUrl, { params: httpParams });
   }
 
-  getMovimientosCaja(period = 'today', page = 1, pageSize = 10): Observable<MovimientosCajaResponse> {
-    const params = new HttpParams()
+  getMovimientosCaja(
+    params: {
+      period?: string;
+      date?: string;
+      year?: number;
+      month?: number;
+      page?: number;
+      pageSize?: number;
+    } = {},
+  ): Observable<MovimientosCajaResponse> {
+    const period = params.period ?? 'today';
+    let httpParams = new HttpParams()
       .set('period', period)
-      .set('page', String(page))
-      .set('page_size', String(pageSize));
-    return this.http.get<MovimientosCajaResponse>(`${environment.apiUrl}/pos/movimientos/`, { params });
+      .set('page', String(params.page ?? 1))
+      .set('page_size', String(params.pageSize ?? 10));
+    if (params.date) {
+      httpParams = httpParams.set('date', params.date);
+    }
+    if (params.year != null) {
+      httpParams = httpParams.set('year', String(params.year));
+    }
+    if (params.month != null) {
+      httpParams = httpParams.set('month', String(params.month));
+    }
+    return this.http.get<MovimientosCajaResponse>(`${environment.apiUrl}/pos/movimientos/`, { params: httpParams });
   }
 
   getSalesDashboard(params: SalesDashboardParams = {}): Observable<SalesDashboardData> {

@@ -14,7 +14,6 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 
 import {
-  DashboardData,
   DashboardService,
   MovimientoCaja,
   SalesByProduct,
@@ -57,7 +56,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   })();
 
   salesData: SalesDashboardData | null = null;
-  vendorData: DashboardData | null = null;
   categories: Category[] = [];
 
   movimientos: MovimientoCaja[] = [];
@@ -168,7 +166,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.tableFilterColor = '';
         this.tableDataSource.data = [...data.sales_by_product];
         this.loading = false;
-        // La tabla está en *ngIf; el paginator existe tras el siguiente ciclo de render.
         setTimeout(() => this.reconnectProductsTable(), 0);
         this.loadMovimientosCaja(1);
       },
@@ -177,17 +174,18 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
 
-    const vendorPeriodo = this.selectedPeriod === 'day' ? 'today' : this.selectedPeriod;
-    this.dashboardService.getDashboardData({
-      periodo: vendorPeriodo,
-      year: this.selectedYear,
-      month: this.selectedMonth,
-      date: this.selectedPeriod === 'day' ? this.selectedDate : undefined,
-    }).subscribe({
-      next: data => (this.vendorData = data),
-      error: () => {}
-    });
+  onPeriodChange(): void {
+    this.applyFilters();
+  }
+
+  onCanalChange(): void {
+    this.applyFilters();
+  }
+
+  onDateFiltersChange(): void {
+    this.applyFilters();
   }
 
   applyFilters(): void {
@@ -356,7 +354,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get metodosPagoArray(): { nombre: string; monto: number; cantidad: number }[] {
-    const map = this.vendorData?.ventas_por_metodo_pago;
+    const map = this.salesData?.ventas_por_metodo_pago;
     if (!map) return [];
     return Object.entries(map)
       .map(([nombre, v]) => ({
@@ -410,8 +408,28 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadMovimientosCaja(page = 1): void {
     this.movimientosLoading = true;
     this.movimientosPage = page;
-    const period = this.mapPeriodToMovimientos();
-    this.dashboardService.getMovimientosCaja(period, page, 10).subscribe({
+    const movParams: {
+      period: string;
+      date?: string;
+      year?: number;
+      month?: number;
+      page: number;
+      pageSize: number;
+    } = {
+      period: this.mapPeriodToMovimientos(),
+      page,
+      pageSize: 10,
+    };
+    if (this.selectedPeriod === 'day') {
+      movParams.period = 'day';
+      movParams.date = this.selectedDate;
+    } else {
+      movParams.year = this.selectedYear;
+      if (this.selectedPeriod !== 'year') {
+        movParams.month = this.selectedMonth;
+      }
+    }
+    this.dashboardService.getMovimientosCaja(movParams).subscribe({
       next: res => {
         this.movimientos = res.results;
         this.movimientosCount = res.count;
@@ -437,10 +455,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private mapPeriodToMovimientos(): string {
-    if (this.selectedPeriod === 'day') return 'today';
+    if (this.selectedPeriod === 'day') return 'day';
     if (this.selectedPeriod === 'week') return 'week';
     if (this.selectedPeriod === 'month') return 'month';
     return 'year';
+  }
+
+  get pendingPaymentHint(): string {
+    if (this.salesData?.pending_payment_scope === 'actual') {
+      return 'Estado actual (no depende del período seleccionado)';
+    }
+    return 'Pendientes de confirmación';
   }
 
   formatMovFecha(iso: string): string {

@@ -60,15 +60,20 @@
                 matTooltip="Generar EAN-13 aleatorio" class="code-btn">
           <mat-icon>refresh</mat-icon> Generar
         </button>
+        <button *ngIf="canPrintLabel" type="button" mat-stroked-button color="primary"
+                (click)="printBarcodeLabel('single')"
+                matTooltip="Etiqueta completa 4,6×2,8 cm (nombre, código, talla, precio, barras)">
+          <mat-icon>print</mat-icon> Imprimir
+        </button>
         <button *ngIf="canPrintLabel" type="button" mat-stroked-button
                 (click)="printBarcodeLabel('top')"
-                matTooltip="Codigo, Talla, Precio — mitad superior (4,6×2,8 cm)">
-          <mat-icon>print</mat-icon> Imprimir arriba
+                matTooltip="Mitad superior del rollo 5,6 cm (otro producto abajo)">
+          <mat-icon>vertical_align_top</mat-icon> Mitad arriba
         </button>
         <button *ngIf="canPrintLabel" type="button" mat-stroked-button
                 (click)="printBarcodeLabel('bottom')"
-                matTooltip="Misma etiqueta en la mitad inferior del rollo">
-          <mat-icon>vertical_align_bottom</mat-icon> Imprimir abajo
+                matTooltip="Mitad inferior del rollo 5,6 cm">
+          <mat-icon>vertical_align_bottom</mat-icon> Mitad abajo
         </button>
         <button *ngIf="canPrintLabel" type="button" mat-stroked-button
                 (click)="downloadBarcodeLabelPng()" matTooltip="Descargar imagen del código">

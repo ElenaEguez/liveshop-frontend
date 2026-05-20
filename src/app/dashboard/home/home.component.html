@@ -9,6 +9,7 @@
       <span class="filter-group-label">Período</span>
       <mat-button-toggle-group
         [(ngModel)]="selectedPeriod"
+        (ngModelChange)="onPeriodChange()"
         class="period-toggle"
         aria-label="Período">
         <mat-button-toggle value="day">Hoy</mat-button-toggle>
@@ -24,14 +25,14 @@
       <!-- Date picker — solo cuando period='day' -->
       <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod === 'day'">
         <mat-label>Fecha</mat-label>
-        <input matInput type="date" [(ngModel)]="selectedDate">
+        <input matInput type="date" [(ngModel)]="selectedDate" (ngModelChange)="onDateFiltersChange()">
       </mat-form-field>
 
       <!-- Month selector (hidden when period = year or day) -->
       <mat-form-field appearance="outline" class="filter-field"
                       *ngIf="selectedPeriod !== 'year' && selectedPeriod !== 'day'">
         <mat-label>Mes</mat-label>
-        <mat-select [(ngModel)]="selectedMonth">
+        <mat-select [(ngModel)]="selectedMonth" (ngModelChange)="onDateFiltersChange()">
           <mat-option *ngFor="let m of months; let i = index" [value]="i + 1">
             {{ m }}
           </mat-option>
@@ -41,7 +42,7 @@
       <!-- Year selector — hidden for 'day' -->
       <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedPeriod !== 'day'">
         <mat-label>Año</mat-label>
-        <mat-select [(ngModel)]="selectedYear">
+        <mat-select [(ngModel)]="selectedYear" (ngModelChange)="onDateFiltersChange()">
           <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
         </mat-select>
       </mat-form-field>
@@ -53,6 +54,7 @@
       <!-- Filtro por canal de venta -->
       <mat-button-toggle-group
         [(ngModel)]="selectedCanal"
+        (ngModelChange)="onCanalChange()"
         class="canal-toggle"
         aria-label="Canal de venta">
         <mat-button-toggle value="todos">
@@ -258,7 +260,7 @@
             </mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Click para ver pedidos</p>
+        <p class="stat-footer">{{ pendingPaymentHint }} · click para ver pedidos</p>
       </div>
 
     </div>
@@ -267,7 +269,7 @@
     <div class="section-card" *ngIf="showFlujoCaja">
       <h3 class="section-title">
         <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
-        Flujo de caja (turnos del período)
+        Flujo de caja ({{ salesData.period_label }})
       </h3>
       <div class="flujo-rows">
         <div class="flujo-row" *ngIf="flujoIngresosCaja > 0">
@@ -313,7 +315,7 @@
       <div class="mov-header">
         <h3 class="section-title" style="margin:0;">
           <mat-icon class="section-title-icon">swap_horiz</mat-icon>
-          Movimientos de caja
+          Movimientos de caja ({{ salesData.period_label }})
           <span class="mov-realtime">
             <span class="realtime-dot"></span>
             tiempo real
@@ -413,12 +415,15 @@
     </div>
 
     <!-- ── VENTAS POR MÉTODO DE PAGO ─────────────────────────────────── -->
-    <div class="section-card" *ngIf="metodosPagoArray.length > 0">
+    <div class="section-card" *ngIf="selectedCanal === 'todos' || selectedCanal === 'tienda'">
       <h3 class="section-title">
         <mat-icon class="section-title-icon">credit_card</mat-icon>
-        Ventas por método de pago
+        Ventas por método de pago (tienda POS — {{ salesData.period_label }})
       </h3>
-      <div class="chart-container">
+      <p *ngIf="metodosPagoArray.length === 0" class="no-data-chart" style="padding:12px 0;">
+        No hay ventas POS en este período.
+      </p>
+      <div class="chart-container" *ngIf="metodosPagoArray.length > 0">
         <div *ngFor="let m of metodosPagoArray" class="bar-row">
           <span class="bar-label">
             <mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;">

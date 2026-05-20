@@ -23,9 +23,9 @@ export const SELL_BY_OPTIONS = [
   styleUrls: ['./product-form.component.scss']
 })
 export class ProductFormComponent implements OnInit, OnDestroy {
-  /** Rollo 4,6 × 5,6 cm: cada producto usa la mitad superior (28 mm); la inferior queda para otro producto. */
+  /** Etiqueta térmica 4,6 × 2,8 cm (impresión estándar). Rollo físico 5,6 cm: mitades arriba/abajo. */
   private static readonly LABEL_W_MM = 46;
-  private static readonly LABEL_SLOT_H_MM = 28;
+  private static readonly LABEL_H_MM = 28;
   private static readonly SHEET_H_MM = 56;
 
   readonly maxImages = 3;
@@ -214,7 +214,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     return '—';
   }
 
-  printBarcodeLabel(slot: 'top' | 'bottom' = 'top'): void {
+  /** single = 46×28 mm; top/bottom = mitad en rollo 5,6 cm */
+  printBarcodeLabel(mode: 'single' | 'top' | 'bottom' = 'single'): void {
     const payload = this.getLabelPrintPayload();
     if (!payload) {
       this.snackBar.open('Ingresa código interno o código de barras', 'Cerrar', { duration: 3000 });
@@ -225,7 +226,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (canvas) {
       barcodeDataUrl = canvas.toDataURL('image/png');
     }
-    const html = this.buildLabelPrintHtml(payload, barcodeDataUrl, slot);
+    const html = this.buildLabelPrintHtml(payload, barcodeDataUrl, mode);
     const win = window.open('', '_blank', 'width=320,height=400');
     if (win) {
       try {
@@ -296,8 +297,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const onlyDigits = trimmed.replace(/\D/g, '');
     try {
       const labelOpts = {
-        width: 0.95,
-        height: 10,
+        width: 1,
+        height: 12,
         displayValue: false,
         margin: 0,
         textMargin: 0,
@@ -329,8 +330,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       }
       JsBarcode(canvas, trimmed, {
         format: 'CODE128',
-        width: forLabel ? 0.95 : 1,
-        height: forLabel ? 10 : 32,
+        width: forLabel ? 1 : 1,
+        height: forLabel ? 12 : 32,
         displayValue: !forLabel,
         fontSize: forLabel ? 6 : 12,
         margin: forLabel ? 0 : 2,
@@ -355,131 +356,123 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private buildLabelPrintHtml(
     payload: { codigo: string; talla: string; precio: string; name: string },
     imageDataUrl: string,
-    slot: 'top' | 'bottom' = 'top',
+    mode: 'single' | 'top' | 'bottom' = 'single',
   ): string {
-    const codigoEsc = this.escapeHtml(this.truncateForLabel(payload.codigo, 22));
-    const tallaEsc = this.escapeHtml(this.truncateForLabel(payload.talla, 18));
+    const codigoEsc = this.escapeHtml(this.truncateForLabel(payload.codigo, 20));
+    const tallaEsc = this.escapeHtml(this.truncateForLabel(payload.talla, 16));
     const precioEsc = this.escapeHtml(payload.precio);
     const nameEsc = payload.name
-      ? `<div class="prod-name">${this.escapeHtml(this.truncateForLabel(payload.name, 28))}</div>`
+      ? `<div class="prod-name">${this.escapeHtml(this.truncateForLabel(payload.name, 24))}</div>`
       : '';
     const barcodeBlock = imageDataUrl
       ? `<div class="barcode-wrap"><img class="barcode-img" src="${imageDataUrl}" alt="" /></div>`
       : '';
+    const fieldsBlock = `
+      <div class="fields-stack">
+        <div class="field-row"><span class="field-label">Codigo</span><span class="field-value">${codigoEsc}</span></div>
+        <div class="field-row"><span class="field-label">Talla</span><span class="field-value">${tallaEsc}</span></div>
+        <div class="field-row"><span class="field-label">Precio</span><span class="field-value precio">${precioEsc}</span></div>
+      </div>`;
     const w = ProductFormComponent.LABEL_W_MM;
-    const slotH = ProductFormComponent.LABEL_SLOT_H_MM;
+    const h = ProductFormComponent.LABEL_H_MM;
     const sheetH = ProductFormComponent.SHEET_H_MM;
-    const slotTop = slot === 'bottom' ? slotH : 0;
+    const halfSheet = mode === 'top' || mode === 'bottom';
+    const pageH = halfSheet ? sheetH : h;
+    const slotTop = mode === 'bottom' ? h : 0;
+    const labelBody = `${nameEsc}${fieldsBlock}${barcodeBlock}`;
+    const labelInner = halfSheet
+      ? `<div class="sheet"><div class="label-slot">${labelBody}</div></div>`
+      : `<div class="label">${labelBody}</div>`;
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Etiqueta</title>
 <style>
-  @page { size: ${w}mm ${sheetH}mm; margin: 0; }
+  @page { size: ${w}mm ${pageH}mm; margin: 0; }
   @media print {
-    html, body {
-      width: ${w}mm;
-      height: ${sheetH}mm;
-      margin: 0;
-      padding: 0;
-      background: #fff;
-    }
+    html, body { width: ${w}mm; height: ${pageH}mm; margin: 0; padding: 0; background: #fff; }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: Arial, Helvetica, sans-serif;
     width: ${w}mm;
-    height: ${sheetH}mm;
+    height: ${pageH}mm;
     background: #fff;
     overflow: hidden;
   }
   .sheet { width: ${w}mm; height: ${sheetH}mm; position: relative; }
+  .label, .label-slot {
+    width: ${w}mm;
+    padding: 0.6mm 1mm 0.5mm;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.25mm;
+    text-align: center;
+    overflow: hidden;
+  }
+  .label { height: ${h}mm; max-height: ${h}mm; }
   .label-slot {
     position: absolute;
     left: 0;
     top: ${slotTop}mm;
-    width: ${w}mm;
-    height: ${slotH}mm;
-    max-height: ${slotH}mm;
+    height: ${h}mm;
+    max-height: ${h}mm;
+  }
+  .prod-name {
+    font-size: 5pt;
+    font-weight: 700;
+    line-height: 1.05;
+    max-height: 3.5mm;
     overflow: hidden;
-    padding: 0.8mm 1.2mm;
+    flex-shrink: 0;
+  }
+  .fields-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2mm;
+    flex-shrink: 0;
+  }
+  .field-row {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 0.35mm;
-    text-align: center;
-  }
-  .prod-name {
-    font-size: 4.5pt;
-    font-weight: 700;
-    line-height: 1;
-    max-height: 4mm;
-    overflow: hidden;
-    width: 100%;
-    flex-shrink: 0;
-  }
-  .field {
-    width: 100%;
-    flex-shrink: 0;
+    line-height: 1.05;
   }
   .field-label {
-    font-size: 4pt;
+    font-size: 3.8pt;
     font-weight: 700;
-    letter-spacing: 0.04em;
     text-transform: uppercase;
-    line-height: 1;
-    color: #111;
+    letter-spacing: 0.03em;
   }
   .field-value {
-    margin-top: 0.15mm;
-    font-size: 7pt;
+    font-size: 6.5pt;
     font-weight: 700;
-    line-height: 1.1;
-    padding: 0.25mm 0.5mm;
-    border: 0.2mm solid #000;
-    border-radius: 0.8mm;
-    min-height: 3.2mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0.1mm 0.3mm;
+    border: 0.15mm solid #000;
+    border-radius: 0.5mm;
+    min-width: 70%;
+    max-width: 100%;
     word-break: break-word;
-    width: 100%;
   }
-  .field-value.precio { font-size: 7.5pt; }
+  .field-value.precio { font-size: 7pt; }
   .barcode-wrap {
-    width: 100%;
     flex-shrink: 0;
-    margin-top: 0.2mm;
+    margin-top: 0.15mm;
     display: flex;
     justify-content: center;
+    align-items: center;
     overflow: hidden;
-    max-height: 7mm;
+    max-height: 9mm;
   }
   .barcode-img {
-    width: ${w - 3}mm;
+    width: ${w - 2}mm;
     max-width: 100%;
-    max-height: 6.5mm;
+    max-height: 8.5mm;
     height: auto;
-    object-fit: contain;
     display: block;
+    object-fit: contain;
   }
 </style></head><body>
-  <div class="sheet">
-    <div class="label-slot">
-      ${nameEsc}
-      <div class="field">
-        <div class="field-label">Codigo</div>
-        <div class="field-value">${codigoEsc}</div>
-      </div>
-      <div class="field">
-        <div class="field-label">Talla</div>
-        <div class="field-value">${tallaEsc}</div>
-      </div>
-      <div class="field">
-        <div class="field-label">Precio</div>
-        <div class="field-value precio">${precioEsc}</div>
-      </div>
-      ${barcodeBlock}
-    </div>
-  </div>
+  ${labelInner}
   <script>window.addEventListener('load', function () {
     setTimeout(function () { window.focus(); window.print(); }, 250);
   });<\/script>
