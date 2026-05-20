@@ -539,6 +539,15 @@
 .flujo-value.positive { color: #2e7d32; }
 .flujo-value.negative { color: #c62828; }
 
+.flujo-hint {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.flujo-hint .negative-diff { color: #c62828; }
+.flujo-hint .positive-diff { color: #2e7d32; }
+
 /* ── Movimientos de Caja ─────────────────────────────────────────────────── */
 .mov-caja-card { padding: 20px; }
 
@@ -684,7 +693,21 @@
   }
 }
 
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+.cash-mobile-card {
+  display: none;
+}
+
 @media (max-width: 640px) {
+  .desktop-only { display: none !important; }
+  .mobile-only,
+  .cash-mobile-card {
+    display: flex;
+    flex-direction: column;
+  }
+
   .dashboard-root {
     gap: 16px;
   }

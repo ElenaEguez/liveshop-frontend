@@ -17,6 +17,12 @@
   mat-icon { color: #db0000; }
 }
 
+.field-hint-error {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
 .modal-form {
   padding: 0 24px;
   max-height: 60vh;
@@ -42,6 +48,13 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 16px;
+}
+
+.section-hint {
+  margin: -8px 0 14px;
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.45;
 }
 
 .section-header {

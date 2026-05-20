@@ -73,7 +73,19 @@
 
 .table-card {
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.team-table {
+  width: 100%;
+  min-width: 640px;
+}
+
+.perm-summary-mobile {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
 mat-header-cell {
@@ -174,4 +186,25 @@ mat-row:hover {
 
 ::ng-deep .full-width {
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .team-page {
+    padding: 12px;
+  }
+
+  .tab-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .mobile-card-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .mobile-card-header .member-name {
+    flex: 1 1 100%;
+    margin-bottom: 8px;
+  }
 }

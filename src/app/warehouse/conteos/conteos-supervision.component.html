@@ -76,7 +76,9 @@
 
         <mat-card-content>
 
-          <mat-table [dataSource]="conteosPendientes">
+          <p class="table-scroll-hint desktop-only" *ngIf="conteosPendientes.length">Desliza horizontalmente para ver todas las columnas.</p>
+          <div class="responsive-table-wrapper desktop-only">
+          <mat-table [dataSource]="conteosPendientes" class="supervision-table">
 
             <ng-container matColumnDef="almacen">
 
@@ -199,6 +201,23 @@
             <mat-row *matRowDef="let row; columns: columnasPendientes;"></mat-row>
 
           </mat-table>
+          </div>
+
+          <div class="mobile-card-list mobile-only" *ngIf="conteosPendientes.length">
+            <article class="mobile-data-card" *ngFor="let c of conteosPendientes">
+              <div class="mobile-card-title">{{ c.almacen_nombre }}</div>
+              <div class="mobile-label-row"><span>Fecha conteo</span><strong>{{ c.fecha | date:'dd/MM/yyyy' }}</strong></div>
+              <div class="mobile-label-row">
+                <span>Diferencias</span>
+                <strong>{{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.</strong>
+              </div>
+              <div class="mobile-card-actions">
+                <button mat-stroked-button type="button" color="primary" (click)="onRevisar(c)">
+                  <mat-icon>visibility</mat-icon> Revisar
+                </button>
+              </div>
+            </article>
+          </div>
 
 
 
@@ -246,7 +265,9 @@
 
         <mat-card-content>
 
-          <mat-table [dataSource]="conteosHistorial">
+          <p class="table-scroll-hint desktop-only" *ngIf="conteosHistorial.length">Desliza horizontalmente para ver todas las columnas.</p>
+          <div class="responsive-table-wrapper desktop-only">
+          <mat-table [dataSource]="conteosHistorial" class="supervision-table">
 
             <ng-container matColumnDef="almacen">
 
@@ -343,6 +364,21 @@
                      (click)="onRevisar(row)"></mat-row>
 
           </mat-table>
+          </div>
+
+          <div class="mobile-card-list mobile-only" *ngIf="conteosHistorial.length">
+            <article class="mobile-data-card" *ngFor="let c of conteosHistorial" (click)="onRevisar(c)">
+              <div class="mobile-card-header">
+                <div class="mobile-card-title">{{ c.almacen_nombre }}</div>
+                <strong>{{ c.estado }}</strong>
+              </div>
+              <div class="mobile-label-row"><span>Fecha</span><strong>{{ c.fecha | date:'dd/MM/yyyy' }}</strong></div>
+              <div class="mobile-label-row">
+                <span>Diferencias</span>
+                <strong>{{ c.items_con_diferencia || 0 }} ítems · {{ c.total_diferencias || 0 }} uds.</strong>
+              </div>
+            </article>
+          </div>
 
 
 
@@ -416,6 +452,8 @@
 
 
 
+        <p class="table-scroll-hint desktop-only" *ngIf="conteoRevisando.items?.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only">
         <mat-table [dataSource]="conteoRevisando.items || []" class="items-revision-table">
 
           <ng-container matColumnDef="producto">
@@ -557,6 +595,28 @@
           <mat-row *matRowDef="let row; columns: columnasItems;"></mat-row>
 
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="conteoRevisando.items?.length">
+          <article class="mobile-data-card" *ngFor="let i of conteoRevisando.items">
+            <div class="mobile-card-title">{{ i.producto_nombre }}</div>
+            <div class="mobile-label-row">
+              <span>Variante</span>
+              <strong *ngIf="i.variante_detalle">{{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}</strong>
+              <strong *ngIf="!i.variante_detalle">—</strong>
+            </div>
+            <div class="mobile-label-row"><span>Sistema / Físico</span><strong>{{ i.stock_sistema }} / {{ i.stock_fisico }}</strong></div>
+            <div class="mobile-label-row">
+              <span>Diferencia</span>
+              <strong [class]="getDifColor(i.diferencia)">{{ i.diferencia }}</strong>
+            </div>
+            <div class="mobile-card-actions" *ngIf="!revisionSoloLectura() && puedeEditarItems()">
+              <button mat-stroked-button type="button" *ngIf="itemEditandoId !== i.id" (click)="onEditarItem(i)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+            </div>
+          </article>
+        </div>
 
 
 

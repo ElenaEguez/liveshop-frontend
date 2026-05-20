@@ -20,8 +20,12 @@
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
-  <mat-table *ngIf="!cargando"
-             [dataSource]="transferencias">
+  <p class="table-scroll-hint desktop-only" *ngIf="!cargando && transferencias.length">
+    Desliza horizontalmente para ver todas las columnas.
+  </p>
+
+  <div class="responsive-table-wrapper desktop-only" *ngIf="!cargando && transferencias.length">
+  <mat-table [dataSource]="transferencias" class="transferencias-table">
 
     <ng-container matColumnDef="origen">
       <mat-header-cell *matHeaderCellDef>Origen</mat-header-cell>
@@ -97,6 +101,44 @@
       (click)="onVer(r.id!)"
       class="clickable-row"></mat-row>
   </mat-table>
+  </div>
+
+  <div class="mobile-card-list mobile-only" *ngIf="!cargando && transferencias.length">
+    <article class="mobile-data-card transfer-mobile-card" *ngFor="let t of transferencias"
+             (click)="onVer(t.id!)">
+      <div class="mobile-card-header">
+        <div>
+          <div class="mobile-card-title">{{ t.almacen_origen_nombre }} → {{ t.almacen_destino_nombre }}</div>
+          <div class="mobile-card-subtitle">{{ t.created_at | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <mat-chip [color]="getColor(t.estado)" selected>{{ t.estado }}</mat-chip>
+      </div>
+      <div class="mobile-label-row">
+        <span>Ítems</span>
+        <strong>{{ t.items?.length || 0 }}</strong>
+      </div>
+      <div class="mobile-card-actions" (click)="$event.stopPropagation()">
+        <button mat-stroked-button type="button" (click)="onVer(t.id!)">
+          <mat-icon>visibility</mat-icon> Ver
+        </button>
+        <button mat-stroked-button type="button" color="accent"
+                *ngIf="t.estado === 'pendiente'"
+                (click)="onEditar(t.id!, $event)">
+          <mat-icon>edit</mat-icon> Editar
+        </button>
+        <button mat-stroked-button type="button" color="primary"
+                *ngIf="t.estado === 'pendiente'"
+                (click)="onConfirmar(t, $event)">
+          <mat-icon>check_circle</mat-icon> Confirmar
+        </button>
+        <button mat-stroked-button type="button" color="warn"
+                *ngIf="t.estado === 'pendiente'"
+                (click)="onCancelar(t, $event)">
+          <mat-icon>cancel</mat-icon> Cancelar
+        </button>
+      </div>
+    </article>
+  </div>
 
   <p *ngIf="!cargando && transferencias.length === 0"
      class="empty-state">

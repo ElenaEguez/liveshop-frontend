@@ -152,7 +152,11 @@ export class LayoutComponent implements OnInit {
       next: (profile) => {
         if (profile.logo) {
           const base = this.vendorProfileService.mediaBase;
-          this.logoUrl = profile.logo.startsWith('http') ? profile.logo : `${base}${profile.logo}`;
+          let url = profile.logo.startsWith('http') ? profile.logo : `${base}${profile.logo}`;
+          if (url.startsWith('http://')) {
+            url = 'https://' + url.slice(7);
+          }
+          this.logoUrl = url;
         }
         this.vendorName = profile.nombre_tienda || this.vendorName;
       },

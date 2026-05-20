@@ -89,7 +89,21 @@
 .table-card {
   position: relative;
   padding: 0;
-  overflow-x: auto;
+  overflow: visible;
+}
+
+.kardex-table {
+  min-width: 1100px;
+}
+
+.motivo-mobile {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.stock-mobile-list {
+  padding: 8px 0;
 }
 
 .loading-shade {
@@ -333,4 +347,35 @@
 
 mat-paginator {
   border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .almacen-page { padding: 8px; }
+
+  .page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .toolbar-actions button { width: 100%; min-height: 44px; }
+  }
+
+  .filter-card .filter-row-fields,
+  .filter-card .filter-row-periodo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field {
+    width: 100%;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+
+  .periodo-chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-clear-btn { width: 100%; }
 }

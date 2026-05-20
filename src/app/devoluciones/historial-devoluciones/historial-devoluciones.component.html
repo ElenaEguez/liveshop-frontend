@@ -33,79 +33,97 @@
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
-  <mat-table *ngIf="!cargando" [dataSource]="devoluciones">
+  <mat-card class="table-card" *ngIf="!cargando">
+    <p class="table-scroll-hint desktop-only" *ngIf="devoluciones.length > 0">
+      Desliza horizontalmente para ver todas las columnas.
+    </p>
 
-    <ng-container matColumnDef="ticket">
-      <mat-header-cell *matHeaderCellDef>
-        Ticket
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        <strong>{{ d.venta_ticket }}</strong>
-      </mat-cell>
-    </ng-container>
+    <div class="responsive-table-wrapper desktop-only">
+      <mat-table [dataSource]="devoluciones" class="devoluciones-table">
 
-    <ng-container matColumnDef="tipo">
-      <mat-header-cell *matHeaderCellDef>
-        Tipo
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        <mat-chip [color]="getColorTipo(d.tipo)" selected>
-          {{ d.tipo }}
-        </mat-chip>
-      </mat-cell>
-    </ng-container>
+        <ng-container matColumnDef="ticket">
+          <mat-header-cell *matHeaderCellDef>Ticket</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            <strong>{{ d.venta_ticket }}</strong>
+          </mat-cell>
+        </ng-container>
 
-    <ng-container matColumnDef="metodo">
-      <mat-header-cell *matHeaderCellDef>
-        Método devolución
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        {{ d.metodo_pago_devolucion_nombre || '—' }}
-      </mat-cell>
-    </ng-container>
+        <ng-container matColumnDef="tipo">
+          <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            <mat-chip [color]="getColorTipo(d.tipo)" selected>
+              {{ d.tipo }}
+            </mat-chip>
+          </mat-cell>
+        </ng-container>
 
-    <ng-container matColumnDef="monto">
-      <mat-header-cell *matHeaderCellDef>
-        Monto
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        Bs. {{ d.monto_devuelto | number:'1.2-2' }}
-      </mat-cell>
-    </ng-container>
+        <ng-container matColumnDef="metodo">
+          <mat-header-cell *matHeaderCellDef>Método devolución</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            {{ d.metodo_pago_devolucion_nombre || '—' }}
+          </mat-cell>
+        </ng-container>
 
-    <ng-container matColumnDef="procesado_por">
-      <mat-header-cell *matHeaderCellDef>
-        Procesado por
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        {{ d.procesado_por_nombre }}
-      </mat-cell>
-    </ng-container>
+        <ng-container matColumnDef="monto">
+          <mat-header-cell *matHeaderCellDef>Monto</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            Bs. {{ d.monto_devuelto | number:'1.2-2' }}
+          </mat-cell>
+        </ng-container>
 
-    <ng-container matColumnDef="fecha">
-      <mat-header-cell *matHeaderCellDef>
-        Fecha
-      </mat-header-cell>
-      <mat-cell *matCellDef="let d">
-        {{ d.created_at | date:'dd/MM/yyyy HH:mm' }}
-      </mat-cell>
-    </ng-container>
+        <ng-container matColumnDef="procesado_por">
+          <mat-header-cell *matHeaderCellDef>Procesado por</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            {{ d.procesado_por_nombre }}
+          </mat-cell>
+        </ng-container>
 
-    <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
-    <mat-row *matRowDef="let r; columns: columnas;"></mat-row>
-  </mat-table>
+        <ng-container matColumnDef="fecha">
+          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+          <mat-cell *matCellDef="let d">
+            {{ d.created_at | date:'dd/MM/yyyy HH:mm' }}
+          </mat-cell>
+        </ng-container>
 
-  <mat-paginator *ngIf="!cargando && totalItems > 0"
-                 [length]="totalItems"
-                 [pageSize]="pageSize"
-                 [pageSizeOptions]="[10, 20, 50]"
-                 [pageIndex]="currentPage - 1"
-                 (page)="onPageChange($event)">
-  </mat-paginator>
+        <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
+        <mat-row *matRowDef="let r; columns: columnas;"></mat-row>
+      </mat-table>
+    </div>
 
-  <p *ngIf="!cargando && devoluciones.length === 0"
-     class="empty-state">
-    No hay devoluciones registradas.
-  </p>
+    <div class="mobile-card-list mobile-only">
+      <article class="mobile-data-card" *ngFor="let d of devoluciones">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">{{ d.venta_ticket }}</div>
+            <div class="mobile-card-subtitle">{{ d.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <mat-chip [color]="getColorTipo(d.tipo)" selected>{{ d.tipo }}</mat-chip>
+        </div>
+        <div class="mobile-label-row">
+          <span>Monto</span>
+          <strong>Bs. {{ d.monto_devuelto | number:'1.2-2' }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Método</span>
+          <strong>{{ d.metodo_pago_devolucion_nombre || '—' }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Procesado por</span>
+          <strong>{{ d.procesado_por_nombre }}</strong>
+        </div>
+      </article>
+      <p *ngIf="devoluciones.length === 0" class="mobile-empty-state">
+        No hay devoluciones registradas.
+      </p>
+    </div>
+
+    <mat-paginator *ngIf="totalItems > 0"
+                   [length]="totalItems"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="[10, 20, 50]"
+                   [pageIndex]="currentPage - 1"
+                   (page)="onPageChange($event)">
+    </mat-paginator>
+  </mat-card>
 
 </div>

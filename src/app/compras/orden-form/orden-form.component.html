@@ -21,6 +21,9 @@
           <mat-form-field appearance="outline">
             <mat-label>Fecha</mat-label>
             <input matInput type="date" formControlName="fecha">
+            <mat-error *ngIf="form.get('fecha')?.hasError('required')">
+              La fecha es obligatoria
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -87,6 +90,12 @@
                     <mat-label>Precio de compra unitario (Bs.)</mat-label>
                     <input matInput type="number"
                            formControlName="costo_mercaderia" min="0">
+                    <mat-error *ngIf="itemForm.get('costo_mercaderia')?.hasError('required')">
+                      Indique el costo de compra
+                    </mat-error>
+                    <mat-error *ngIf="itemForm.get('costo_mercaderia')?.hasError('min')">
+                      El costo no puede ser negativo
+                    </mat-error>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline">
@@ -107,6 +116,12 @@
                     <mat-label>Cantidad</mat-label>
                     <input matInput type="number"
                            formControlName="cantidad" min="1">
+                    <mat-error *ngIf="itemForm.get('cantidad')?.hasError('required')">
+                      La cantidad es obligatoria
+                    </mat-error>
+                    <mat-error *ngIf="itemForm.get('cantidad')?.hasError('min')">
+                      La cantidad debe ser al menos 1
+                    </mat-error>
                     <mat-hint *ngIf="variantesDisponibles.length > 0">
                       Debe coincidir con la suma por variante
                     </mat-hint>
@@ -124,6 +139,9 @@
                     <mat-label>Precio real pagado unit. (Bs.)</mat-label>
                     <input matInput type="number"
                            formControlName="precio_unitario" min="0">
+                    <mat-error *ngIf="itemForm.get('precio_unitario')?.hasError('required')">
+                      Indique el precio unitario
+                    </mat-error>
                     <mat-hint>Para subtotal de línea; si queda en 0 se usa el costo unitario</mat-hint>
                   </mat-form-field>
                 </div>
@@ -238,7 +256,8 @@
         <div class="excel-section excel-subsection resumen-bloque" *ngIf="items.length > 0">
           <div class="excel-section-header">Resumen de la compra</div>
           <div class="excel-section-body">
-            <div class="items-table-wrap">
+            <p class="table-scroll-hint desktop-only" *ngIf="items.length">Desliza horizontalmente para ver todas las columnas.</p>
+            <div class="responsive-table-wrapper desktop-only items-table-wrap">
         <mat-table [dataSource]="items" class="items-table">
 
           <ng-container matColumnDef="producto">
@@ -335,6 +354,31 @@
         </mat-table>
             </div>
 
+            <div class="mobile-card-list mobile-only" *ngIf="items.length">
+              <article class="mobile-data-card" *ngFor="let item of items; let i = index"
+                       [class.fila-editando]="itemEditandoIndex === i">
+                <div class="mobile-card-title">{{ item.producto_nombre }}</div>
+                <div class="mobile-label-row"><span>Almacén</span><strong>{{ getAlmacenNombre(resolveAlmacenItem(item)) }}</strong></div>
+                <div class="mobile-label-row"><span>Cantidad</span><strong>{{ item.cantidad }}</strong></div>
+                <div class="mobile-label-row">
+                  <span>Costo unit.</span>
+                  <strong>Bs. {{ item.costo_unitario_total | number:'1.2-2' }}</strong>
+                </div>
+                <div class="mobile-label-row">
+                  <span>Subtotal</span>
+                  <strong>Bs. {{ item.subtotal | number:'1.2-2' }}</strong>
+                </div>
+                <div class="mobile-card-actions">
+                  <button mat-stroked-button type="button" (click)="onEditarItem(i)" [disabled]="editandoItemResumen">
+                    <mat-icon>edit</mat-icon> Editar
+                  </button>
+                  <button mat-stroked-button type="button" color="warn" (click)="onEliminarItem(i)" [disabled]="editandoItemResumen">
+                    <mat-icon>delete</mat-icon> Eliminar
+                  </button>
+                </div>
+              </article>
+            </div>
+
             <div class="totales">
           <div class="total-row">
             <span>Cantidad total:</span>
@@ -359,19 +403,26 @@
     </mat-card>
 
     <div class="form-actions">
-      <button mat-button type="button" (click)="onVolver()">
+      <button mat-button type="button" (click)="onVolver()" [disabled]="guardando">
         Cancelar
       </button>
-      <button mat-raised-button type="button"
+      <button mat-stroked-button type="button"
               (click)="onGuardarBorrador()"
-              [disabled]="guardando">
-        <mat-icon>save</mat-icon> Guardar borrador
+              [disabled]="guardando"
+              matTooltip="Guarda sin confirmar recepción ni stock">
+        <mat-icon>save</mat-icon>
+        {{ guardando ? 'Guardando…' : 'Guardar borrador' }}
       </button>
       <button mat-raised-button color="primary" type="button"
               (click)="onEnviarPendiente()"
-              [disabled]="guardando || items.length === 0">
-        <mat-icon>send</mat-icon> Enviar a pendiente
+              [disabled]="guardando"
+              matTooltip="Requiere ítems y almacén destino">
+        <mat-icon>send</mat-icon>
+        {{ guardando ? 'Guardando…' : 'Enviar a pendiente' }}
       </button>
     </div>
+    <p class="form-actions-hint">
+      Borrador: puede completar después. Pendiente: lista para recepción (requiere productos y almacén).
+    </p>
   </form>
 </div>

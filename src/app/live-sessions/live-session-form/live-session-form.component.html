@@ -121,7 +121,7 @@
     <button mat-button (click)="onCancel()">Cancelar</button>
     <button mat-raised-button color="primary"
             (click)="onSubmit()"
-            [disabled]="form.invalid || saving">
+            [disabled]="saving">
       {{ saving ? 'Guardando...' : (isEdit ? 'Guardar Cambios' : 'Crear Sesión') }}
     </button>
   </div>

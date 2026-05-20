@@ -30,3 +30,29 @@
     min-width: 180px;
   }
 }
+
+.transferencias-table {
+  width: 100%;
+  min-width: 640px;
+}
+
+.transfer-mobile-card {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .list-container { padding: 8px; }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    h2 { font-size: 1.15rem; }
+    button { width: 100%; min-height: 44px; }
+  }
+
+  .filters-bar .filter-field {
+    width: 100%;
+    min-width: 0;
+  }
+}

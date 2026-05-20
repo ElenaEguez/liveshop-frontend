@@ -61,8 +61,10 @@
   </div>
 
   <!-- Tabla -->
-  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
-    <table mat-table [dataSource]="sessions" style="width:100%;">
+  <div class="live-sessions-table-card" style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:visible;">
+    <p class="table-scroll-hint desktop-only" *ngIf="sessions.length">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+    <table mat-table [dataSource]="sessions" class="live-sessions-table" style="width:100%; min-width:720px;">
 
       <ng-container matColumnDef="slot">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; width:80px; text-align:center;">Canal</th>
@@ -125,6 +127,34 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns" style="background:#f9fafb;"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
     </table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="sessions.length">
+      <article class="mobile-data-card" *ngFor="let s of sessions">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">{{ s.title }}</div>
+            <div class="mobile-card-subtitle">Canal {{ s.slot ?? 1 }} · {{ getPlatformLabel(s.platform) }}</div>
+          </div>
+          <span [style.background]="getStatusBg(s.status)" [style.color]="getStatusColor(s.status)"
+                style="padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ getStatusLabel(s.status) }}
+          </span>
+        </div>
+        <div class="mobile-label-row">
+          <span>Programada</span>
+          <strong>{{ s.scheduled_at | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+        <div class="mobile-card-actions">
+          <button mat-stroked-button type="button" [color]="s.status === 'scheduled' ? 'primary' : ''" (click)="goToDetail(s)">
+            <mat-icon>{{ getActionIcon(s.status) }}</mat-icon> {{ getActionLabel(s.status) }}
+          </button>
+          <button mat-stroked-button type="button" (click)="editSession(s)">
+            <mat-icon>edit</mat-icon> Editar
+          </button>
+        </div>
+      </article>
+    </div>
 
     <div *ngIf="sessions.length === 0"
          style="text-align:center; padding:48px; color:#9ca3af;">

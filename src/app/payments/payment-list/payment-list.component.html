@@ -1,4 +1,4 @@
-<div style="width: 100%;">
+<div class="payments-page">
 
   <!-- Header -->
   <div style="margin-bottom:24px;">
@@ -39,9 +39,10 @@
   </div>
 
   <!-- Tabla -->
-  <div *ngIf="!loading && !loadError"
-       style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
-    <table mat-table [dataSource]="payments" style="width:100%;">
+  <div *ngIf="!loading && !loadError" class="payments-table-card">
+    <p class="table-scroll-hint desktop-only" *ngIf="payments.length">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+    <table mat-table [dataSource]="payments" class="payments-table">
 
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:16px; width:60px;">#</th>
@@ -143,11 +144,44 @@
           style="border-bottom:1px solid #f3f4f6; cursor:pointer;"
           (click)="openVerify(row)"></tr>
     </table>
+    </div>
 
-    <div *ngIf="payments.length === 0"
-         style="text-align:center; padding:48px; color:#9ca3af;">
-      <mat-icon style="font-size:48px; width:48px; height:48px;">payments</mat-icon>
-      <p style="margin-top:12px;">No hay pagos que mostrar</p>
+    <div class="mobile-card-list mobile-only" *ngIf="payments.length">
+      <article class="mobile-data-card" *ngFor="let p of payments" (click)="openVerify(p)">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">#{{ p.reservation }} — {{ p.customer_name }}</div>
+            <div class="mobile-card-subtitle">{{ p.customer_phone }}</div>
+          </div>
+          <span [style.background]="getStatusBg(p.status)" [style.color]="getStatusColor(p.status)"
+                style="padding:4px 10px; border-radius:20px; font-size:0.82rem; font-weight:600;">
+            {{ getStatusLabel(p.status) }}
+          </span>
+        </div>
+        <div class="mobile-label-row"><span>Producto</span><strong>{{ p.product_name }}</strong></div>
+        <div class="mobile-label-row"><span>Live</span><strong>{{ p.session_title || '—' }}</strong></div>
+        <div class="mobile-label-row"><span>Monto</span><strong style="color:#db0000;">Bs. {{ p.amount | number:'1.2-2' }}</strong></div>
+        <div class="mobile-label-row"><span>Método / Ref.</span><strong>{{ getMethodLabel(p.payment_method) }} · {{ p.customer_reference || '—' }}</strong></div>
+        <div class="mobile-card-actions" (click)="$event.stopPropagation()">
+          <button mat-stroked-button type="button" color="primary" *ngIf="p.status === 'submitted'" (click)="confirmInline(p, $event)">
+            <mat-icon>check_circle</mat-icon> Confirmar
+          </button>
+          <button mat-stroked-button type="button" color="warn" *ngIf="p.status === 'submitted'" (click)="rejectInline(p, $event)">
+            <mat-icon>cancel</mat-icon> Rechazar
+          </button>
+          <button mat-stroked-button type="button" *ngIf="p.receipt_image" (click)="viewReceipt(p, $event)">
+            <mat-icon>receipt</mat-icon> Comprobante
+          </button>
+          <button mat-stroked-button type="button" (click)="openVerify(p)">
+            <mat-icon>open_in_new</mat-icon> Ver
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div *ngIf="payments.length === 0" class="payments-empty">
+      <mat-icon>payments</mat-icon>
+      <p>No hay pagos que mostrar</p>
     </div>
 
     <mat-paginator

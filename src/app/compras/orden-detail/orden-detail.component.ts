@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ComprasService, OrdenCompra, OrdenCompraItem, OrdenCompraItemDistribucion } from '../compras.service';
+import { httpErrorMessage } from '../../shared/api-utils';
 
 @Component({
   selector: 'app-orden-detail',
@@ -46,8 +47,44 @@ export class OrdenDetailComponent implements OnInit {
     this.router.navigate(['/compras', this.orden.id, 'edit']);
   }
 
+  /** Cabecera o cada línea deben tener almacén (misma regla que el API). */
+  faltaAlmacen(o: OrdenCompra): boolean {
+    if (this.almacenId(o)) {
+      return false;
+    }
+    const items = o.items || [];
+    if (!items.length) {
+      return true;
+    }
+    return items.some((i) => !this.almacenIdItem(o, i));
+  }
+
+  private almacenId(o: OrdenCompra): number | null {
+    const raw = o.almacen;
+    if (raw == null) {
+      return null;
+    }
+    return typeof raw === 'object' ? (raw as { id: number }).id : (raw as number);
+  }
+
+  private almacenIdItem(o: OrdenCompra, item: OrdenCompraItem): number | null {
+    const raw = item.almacen ?? o.almacen;
+    if (raw == null) {
+      return null;
+    }
+    return typeof raw === 'object' ? (raw as { id: number }).id : (raw as number);
+  }
+
   confirmar(): void {
     if (!this.orden?.id) return;
+    if (this.faltaAlmacen(this.orden)) {
+      this.snackBar.open(
+        'Indique el almacén destino (edite la orden y selecciónelo en la cabecera o en cada línea).',
+        'Cerrar',
+        { duration: 6000 },
+      );
+      return;
+    }
     if (!confirm('¿Confirmar esta orden? Esta acción no se puede deshacer.')) {
       return;
     }
@@ -57,11 +94,10 @@ export class OrdenDetailComponent implements OnInit {
         this.snackBar.open('Orden confirmada correctamente', 'Cerrar', { duration: 4000 });
       },
       error: (err) => {
-        const msg = err.error?.error || err.error?.detail || 'No se pudo confirmar la orden';
         this.snackBar.open(
-          typeof msg === 'string' ? msg : 'No se pudo confirmar la orden',
+          httpErrorMessage(err, 'No se pudo confirmar la orden'),
           'Cerrar',
-          { duration: 5000 },
+          { duration: 6000, panelClass: ['snack-error'] },
         );
       },
     });
@@ -72,9 +108,17 @@ export class OrdenDetailComponent implements OnInit {
     this.comprasService.cancelarOrden(this.orden.id).subscribe((o) => (this.orden = o));
   }
 
+  almacenOrdenLabel(orden: OrdenCompra): string {
+    const id = this.almacenId(orden);
+    if (id == null) {
+      return 'Sin asignar';
+    }
+    const a = this.almacenes.find((x) => x.id === id);
+    return a?.nombre || `#${id}`;
+  }
+
   almacenLabel(orden: OrdenCompra, item: OrdenCompraItem): string {
-    const raw = item.almacen ?? orden.almacen;
-    const id = raw != null && typeof raw === 'object' ? (raw as { id: number }).id : (raw as number | null);
+    const id = this.almacenIdItem(orden, item);
     if (id == null) {
       return '—';
     }

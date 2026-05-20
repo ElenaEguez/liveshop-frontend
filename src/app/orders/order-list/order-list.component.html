@@ -87,8 +87,11 @@
       <mat-spinner diameter="40"></mat-spinner>
     </div>
 
+    <p class="table-scroll-hint desktop-only" *ngIf="orders.length">Desliza horizontalmente para ver todas las columnas.</p>
+
     <div class="table-card" [class.table-faded]="loading">
 
+      <div class="responsive-table-wrapper desktop-only">
       <table mat-table [dataSource]="orders" class="orders-table">
 
         <!-- # -->
@@ -186,6 +189,43 @@
             class="table-row"
             (click)="openDetail(row)"></tr>
       </table>
+      </div>
+
+      <div class="mobile-card-list mobile-only" *ngIf="orders.length">
+        <article class="mobile-data-card" *ngFor="let o of orders" (click)="openDetail(o)">
+          <div class="mobile-card-header">
+            <div>
+              <div class="mobile-card-title">#{{ o.id }} — {{ o.customer_name }}</div>
+              <div class="mobile-card-subtitle">{{ o.customer_phone }}</div>
+            </div>
+            <span class="status-badge"
+                  [style.background]="getStatusBg(o.status)"
+                  [style.color]="getStatusColor(o.status)">
+              {{ getStatusLabel(o.status) }}
+            </span>
+          </div>
+          <div class="mobile-label-row">
+            <span>Producto</span>
+            <strong>{{ o.product_name }}</strong>
+          </div>
+          <div class="mobile-label-row" *ngIf="o.variant_detail">
+            <span>Variante</span>
+            <strong>{{ o.variant_detail }}</strong>
+          </div>
+          <div class="mobile-label-row">
+            <span>Cant. / Total</span>
+            <strong>{{ o.quantity }} · Bs. {{ o.total_price | number:'1.2-2' }}</strong>
+          </div>
+          <div class="mobile-card-actions" (click)="$event.stopPropagation()">
+            <button mat-stroked-button type="button" *ngIf="o.customer_phone" (click)="openWhatsApp(o, $event)">
+              WhatsApp
+            </button>
+            <button mat-stroked-button type="button" (click)="openDetail(o)">
+              <mat-icon>chevron_right</mat-icon> Ver
+            </button>
+          </div>
+        </article>
+      </div>
 
       <div *ngIf="orders.length === 0 && !loading" class="empty-state">
         <mat-icon>receipt_long</mat-icon>

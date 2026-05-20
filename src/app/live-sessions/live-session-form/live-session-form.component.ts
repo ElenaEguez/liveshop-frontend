@@ -1,7 +1,10 @@
 import { Component, Inject, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { LiveSession, LiveSessionService } from '../services/live-session.service';
+import { httpErrorMessage } from '../../shared/api-utils';
+import { markAllAsTouched } from '../../shared/form-utils';
 
 @Component({
   selector: 'app-live-session-form',
@@ -25,6 +28,7 @@ export class LiveSessionFormComponent {
   constructor(
     private fb: FormBuilder,
     private liveSessionService: LiveSessionService,
+    private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<LiveSessionFormComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: { session?: LiveSession }
   ) {
@@ -58,7 +62,18 @@ export class LiveSessionFormComponent {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (this.saving) {
+      return;
+    }
+    markAllAsTouched(this.form);
+    if (this.form.invalid) {
+      this.snackBar.open(
+        'Completa título, plataforma, canal y fecha programada.',
+        'Cerrar',
+        { duration: 5000, panelClass: ['snack-error'] },
+      );
+      return;
+    }
     this.saving = true;
 
     const values = { ...this.form.value };
@@ -79,13 +94,25 @@ export class LiveSessionFormComponent {
       ? this.liveSessionService.updateSession(this.data.session!.id!, payload)
       : this.liveSessionService.createSession(payload);
 
-    request.subscribe(
-      () => this.dialogRef.close(true),
-      (error: any) => {
+    request.subscribe({
+      next: () => {
+        this.snackBar.open(
+          this.isEdit ? 'Sesión actualizada.' : 'Sesión creada.',
+          'Cerrar',
+          { duration: 3500 },
+        );
+        this.dialogRef.close(true);
+      },
+      error: (error: unknown) => {
         console.error('Error saving session:', error);
         this.saving = false;
-      }
-    );
+        this.snackBar.open(
+          httpErrorMessage(error, 'No se pudo guardar la sesión.'),
+          'Cerrar',
+          { duration: 6000, panelClass: ['snack-error'] },
+        );
+      },
+    });
   }
 
   onCancel(): void {

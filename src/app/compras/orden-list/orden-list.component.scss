@@ -231,13 +231,7 @@
     }
   }
 
-  .desktop-only {
-    display: none;
-  }
-
-  .mobile-only {
-    display: block;
-  }
+  /* desktop-only / mobile-only: ver styles.scss global (@media 640px) */
 
   .orden-card-actions a[mat-stroked-button] {
     flex: 1 1 100%;

@@ -145,7 +145,10 @@
         <p class="stat-footer">
           Bs.&nbsp;{{ (salesData.pos_total_revenue || '0') | number:'1.2-2' }}
           <span *ngIf="+(salesData.ingresos_contado_arqueo || 0) > 0" class="stat-footer-sub">
-            · Bs.&nbsp;{{ salesData.ingresos_contado_arqueo | number:'1.2-2' }} (contado en arqueo)
+            · Contado al cierre: Bs.&nbsp;{{ salesData.ingresos_contado_arqueo | number:'1.2-2' }}
+            <span *ngIf="+(salesData.efectivo_esperado_arqueo || 0) > 0">
+              · Esperado: Bs.&nbsp;{{ salesData.efectivo_esperado_arqueo | number:'1.2-2' }}
+            </span>
           </span>
         </p>
       </div>
@@ -258,6 +261,132 @@
         <p class="stat-footer">Click para ver pedidos</p>
       </div>
 
+    </div>
+
+    <!-- ── FLUJO DE CAJA ───────────────────────────────────────────────── -->
+    <div class="section-card" *ngIf="showFlujoCaja">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">account_balance_wallet</mat-icon>
+        Flujo de caja (turnos del período)
+      </h3>
+      <div class="flujo-rows">
+        <div class="flujo-row" *ngIf="flujoIngresosCaja > 0">
+          <span class="flujo-label">
+            <mat-icon>add_circle_outline</mat-icon>
+            Ingresos manuales en caja
+          </span>
+          <span class="flujo-value positive">+ Bs.&nbsp;{{ flujoIngresosCaja | number:'1.2-2' }}</span>
+        </div>
+        <div class="flujo-row" *ngIf="flujoRetirosCaja > 0">
+          <span class="flujo-label">
+            <mat-icon>remove_circle_outline</mat-icon>
+            Retiros de caja
+          </span>
+          <span class="flujo-value negative">− Bs.&nbsp;{{ flujoRetirosCaja | number:'1.2-2' }}</span>
+        </div>
+        <div class="flujo-row" *ngIf="flujoEsperadoArqueo > 0">
+          <span class="flujo-label">
+            <mat-icon>calculate</mat-icon>
+            Efectivo esperado (cierres)
+          </span>
+          <span class="flujo-value">Bs.&nbsp;{{ flujoEsperadoArqueo | number:'1.2-2' }}</span>
+        </div>
+        <div class="flujo-row neto" *ngIf="flujoContadoArqueo > 0">
+          <span class="flujo-label">
+            <mat-icon>payments</mat-icon>
+            Efectivo contado al cierre
+          </span>
+          <span class="flujo-value positive">Bs.&nbsp;{{ flujoContadoArqueo | number:'1.2-2' }}</span>
+        </div>
+      </div>
+      <p class="flujo-hint" *ngIf="flujoContadoArqueo > 0 && flujoEsperadoArqueo > 0 && flujoContadoArqueo !== flujoEsperadoArqueo">
+        Diferencia acumulada del período:
+        <strong [class.negative-diff]="flujoContadoArqueo < flujoEsperadoArqueo"
+                [class.positive-diff]="flujoContadoArqueo > flujoEsperadoArqueo">
+          Bs.&nbsp;{{ (flujoContadoArqueo - flujoEsperadoArqueo) | number:'1.2-2' }}
+        </strong>
+      </p>
+    </div>
+
+    <!-- ── MOVIMIENTOS DE CAJA ─────────────────────────────────────────── -->
+    <div class="section-card mov-caja-card">
+      <div class="mov-header">
+        <h3 class="section-title" style="margin:0;">
+          <mat-icon class="section-title-icon">swap_horiz</mat-icon>
+          Movimientos de caja
+          <span class="mov-realtime">
+            <span class="realtime-dot"></span>
+            tiempo real
+          </span>
+        </h3>
+      </div>
+
+      <div class="mov-loading" *ngIf="movimientosLoading">
+        <mat-spinner diameter="36"></mat-spinner>
+      </div>
+
+      <ng-container *ngIf="!movimientosLoading">
+        <table mat-table [dataSource]="movimientos" class="mov-table desktop-only" *ngIf="movimientos.length > 0">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let m">{{ formatMovFecha(m.fecha) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="caja">
+            <th mat-header-cell *matHeaderCellDef>Caja</th>
+            <td mat-cell *matCellDef="let m">{{ m.caja }}</td>
+          </ng-container>
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let m">
+              <span class="mov-badge" [ngClass]="movBadgeClass(m.tipo)">{{ movTipoLabel(m.tipo) }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="usuario">
+            <th mat-header-cell *matHeaderCellDef>Usuario</th>
+            <td mat-cell *matCellDef="let m">{{ m.usuario }}</td>
+          </ng-container>
+          <ng-container matColumnDef="detalle">
+            <th mat-header-cell *matHeaderCellDef>Detalle</th>
+            <td mat-cell *matCellDef="let m" class="detalle-cell">{{ m.detalle }}</td>
+          </ng-container>
+          <ng-container matColumnDef="monto">
+            <th mat-header-cell *matHeaderCellDef class="num-col">Monto</th>
+            <td mat-cell *matCellDef="let m" class="num-col" [ngClass]="movMontoClass(m.tipo)">
+              {{ isMovIngreso(m.tipo) ? '+' : '−' }} Bs.&nbsp;{{ m.monto | number:'1.2-2' }}
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="movDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: movDisplayedColumns;"></tr>
+        </table>
+
+        <div class="cash-mobile-card mobile-only" *ngIf="movimientos.length > 0">
+          <div class="mobile-product-card" *ngFor="let m of movimientos">
+            <div class="mobile-product-head">
+              <span class="mov-badge" [ngClass]="movBadgeClass(m.tipo)">{{ movTipoLabel(m.tipo) }}</span>
+              <strong [ngClass]="movMontoClass(m.tipo)">
+                {{ isMovIngreso(m.tipo) ? '+' : '−' }} Bs.&nbsp;{{ m.monto | number:'1.2-2' }}
+              </strong>
+            </div>
+            <div class="mobile-product-meta">{{ formatMovFecha(m.fecha) }} · {{ m.caja }}</div>
+            <div class="mobile-product-meta">{{ m.usuario }}</div>
+            <div class="mobile-product-meta detalle-cell">{{ m.detalle }}</div>
+          </div>
+        </div>
+
+        <p *ngIf="movimientos.length === 0" class="no-data-chart" style="padding:24px 0;">
+          No hay movimientos de caja en este período.
+        </p>
+
+        <div class="mov-pagination" *ngIf="movimientosPages > 1">
+          <button mat-icon-button (click)="movimientosPrev()" [disabled]="movimientosPage <= 1">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="mov-page-label">{{ movimientosPage }} / {{ movimientosPages }}</span>
+          <button mat-icon-button (click)="movimientosNext()" [disabled]="movimientosPage >= movimientosPages">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </ng-container>
     </div>
 
     <!-- ── GASTOS POR CATEGORÍA ─────────────────────────────────────────── -->
@@ -474,7 +603,8 @@
       <mat-paginator
         [pageSize]="10"
         [pageSizeOptions]="[5, 10, 25, 50]"
-        showFirstLastButtons>
+        showFirstLastButtons
+        aria-label="Paginación ventas por producto">
       </mat-paginator>
 
     </div>

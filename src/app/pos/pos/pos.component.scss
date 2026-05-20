@@ -225,12 +225,38 @@
 /* Carrito */
 .cart-section {
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+.cart-table-wrap {
+  flex: 1;
+  min-height: 0;
+  max-height: calc(100vh - 340px);
+  overflow-y: auto;
+}
+
+.cart-mobile-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.cart-mobile-item {
+  margin-bottom: 0;
+}
+
+.cart-mobile-item .price-input {
+  width: 100px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 8px;
+  text-align: right;
 }
 
 .cart-empty {
@@ -534,9 +560,13 @@
     }
   }
 
-  .cart-table {
+  .cart-table-wrap {
     max-height: none;
     overflow-y: visible;
+  }
+
+  .cart-mobile-list {
+    max-height: none;
   }
 
   .metodos-grid {

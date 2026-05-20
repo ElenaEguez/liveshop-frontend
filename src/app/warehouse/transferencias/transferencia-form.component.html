@@ -108,8 +108,9 @@
           </button>
         </div>
 
-        <mat-table [dataSource]="items"
-                   *ngIf="items.length > 0">
+        <p class="table-scroll-hint desktop-only" *ngIf="items.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only" *ngIf="items.length > 0">
+        <mat-table [dataSource]="items" class="transfer-form-table">
           <ng-container matColumnDef="producto">
             <mat-header-cell *matHeaderCellDef>
               Producto
@@ -174,6 +175,24 @@
             *matRowDef="let r; columns: columnas;">
           </mat-row>
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="items.length">
+          <article class="mobile-data-card" *ngFor="let i of items; let idx = index">
+            <div class="mobile-card-title">{{ i.producto_nombre }}</div>
+            <div class="mobile-label-row">
+              <span>Variante</span>
+              <strong *ngIf="i.variante_detalle">{{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}</strong>
+              <strong *ngIf="!i.variante_detalle">—</strong>
+            </div>
+            <div class="mobile-label-row"><span>Stock / Cant.</span><strong>{{ i.stock_actual ?? '—' }} → {{ i.cantidad }}</strong></div>
+            <div class="mobile-card-actions">
+              <button mat-stroked-button type="button" color="warn" (click)="onEliminar(idx)">
+                <mat-icon>delete</mat-icon> Quitar
+              </button>
+            </div>
+          </article>
+        </div>
       </mat-card-content>
     </mat-card>
 

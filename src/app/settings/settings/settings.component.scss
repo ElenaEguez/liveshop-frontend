@@ -12,7 +12,25 @@
   h2 { margin: 0; font-size: 18px; }
 }
 
-.settings-table { width: 100%; }
+.settings-table {
+  width: 100%;
+  min-width: 520px;
+}
+
+.tab-header button {
+  min-height: 44px;
+}
+
+.add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+
+  mat-form-field { flex: 1; min-width: 200px; }
+  button { min-height: 44px; }
+}
 
 .no-data { text-align: center; padding: 32px; color: #888; }
 
@@ -57,6 +75,31 @@
 .logo-preview-row {
   background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 14px;
 }
+@media (max-width: 768px) {
+  .settings-page { padding: 8px; }
+
+  .tab-header {
+    flex-direction: column;
+    align-items: stretch;
+    button { width: 100%; }
+  }
+
+  .ticket-tab {
+    flex-direction: column;
+  }
+
+  .ticket-form-col {
+    max-width: none;
+    width: 100%;
+  }
+
+  .add-row {
+    flex-direction: column;
+    align-items: stretch;
+    mat-form-field, button { width: 100%; }
+  }
+}
+
 .logo-current {
   display: flex; align-items: center; gap: 12px;
   .logo-label { font-size: 13px; color: #666; }

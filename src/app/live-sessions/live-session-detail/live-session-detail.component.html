@@ -101,7 +101,7 @@
   <div *ngIf="!loading" class="detail-grid">
 
     <!-- IZQUIERDA: Productos del vendedor -->
-    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <div class="live-panel-card" style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:visible;">
       <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;">
         <mat-icon style="color:#db0000;">inventory_2</mat-icon>
         <h2 style="margin:0; font-size:1rem; font-weight:600; color:#111827;">Productos disponibles</h2>
@@ -111,7 +111,9 @@
         </span>
       </div>
 
-      <table mat-table [dataSource]="products" style="width:100%;">
+      <p class="table-scroll-hint desktop-only" *ngIf="products.length" style="padding:0 16px;">Desliza horizontalmente…</p>
+      <div class="responsive-table-wrapper desktop-only">
+      <table mat-table [dataSource]="products" class="live-products-table" style="width:100%; min-width:480px;">
 
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:12px 16px;">Producto</th>
@@ -144,6 +146,18 @@
         <tr mat-header-row *matHeaderRowDef="productColumns" style="background:#f9fafb;"></tr>
         <tr mat-row *matRowDef="let row; columns: productColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
       </table>
+      </div>
+
+      <div class="mobile-card-list mobile-only" *ngIf="products.length" style="padding:12px 16px;">
+        <article class="mobile-data-card" *ngFor="let p of products">
+          <div class="mobile-card-title">{{ p.name }}</div>
+          <div class="mobile-label-row"><span>Precio</span><strong style="color:#db0000;">Bs. {{ p.price | number:'1.2-2' }}</strong></div>
+          <div class="mobile-label-row">
+            <span>Stock</span>
+            <strong>{{ getAvailableStock(p) === 0 ? 'Agotado' : getAvailableStock(p) + ' uds.' }}</strong>
+          </div>
+        </article>
+      </div>
 
       <div *ngIf="products.length === 0" style="padding:32px; text-align:center; color:#9ca3af;">
         <mat-icon style="font-size:36px; width:36px; height:36px;">inventory_2</mat-icon>
@@ -152,7 +166,7 @@
     </div>
 
     <!-- DERECHA: Reservas en tiempo real -->
-    <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
+    <div class="live-panel-card" style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:visible;">
       <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;">
         <mat-icon style="color:#166534;">shopping_bag</mat-icon>
         <h2 style="margin:0; font-size:1rem; font-weight:600; color:#111827;">Reservas</h2>
@@ -167,8 +181,10 @@
         </span>
       </div>
 
-      <div style="max-height:520px; overflow-y:auto;">
-        <table mat-table [dataSource]="reservations" style="width:100%;">
+      <div class="reservations-scroll" style="max-height:520px; overflow-y:auto;">
+        <p class="table-scroll-hint desktop-only" *ngIf="reservations.length" style="padding:0 16px;">Desliza horizontalmente…</p>
+        <div class="responsive-table-wrapper desktop-only">
+        <table mat-table [dataSource]="reservations" class="live-reservations-table" style="width:100%; min-width:640px;">
 
           <ng-container matColumnDef="customer_name">
             <th mat-header-cell *matHeaderCellDef style="font-weight:600; color:#374151; padding:12px 16px;">Cliente</th>
@@ -217,6 +233,23 @@
           <tr mat-header-row *matHeaderRowDef="reservationColumns" style="background:#f9fafb;"></tr>
           <tr mat-row *matRowDef="let row; columns: reservationColumns;" style="border-bottom:1px solid #f3f4f6;"></tr>
         </table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="reservations.length" style="padding:12px 16px;">
+          <article class="mobile-data-card" *ngFor="let r of reservations">
+            <div class="mobile-card-title">{{ r.customer_name }}</div>
+            <div class="mobile-label-row"><span>Producto</span><strong>{{ r.product_name ?? '–' }}</strong></div>
+            <div class="mobile-label-row" *ngIf="r.variant_detail"><span>Variante</span><strong>{{ r.variant_detail }}</strong></div>
+            <div class="mobile-label-row">
+              <span>Cant. / Total</span>
+              <strong>{{ r.quantity }} · Bs. {{ r.total_price | number:'1.2-2' }}</strong>
+            </div>
+            <div class="mobile-label-row">
+              <span>Estado</span>
+              <strong>{{ getReservationStatusLabel(r.status) }}</strong>
+            </div>
+          </article>
+        </div>
 
         <div *ngIf="reservations.length === 0" style="padding:32px; text-align:center; color:#9ca3af;">
           <mat-icon style="font-size:36px; width:36px; height:36px;">shopping_bag</mat-icon>

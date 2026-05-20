@@ -27,6 +27,9 @@
               {{ cat.name }}
             </mat-option>
           </mat-select>
+          <mat-error *ngIf="productForm.get('category')?.hasError('required')">
+            La categoría es requerida
+          </mat-error>
         </mat-form-field>
       </div>
 
@@ -58,7 +61,7 @@
           <mat-icon>refresh</mat-icon> Generar
         </button>
         <button *ngIf="productForm.get('barcode')?.value" type="button" mat-stroked-button
-                (click)="printBarcodeLabel()" matTooltip="Imprimir etiqueta (papel 80 mm)">
+                (click)="printBarcodeLabel()" matTooltip="Imprimir etiqueta (4,6 × 5,6 cm)">
           <mat-icon>print</mat-icon> Imprimir
         </button>
         <button *ngIf="productForm.get('barcode')?.value" type="button" mat-stroked-button
@@ -85,10 +88,14 @@
       <div class="sell-by-grid">
         <mat-checkbox *ngFor="let opt of sellByOptions"
                       [formControlName]="opt.value"
-                      color="primary">
+                      color="primary"
+                      (change)="sellByError = false">
           {{ opt.label }}
         </mat-checkbox>
       </div>
+      <p *ngIf="sellByError" class="field-hint-error">
+        Selecciona al menos una unidad de venta (unidad, granel o litro).
+      </p>
     </div>
 
     <!-- SECCIÓN: Canales -->
@@ -99,6 +106,28 @@
         <mat-checkbox formControlName="is_active_pos" color="primary">Tienda física (POS)</mat-checkbox>
         <mat-checkbox formControlName="is_active_web" color="primary">Web</mat-checkbox>
       </div>
+    </div>
+
+    <!-- SECCIÓN: Destacados en tienda web -->
+    <div class="form-section" *ngIf="productForm.get('is_active_web')?.value">
+      <h3 class="section-title">Destacados en tienda web</h3>
+      <p class="section-hint">
+        Controla en qué secciones de la página principal aparece el producto y las etiquetas de precio.
+      </p>
+      <div class="sell-by-grid">
+        <mat-checkbox formControlName="web_is_bestseller" color="primary">
+          Más vendidos (inicio)
+        </mat-checkbox>
+        <mat-checkbox formControlName="web_is_new" color="primary">
+          Nuevos ingresos (inicio)
+        </mat-checkbox>
+      </div>
+      <mat-form-field appearance="outline" class="full-width" style="margin-top:12px;">
+        <mat-label>Precio anterior (opcional)</mat-label>
+        <input matInput type="number" formControlName="compare_at_price" min="0" step="0.01"
+               placeholder="Ej: 89.90">
+        <mat-hint>Si es mayor al precio de venta, se muestra el % de descuento en la web.</mat-hint>
+      </mat-form-field>
     </div>
 
     <!-- SECCIÓN: Variantes -->
@@ -196,9 +225,9 @@
   <div class="modal-actions">
     <button mat-button (click)="onCancel()">{{ viewOnly ? 'Cerrar' : 'Cancelar' }}</button>
     <button *ngIf="!viewOnly" mat-raised-button color="primary"
-            [disabled]="productForm.invalid || stockVariantesInvalido"
+            [disabled]="saving || stockVariantesInvalido"
             (click)="onSubmit()">
-      {{ isEdit ? 'Guardar Cambios' : 'Crear Producto' }}
+      {{ saving ? 'Guardando…' : (isEdit ? 'Guardar Cambios' : 'Crear Producto') }}
     </button>
   </div>
 

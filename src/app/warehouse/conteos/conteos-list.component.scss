@@ -48,3 +48,28 @@
   border-radius: 12px;
   font-size: 12px;
 }
+
+.table-card {
+  overflow: visible;
+  margin-bottom: 8px;
+}
+
+.conteos-table {
+  min-width: 640px;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-buttons button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .filters-row mat-form-field {
+    width: 100%;
+  }
+}

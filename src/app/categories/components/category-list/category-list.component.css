@@ -1,0 +1,36 @@
+.categories-table-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.categories-table {
+  width: 100%;
+  min-width: 520px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #9ca3af;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+@media (max-width: 768px) {
+  .categories-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .categories-page-header button {
+    width: 100%;
+    min-height: 44px;
+  }
+}

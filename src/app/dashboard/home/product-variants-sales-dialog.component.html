@@ -6,25 +6,41 @@
 <mat-dialog-content class="pvs-content">
   <p class="pvs-period" *ngIf="data.periodLabel">{{ data.periodLabel }}</p>
 
-  <table mat-table [dataSource]="data.variantes" class="pvs-table" *ngIf="data.variantes.length">
-    <ng-container matColumnDef="variante">
-      <th mat-header-cell *matHeaderCellDef>Variante</th>
-      <td mat-cell *matCellDef="let v">{{ v.variante }}</td>
-    </ng-container>
+  <ng-container *ngIf="data.variantes.length">
+    <p class="table-scroll-hint desktop-only">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+      <table mat-table [dataSource]="data.variantes" class="pvs-table">
+        <ng-container matColumnDef="variante">
+          <th mat-header-cell *matHeaderCellDef>Variante</th>
+          <td mat-cell *matCellDef="let v">{{ v.variante }}</td>
+        </ng-container>
 
-    <ng-container matColumnDef="units_sold">
-      <th mat-header-cell *matHeaderCellDef class="col-num">Unidades</th>
-      <td mat-cell *matCellDef="let v" class="col-num">{{ v.units_sold }}</td>
-    </ng-container>
+        <ng-container matColumnDef="units_sold">
+          <th mat-header-cell *matHeaderCellDef class="col-num">Unidades</th>
+          <td mat-cell *matCellDef="let v" class="col-num">{{ v.units_sold }}</td>
+        </ng-container>
 
-    <ng-container matColumnDef="revenue">
-      <th mat-header-cell *matHeaderCellDef class="col-num">Ingresos (Bs.)</th>
-      <td mat-cell *matCellDef="let v" class="col-num">{{ (v.revenue || '0') | number:'1.2-2' }}</td>
-    </ng-container>
+        <ng-container matColumnDef="revenue">
+          <th mat-header-cell *matHeaderCellDef class="col-num">Ingresos (Bs.)</th>
+          <td mat-cell *matCellDef="let v" class="col-num">{{ (v.revenue || '0') | number:'1.2-2' }}</td>
+        </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+
+    <div class="mobile-card-list mobile-only">
+      <article class="mobile-data-card" *ngFor="let v of data.variantes">
+        <div class="mobile-card-title">{{ v.variante }}</div>
+        <div class="mobile-label-row"><span>Unidades</span><strong>{{ v.units_sold }}</strong></div>
+        <div class="mobile-label-row">
+          <span>Ingresos</span>
+          <strong>Bs. {{ (v.revenue || '0') | number:'1.2-2' }}</strong>
+        </div>
+      </article>
+    </div>
+  </ng-container>
 
   <p class="pvs-empty" *ngIf="!data.variantes.length">
     No hay desglose por variante para este producto en el período seleccionado.

@@ -231,9 +231,7 @@ h1 { margin: 0; font-size: 22px; font-weight: 700; }
 /* ── XLSX button ── */
 .xlsx-btn { color: #166534; border-color: #bbf7d0; }
 
-.mobile-cards {
-  display: none;
-}
+// Tarjetas móvil: visibilidad vía .mobile-only en styles.scss global
 
 .turno-card {
   background: #fff;
@@ -390,11 +388,50 @@ h1 { margin: 0; font-size: 22px; font-weight: 700; }
 }
 
 @media (max-width: 768px) {
-  .table-wrap {
-    display: none;
+  .arqueos-page {
+    padding: 12px;
+    gap: 14px;
   }
 
-  .mobile-cards {
-    display: block;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .xlsx-btn {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .period-bar,
+  .semana-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-field {
+      width: 100%;
+      max-width: none;
+    }
+
+    > button {
+      min-height: 44px;
+    }
+  }
+
+  .totales-panel {
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .totales-col {
+    min-width: 0;
   }
 }

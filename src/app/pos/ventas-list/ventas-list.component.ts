@@ -36,6 +36,7 @@ export class VentasListComponent implements OnInit {
     periodo: 'hoy',
     sucursal_id: null as number | null,
     status: '',
+    mostrarInactivas: false,
     cajero_id: null as number | null,
     rol_id: null as number | null,
     metodo_pago_tipo: '',
@@ -97,6 +98,7 @@ export class VentasListComponent implements OnInit {
       periodo:     periodoApi,
       sucursal_id: this.filters.sucursal_id ?? undefined,
       status:      this.filters.status || undefined,
+      excluir_inactivas: !this.filters.status && !this.filters.mostrarInactivas,
       cajero_id:   this.filters.cajero_id ?? undefined,
       rol_id:      this.filters.rol_id ?? undefined,
       metodo_pago_tipo: this.filters.metodo_pago_tipo || undefined,
@@ -132,11 +134,17 @@ export class VentasListComponent implements OnInit {
     this.load();
   }
 
+  onMostrarInactivasChange(): void {
+    this.pageIndex = 0;
+    this.load();
+  }
+
   clearFilters(): void {
     this.filters = {
       periodo: 'hoy',
       sucursal_id: null,
       status: '',
+      mostrarInactivas: false,
       cajero_id: null,
       rol_id: null,
       metodo_pago_tipo: '',
@@ -153,7 +161,7 @@ export class VentasListComponent implements OnInit {
       maxHeight: '90vh',
       disableClose: false,
       autoFocus: false,
-      panelClass: 'dialog-md',
+      panelClass: ['dialog-md', 'responsive-dialog'],
     });
   }
 

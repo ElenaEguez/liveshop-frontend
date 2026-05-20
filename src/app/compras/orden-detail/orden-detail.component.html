@@ -4,13 +4,25 @@
     <h2>Orden {{ o.numero }}</h2>
     <span class="spacer"></span>
     <button mat-button (click)="editar()" [disabled]="o.estado === 'recibida'">Editar</button>
-    <button mat-raised-button color="primary" (click)="confirmar()" [disabled]="o.estado !== 'pendiente'">Confirmar</button>
+    <button mat-raised-button color="primary" (click)="confirmar()"
+            [disabled]="o.estado !== 'pendiente' || faltaAlmacen(o)"
+            [matTooltip]="faltaAlmacen(o) ? 'Asigne almacén destino antes de confirmar' : ''">
+      Confirmar
+    </button>
     <button mat-stroked-button color="warn" (click)="cancelar()" [disabled]="o.estado === 'recibida' || o.estado === 'cancelada'">Cancelar</button>
+  </div>
+
+  <div class="almacen-warning" *ngIf="faltaAlmacen(o)">
+    <mat-icon>warning</mat-icon>
+    Falta el almacén destino. Use <strong>Editar</strong>, seleccione el almacén de recepción y guarde antes de confirmar.
   </div>
 
   <mat-card>
     <mat-card-content class="summary-grid">
       <div><span>Proveedor</span><strong>{{ o.proveedor_data?.nombre || '—' }}</strong></div>
+      <div><span>Almacén destino</span>
+        <strong [class.text-warn]="faltaAlmacen(o)">{{ almacenOrdenLabel(o) }}</strong>
+      </div>
       <div><span>Fecha</span><strong>{{ o.fecha }}</strong></div>
       <div><span>Factura</span><strong>{{ o.factura_compra || '—' }}</strong></div>
       <div><span>Cantidad total</span><strong>{{ o.cantidad_total || 0 }} uds.</strong></div>
@@ -20,7 +32,8 @@
 
   <mat-card>
     <mat-card-content>
-      <div class="detail-table-wrap">
+      <p class="table-scroll-hint desktop-only" *ngIf="o.items?.length">Desliza horizontalmente para ver todas las columnas.</p>
+      <div class="responsive-table-wrapper desktop-only detail-table-wrap">
       <mat-table [dataSource]="o.items || []" class="detail-table">
         <ng-container matColumnDef="producto">
           <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
@@ -92,6 +105,22 @@
         <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
         <mat-row *matRowDef="let r; columns: columnas"></mat-row>
       </mat-table>
+      </div>
+
+      <div class="mobile-card-list mobile-only" *ngIf="o.items?.length">
+        <article class="mobile-data-card" *ngFor="let i of o.items">
+          <div class="mobile-card-title">{{ i.producto_nombre }}</div>
+          <div class="mobile-label-row"><span>Almacén</span><strong>{{ almacenLabel(o, i) }}</strong></div>
+          <div class="mobile-label-row"><span>Cantidad</span><strong>{{ i.cantidad }} uds.</strong></div>
+          <div class="mobile-label-row">
+            <span>Costo unit.</span>
+            <strong>Bs. {{ i.costo_unitario_total | number:'1.2-2' }}</strong>
+          </div>
+          <div class="mobile-label-row">
+            <span>P. venta / Subtotal</span>
+            <strong>Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }} · {{ i.subtotal | number:'1.2-2' }}</strong>
+          </div>
+        </article>
       </div>
     </mat-card-content>
   </mat-card>

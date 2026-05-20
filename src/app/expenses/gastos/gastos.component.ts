@@ -111,7 +111,7 @@ export class GastosComponent implements OnInit {
       maxWidth: '95vw',
       maxHeight: '90vh',
       autoFocus: false,
-      panelClass: 'dialog-lg',
+      panelClass: ['dialog-lg', 'responsive-dialog'],
       data: { categoria: row.categoria, periodo: this.activePeriodo, fecha: this.activeFecha },
     });
   }

@@ -210,8 +210,10 @@ export interface TurnoResumen {
   turno: TurnoCaja;
   total_ventas: string;
   cantidad_ventas: number;
-  cantidad_ventas_efectivo: number;
   total_ventas_efectivo: string;
+  ventas_contado_efectivo?: string;
+  pagos_credito_efectivo?: string;
+  creditos_cobrados_efectivo?: string;
   total_ingresos: string;
   total_retiros: string;
   efectivo_esperado: string;
@@ -276,6 +278,7 @@ export class PosService {
     periodo?: string;
     sucursal_id?: number;
     status?: string;
+    excluir_inactivas?: boolean;
     cajero_id?: number;
     rol_id?: number;
     metodo_pago_tipo?: string;
@@ -286,6 +289,9 @@ export class PosService {
     if (filters?.periodo)    params = params.set('periodo', filters.periodo);
     if (filters?.sucursal_id) params = params.set('sucursal_id', String(filters.sucursal_id));
     if (filters?.status)     params = params.set('status', filters.status);
+    else if (filters?.excluir_inactivas) {
+      params = params.set('excluir_inactivas', '1');
+    }
     if (filters?.cajero_id)  params = params.set('cajero_id', String(filters.cajero_id));
     if (filters?.rol_id != null) params = params.set('rol_id', String(filters.rol_id));
     if (filters?.metodo_pago_tipo) params = params.set('metodo_pago_tipo', filters.metodo_pago_tipo);

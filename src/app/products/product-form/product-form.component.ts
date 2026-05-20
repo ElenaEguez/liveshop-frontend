@@ -8,6 +8,7 @@ import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductVariant, ProductService } from '../products.service';
 import { httpErrorMessage } from '../../shared/api-utils';
+import { markAllAsTouched } from '../../shared/form-utils';
 
 export const SELL_BY_OPTIONS = [
   { value: 'unidad', label: 'UNIDAD' },
@@ -22,6 +23,10 @@ export const SELL_BY_OPTIONS = [
   styleUrls: ['./product-form.component.scss']
 })
 export class ProductFormComponent implements OnInit, OnDestroy {
+  /** Etiqueta térmica: 4,6 cm ancho × 5,6 cm alto */
+  private static readonly LABEL_W_MM = 46;
+  private static readonly LABEL_H_MM = 56;
+
   readonly maxImages = 3;
   productForm: FormGroup;
   categories: Category[] = [];
@@ -30,7 +35,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   existingImages: string[] = [];
   isEdit = false;
   viewOnly = false;
+  saving = false;
   sellByOptions = SELL_BY_OPTIONS;
+  sellByError = false;
 
   constructor(
     private fb: FormBuilder,
@@ -57,6 +64,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       is_active_live:       [data.product?.is_active_live ?? true],
       is_active_pos:        [data.product?.is_active_pos ?? true],
       is_active_web:        [data.product?.is_active_web ?? true],
+      web_is_bestseller:    [data.product?.web_is_bestseller ?? false],
+      web_is_new:           [data.product?.web_is_new ?? false],
+      compare_at_price:     [data.product?.compare_at_price ?? null],
       barcode:              [data.product?.barcode ?? ''],
       internal_code:        [data.product?.internal_code ?? ''],
       sell_by:              this.fb.group(sellByGroup),
@@ -159,7 +169,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     }
     const dataUrl = canvas.toDataURL('image/png');
     const html = this.buildLabelPrintHtml(name, barcode, dataUrl);
-    const win = window.open('', '_blank', 'width=420,height=520');
+    const win = window.open('', '_blank', 'width=320,height=400');
     if (win) {
       try {
         win.document.open();
@@ -229,17 +239,16 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const canvas = document.createElement('canvas');
     const onlyDigits = trimmed.replace(/\D/g, '');
     try {
+      const narrowOpts = {
+        width: 1.1,
+        height: 36,
+        displayValue: false,
+        margin: 2,
+        background: '#ffffff',
+        lineColor: '#000000',
+      };
       if (onlyDigits.length === 13) {
-        JsBarcode(canvas, onlyDigits, {
-          format: 'EAN13',
-          width: 2,
-          height: 90,
-          displayValue: true,
-          fontSize: 18,
-          margin: 12,
-          background: '#ffffff',
-          lineColor: '#000000',
-        });
+        JsBarcode(canvas, onlyDigits, { ...narrowOpts, format: 'EAN13' });
         return canvas;
       }
       if (onlyDigits.length === 12) {
@@ -248,25 +257,15 @@ export class ProductFormComponent implements OnInit, OnDestroy {
           sum += parseInt(onlyDigits[i], 10) * (i % 2 === 0 ? 1 : 3);
         }
         const check = (10 - (sum % 10)) % 10;
-        JsBarcode(canvas, onlyDigits + check, {
-          format: 'EAN13',
-          width: 2,
-          height: 90,
-          displayValue: true,
-          fontSize: 18,
-          margin: 12,
-          background: '#ffffff',
-          lineColor: '#000000',
-        });
+        JsBarcode(canvas, onlyDigits + check, { ...narrowOpts, format: 'EAN13' });
         return canvas;
       }
       JsBarcode(canvas, trimmed, {
         format: 'CODE128',
-        width: 2,
-        height: 80,
-        displayValue: true,
-        fontSize: 16,
-        margin: 12,
+        width: 1,
+        height: 32,
+        displayValue: false,
+        margin: 2,
         background: '#ffffff',
         lineColor: '#000000',
       });
@@ -280,49 +279,76 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private buildLabelPrintHtml(productName: string, barcode: string, imageDataUrl: string): string {
     const nameEsc = this.escapeHtml(productName || '—');
     const codeEsc = this.escapeHtml(barcode);
+    const w = ProductFormComponent.LABEL_W_MM;
+    const h = ProductFormComponent.LABEL_H_MM;
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Etiqueta</title>
 <style>
-  @page { size: 80mm auto; margin: 3mm; }
+  @page { size: ${w}mm ${h}mm; margin: 0; }
   @media print {
-    html, body { margin: 0; padding: 0; background: #fff; }
+    html, body { width: ${w}mm; height: ${h}mm; margin: 0; padding: 0; background: #fff; overflow: hidden; }
   }
+  * { box-sizing: border-box; }
   body {
-    font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    font-family: Arial, sans-serif;
     margin: 0;
-    padding: 3mm;
+    padding: 0;
+    width: ${w}mm;
+    height: ${h}mm;
     text-align: center;
     background: #fff;
+    overflow: hidden;
   }
   .label {
-    max-width: 74mm;
-    margin: 0 auto;
-    box-sizing: border-box;
+    width: ${w}mm;
+    height: ${h}mm;
+    padding: 1.2mm 1mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
   }
   .prod-name {
-    font-size: 11pt;
+    font-size: 7pt;
     font-weight: 700;
-    margin-bottom: 2mm;
+    line-height: 1.15;
+    max-height: 11mm;
+    overflow: hidden;
     word-break: break-word;
-    line-height: 1.25;
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .barcode-wrap {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .barcode-img {
-    width: 100%;
-    max-width: 72mm;
+    max-width: ${w - 2}mm;
+    max-height: 34mm;
+    width: auto;
     height: auto;
     display: block;
-    margin: 0 auto;
-    image-rendering: pixelated;
+    object-fit: contain;
   }
   .barcode-num {
-    font-size: 10pt;
-    letter-spacing: 0.12em;
-    margin-top: 2mm;
-    color: #111;
+    font-size: 7pt;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    color: #000;
+    flex-shrink: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 </style></head><body>
   <div class="label">
     <div class="prod-name">${nameEsc}</div>
-    <img class="barcode-img" src="${imageDataUrl}" alt="" />
+    <div class="barcode-wrap"><img class="barcode-img" src="${imageDataUrl}" alt="" /></div>
     <div class="barcode-num">${codeEsc}</div>
   </div>
   <script>window.addEventListener('load', function () {
@@ -404,7 +430,28 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
 
+  hasSellBySelected(): boolean {
+    const sellBy = this.productForm.get('sell_by')?.value as Record<string, boolean> | null;
+    return !!sellBy && Object.values(sellBy).some(Boolean);
+  }
+
+  private variantRowsIncomplete(): boolean {
+    for (let i = 0; i < this.variants.length; i++) {
+      const row = this.variants.at(i).value as { size?: string; color?: string };
+      const size = (row.size || '').trim();
+      const color = (row.color || '').trim();
+      if ((size && !color) || (!size && color)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   onSubmit(): void {
+    this.sellByError = false;
+    if (this.saving) {
+      return;
+    }
     if (this.stockVariantesInvalido) {
       this.snackBar.open(
         `La suma de variantes (${this.sumaStockVariantes} uds.) debe ser igual al Stock Total (${this.productForm.get('stock')?.value} uds.).`,
@@ -412,8 +459,28 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       );
       return;
     }
-    if (this.productForm.invalid) return;
+    markAllAsTouched(this.productForm);
+    if (!this.hasSellBySelected()) {
+      this.sellByError = true;
+    }
+    if (this.variantRowsIncomplete()) {
+      this.snackBar.open(
+        'Cada variante debe tener talla y color, o deja ambos vacíos.',
+        'Cerrar',
+        { duration: 5000, panelClass: ['snack-error'] },
+      );
+      return;
+    }
+    if (this.productForm.invalid || this.sellByError) {
+      this.snackBar.open(
+        'Completa los campos obligatorios: nombre, categoría y al menos una unidad de venta.',
+        'Cerrar',
+        { duration: 5000, panelClass: ['snack-error'] },
+      );
+      return;
+    }
 
+    this.saving = true;
     const formData = new FormData();
     const val = this.productForm.value;
 
@@ -425,8 +492,16 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         formData.append(key, JSON.stringify(sellByArr));
       } else if (key === 'barcode') {
         formData.append(key, val[key] ?? '');
-      } else if (key === 'is_active' || key === 'is_active_live' || key === 'is_active_pos' || key === 'is_active_web') {
+      } else if (
+        key === 'is_active' || key === 'is_active_live' || key === 'is_active_pos' || key === 'is_active_web'
+        || key === 'web_is_bestseller' || key === 'web_is_new'
+      ) {
         formData.append(key, String(!!val[key]));
+      } else if (key === 'compare_at_price') {
+        const raw = val[key];
+        if (raw !== null && raw !== '' && raw !== undefined) {
+          formData.append(key, String(raw));
+        }
       } else {
         formData.append(key, val[key]);
       }
@@ -444,16 +519,25 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       ? this.productService.updateProduct(this.data.product!.id!, formData)
       : this.productService.createProduct(formData);
 
-    request.subscribe(
-      () => this.dialogRef.close(true),
-      error => {
+    request.subscribe({
+      next: () => {
+        this.saving = false;
+        this.snackBar.open(
+          this.isEdit ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.',
+          'Cerrar',
+          { duration: 3500 },
+        );
+        this.dialogRef.close(true);
+      },
+      error: (error) => {
+        this.saving = false;
         console.error('Error saving product:', error);
         this.snackBar.open(this.getSaveErrorMessage(error), 'Cerrar', {
           duration: 6000,
-          panelClass: ['snack-error']
+          panelClass: ['snack-error'],
         });
-      }
-    );
+      },
+    });
   }
 
   private getSaveErrorMessage(error: unknown): string {

@@ -13,6 +13,8 @@
           </button>
         </div>
 
+        <p class="table-scroll-hint desktop-only" *ngIf="metodosPago.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only">
         <mat-table [dataSource]="metodosPago" class="settings-table">
           <ng-container matColumnDef="icono">
             <mat-header-cell *matHeaderCellDef>Ícono</mat-header-cell>
@@ -43,6 +45,26 @@
             <td class="mat-cell no-data" colspan="5">Sin métodos de pago. Agrega uno para usarlo en el POS.</td>
           </tr>
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="metodosPago.length">
+          <article class="mobile-data-card" *ngFor="let m of metodosPago">
+            <div class="mobile-card-header">
+              <mat-icon>{{ m.icono || 'payment' }}</mat-icon>
+              <div class="mobile-card-title">{{ m.nombre }}</div>
+            </div>
+            <div class="mobile-label-row"><span>Tipo</span><strong>{{ m.tipo }}</strong></div>
+            <div class="mobile-label-row"><span>Orden</span><strong>{{ m.orden }}</strong></div>
+            <div class="mobile-card-actions">
+              <button mat-stroked-button type="button" (click)="abrirMetodoDialog(m)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+              <button mat-stroked-button type="button" color="warn" (click)="eliminarMetodo(m)">
+                <mat-icon>delete</mat-icon> Eliminar
+              </button>
+            </div>
+          </article>
+        </div>
       </div>
     </mat-tab>
 
@@ -303,6 +325,8 @@
     <mat-tab label="Comprobantes">
       <div class="tab-content">
         <h2>Comprobantes</h2>
+        <p class="table-scroll-hint desktop-only" *ngIf="comprobantes.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only">
         <mat-table [dataSource]="comprobantes" class="settings-table">
 
           <ng-container matColumnDef="tipo">
@@ -346,6 +370,33 @@
           <mat-header-row *matHeaderRowDef="compCols"></mat-header-row>
           <mat-row *matRowDef="let row; columns: compCols;"></mat-row>
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="comprobantes.length">
+          <article class="mobile-data-card" *ngFor="let c of comprobantes">
+            <div class="mobile-card-header">
+              <div class="mobile-card-title">{{ c.tipo_display }}</div>
+            </div>
+            <div class="mobile-label-row"><span>Serie</span><strong>{{ c.serie }}</strong></div>
+            <div class="mobile-label-row">
+              <span>Correlativo</span>
+              <strong *ngIf="editingComp !== c.id">{{ c.correlativo | number:'6.0-0' }}</strong>
+              <input *ngIf="editingComp === c.id" type="number" class="correlativo-input"
+                     [(ngModel)]="editCorrelativo[c.id]" (keyup.enter)="guardarCorrelativo(c)">
+            </div>
+            <div class="mobile-card-actions">
+              <button mat-stroked-button type="button" *ngIf="editingComp !== c.id" (click)="editarCorrelativo(c)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+              <button mat-stroked-button type="button" color="primary" *ngIf="editingComp === c.id" (click)="guardarCorrelativo(c)">
+                <mat-icon>save</mat-icon> Guardar
+              </button>
+              <button mat-stroked-button type="button" *ngIf="editingComp === c.id" (click)="editingComp = null">
+                <mat-icon>close</mat-icon> Cancelar
+              </button>
+            </div>
+          </article>
+        </div>
       </div>
     </mat-tab>
 
@@ -359,6 +410,8 @@
           </button>
         </div>
 
+        <p class="table-scroll-hint desktop-only" *ngIf="cupones.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only">
         <mat-table [dataSource]="cupones" class="settings-table">
 
           <ng-container matColumnDef="codigo">
@@ -415,6 +468,32 @@
             <td class="mat-cell no-data" [attr.colspan]="cuponCols.length">Sin cupones creados.</td>
           </tr>
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="cupones.length">
+          <article class="mobile-data-card" *ngFor="let c of cupones">
+            <div class="mobile-card-header">
+              <div class="mobile-card-title">{{ c.codigo }}</div>
+              <mat-slide-toggle [checked]="c.activo" (change)="toggleCupon(c)" color="primary"></mat-slide-toggle>
+            </div>
+            <div class="mobile-label-row">
+              <span>Valor</span>
+              <strong>{{ c.valor }}{{ c.tipo === 'porcentaje' ? '%' : ' Bs.' }}</strong>
+            </div>
+            <div class="mobile-label-row">
+              <span>Usos</span>
+              <strong>{{ c.usos_actuales }} / {{ c.usos_maximos ?? '∞' }}</strong>
+            </div>
+            <div class="mobile-card-actions">
+              <button mat-stroked-button type="button" (click)="abrirCuponDialog(c)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+              <button mat-stroked-button type="button" color="warn" (click)="eliminarCupon(c)">
+                <mat-icon>delete</mat-icon> Eliminar
+              </button>
+            </div>
+          </article>
+        </div>
       </div>
     </mat-tab>
 
@@ -439,6 +518,8 @@
         </div>
 
         <!-- Lista de categorías -->
+        <p class="table-scroll-hint desktop-only" *ngIf="categoriasGasto.length">Desliza horizontalmente para ver todas las columnas.</p>
+        <div class="responsive-table-wrapper desktop-only">
         <mat-table [dataSource]="categoriasGasto" class="settings-table">
           <ng-container matColumnDef="nombre">
             <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
@@ -461,6 +542,20 @@
             <td class="mat-cell no-data" colspan="2">Sin categorías creadas.</td>
           </tr>
         </mat-table>
+        </div>
+
+        <div class="mobile-card-list mobile-only" *ngIf="categoriasGasto.length">
+          <article class="mobile-data-card" *ngFor="let c of categoriasGasto">
+            <div class="mobile-card-header">
+              <div class="mobile-card-title">{{ c.nombre }}</div>
+            </div>
+            <div class="mobile-card-actions">
+              <button mat-stroked-button type="button" color="warn" (click)="eliminarCategoria(c)">
+                <mat-icon>delete</mat-icon> Eliminar
+              </button>
+            </div>
+          </article>
+        </div>
       </div>
     </mat-tab>
 

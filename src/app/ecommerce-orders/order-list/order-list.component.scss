@@ -137,3 +137,28 @@
 }
 
 .page-info { font-size: 0.88rem; color: #666; }
+
+.orders-table {
+  min-width: 720px;
+}
+
+.order-mobile-card {
+  cursor: pointer;
+}
+
+.order-mobile-card .customer-phone {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .page-wrapper { padding: 12px; }
+
+  .list-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-field { max-width: none; width: 100%; }
+    button { width: 100%; min-height: 44px; }
+  }
+}

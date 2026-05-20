@@ -42,7 +42,9 @@
   <mat-card *ngIf="t.items?.length">
     <mat-card-title>Ítems</mat-card-title>
     <mat-card-content>
-      <mat-table [dataSource]="t.items">
+      <p class="table-scroll-hint desktop-only">Desliza horizontalmente para ver todas las columnas.</p>
+      <div class="responsive-table-wrapper desktop-only">
+      <mat-table [dataSource]="t.items" class="transfer-items-table">
         <ng-container matColumnDef="producto">
           <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
           <mat-cell *matCellDef="let row">{{ row.producto_nombre }}</mat-cell>
@@ -63,6 +65,18 @@
         <mat-header-row *matHeaderRowDef="columnas"></mat-header-row>
         <mat-row *matRowDef="let row; columns: columnas;"></mat-row>
       </mat-table>
+      </div>
+      <div class="mobile-card-list mobile-only">
+        <article class="mobile-data-card" *ngFor="let row of t.items">
+          <div class="mobile-card-title">{{ row.producto_nombre }}</div>
+          <div class="mobile-label-row">
+            <span>Variante</span>
+            <strong *ngIf="row.variante_detalle">{{ row.variante_detalle.talla }} / {{ row.variante_detalle.color }}</strong>
+            <strong *ngIf="!row.variante_detalle">—</strong>
+          </div>
+          <div class="mobile-label-row"><span>Cantidad</span><strong>{{ row.cantidad }}</strong></div>
+        </article>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

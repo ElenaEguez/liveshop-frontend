@@ -124,8 +124,13 @@
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
-  <!-- Tabla -->
-  <div class="table-wrap" *ngIf="!loading">
+  <p class="table-scroll-hint desktop-only" *ngIf="!loading && turnos.length > 0">
+    Desliza horizontalmente para ver todas las columnas.
+  </p>
+
+  <!-- Tabla (escritorio / tablet) -->
+  <div class="table-wrap desktop-only" *ngIf="!loading">
+    <div class="responsive-table-wrapper">
     <table mat-table [dataSource]="turnos" class="arqueos-table">
 
       <ng-container matColumnDef="fecha">
@@ -163,7 +168,10 @@
       </ng-container>
 
       <ng-container matColumnDef="ventas">
-        <th mat-header-cell *matHeaderCellDef class="num-col">Ventas</th>
+        <th mat-header-cell *matHeaderCellDef class="num-col"
+            matTooltip="Suma de ventas del turno (todos los métodos de pago)">
+          Ventas (total)
+        </th>
         <td mat-cell *matCellDef="let t" class="num-col">
           Bs. {{ t.total_ventas | number:'1.2-2' }}
         </td>
@@ -237,6 +245,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
           [class.row-faltante]="diferenciaClass(row) === 'faltante'"></tr>
     </table>
+    </div>
 
     <div class="empty-state" *ngIf="turnos.length === 0">
       <mat-icon>calculate</mat-icon>
@@ -244,8 +253,12 @@
     </div>
   </div>
 
+  <p class="mobile-empty-state mobile-only" *ngIf="!loading && turnos.length === 0">
+    No hay turnos en este período.
+  </p>
+
   <!-- Tarjetas móvil -->
-  <div class="mobile-cards" *ngIf="!loading && turnos.length > 0">
+  <div class="mobile-card-list mobile-only" *ngIf="!loading && turnos.length > 0">
     <div class="turno-card" *ngFor="let t of turnos">
       <div class="turno-card-head">
         <div>
@@ -265,7 +278,10 @@
         </strong>
       </div>
       <div class="turno-card-row"><span>Fondo inicial</span><strong>Bs. {{ t.monto_apertura | number:'1.2-2' }}</strong></div>
-      <div class="turno-card-row"><span>Ventas</span><strong>Bs. {{ t.total_ventas | number:'1.2-2' }}</strong></div>
+      <div class="turno-card-row">
+        <span>Ventas (total)</span>
+        <strong>Bs. {{ t.total_ventas | number:'1.2-2' }}</strong>
+      </div>
       <div class="turno-card-row">
         <span>Efectivo esperado</span>
         <strong *ngIf="t.efectivo_esperado !== null">Bs. {{ t.efectivo_esperado | number:'1.2-2' }}</strong>

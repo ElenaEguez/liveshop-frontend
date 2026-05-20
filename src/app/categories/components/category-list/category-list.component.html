@@ -1,7 +1,7 @@
-<div style="width: 100%;">
+<div class="categories-page" style="width: 100%;">
 
   <!-- Header -->
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+  <div class="categories-page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
     <h1 style="margin:0; font-size:1.75rem; font-weight:700; color:#111827;">Categorías</h1>
     <button mat-raised-button color="primary" (click)="openForm()"
             style="display:flex; align-items:center; gap:8px; padding:0 20px; height:42px;">
@@ -17,8 +17,10 @@
   </mat-form-field>
 
   <!-- Tabla -->
-  <div style="background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.1); overflow:hidden;">
-    <table mat-table [dataSource]="categories" style="width:100%;">
+  <div class="categories-table-card">
+    <p class="table-scroll-hint desktop-only" *ngIf="categories.length">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+    <table mat-table [dataSource]="categories" class="categories-table">
 
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef
@@ -54,12 +56,33 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
           style="border-bottom:1px solid #f3f4f6;"></tr>
     </table>
+    </div>
 
-    <div *ngIf="!loading && categories.length === 0"
-         style="text-align:center; padding:48px; color:#9ca3af;">
-      <mat-icon style="font-size:48px; width:48px; height:48px;">category</mat-icon>
-      <p style="margin-top:12px; font-size:1rem;">No hay categorías aún</p>
-      <button mat-raised-button color="primary" (click)="openForm()" style="margin-top:8px;">
+    <div class="mobile-card-list mobile-only" *ngIf="categories.length">
+      <article class="mobile-data-card" *ngFor="let c of categories">
+        <div class="mobile-card-header">
+          <span style="background:#fef2f2; color:#db0000; padding:4px 10px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+            {{ c.name }}
+          </span>
+        </div>
+        <p class="mobile-card-subtitle" style="margin:0 0 8px; color:#6b7280; font-size:0.85rem;">
+          {{ c.description || 'Sin descripción' }}
+        </p>
+        <div class="mobile-card-actions">
+          <button mat-stroked-button type="button" (click)="openForm(c)">
+            <mat-icon>edit</mat-icon> Editar
+          </button>
+          <button mat-stroked-button type="button" color="warn" (click)="delete(c)">
+            <mat-icon>delete</mat-icon> Eliminar
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div *ngIf="!loading && categories.length === 0" class="empty-state">
+      <mat-icon>category</mat-icon>
+      <p>No hay categorías aún</p>
+      <button mat-raised-button color="primary" (click)="openForm()">
         Crear primera categoría
       </button>
     </div>

@@ -27,10 +27,12 @@
       <mat-form-field appearance="outline">
         <mat-label>Estado</mat-label>
         <mat-select [(ngModel)]="filters.status" (ngModelChange)="load()">
-          <mat-option value="">Todos</mat-option>
+          <mat-option value="">Vigentes</mat-option>
           <mat-option value="completada">Completada</mat-option>
           <mat-option value="anulada">Anulada</mat-option>
           <mat-option value="credito">Crédito</mat-option>
+          <mat-option value="devuelto">Devuelta</mat-option>
+          <mat-option value="parcialmente_devuelto">Parcialmente devuelta</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -57,6 +59,14 @@
         </mat-select>
       </mat-form-field>
 
+      <mat-slide-toggle
+        [(ngModel)]="filters.mostrarInactivas"
+        [disabled]="!!filters.status"
+        (ngModelChange)="onMostrarInactivasChange()"
+        matTooltip="Anuladas, devueltas y parcialmente devueltas">
+        Mostrar anuladas y devueltas
+      </mat-slide-toggle>
+
       <button mat-stroked-button type="button" (click)="clearFilters()">
         <mat-icon>filter_alt_off</mat-icon>
         Limpiar filtros
@@ -78,6 +88,9 @@
       <mat-spinner diameter="40"></mat-spinner>
     </div>
 
+    <p class="table-scroll-hint desktop-only">Desliza horizontalmente para ver todas las columnas.</p>
+
+    <div class="responsive-table-wrapper desktop-only">
     <mat-table [dataSource]="ventas" class="ventas-table">
 
       <ng-container matColumnDef="numero_ticket">
@@ -172,6 +185,60 @@
         </td>
       </tr>
     </mat-table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="!loading">
+      <article class="mobile-data-card venta-mobile-card" *ngFor="let v of ventas">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">{{ v.numero_ticket }}</div>
+            <div class="mobile-card-subtitle">{{ v.created_at | date:'dd/MM/yy HH:mm' }}</div>
+          </div>
+          <span class="status-chip" [class]="'status-' + v.status">{{ v.status }}</span>
+        </div>
+        <div class="mobile-label-row">
+          <span>Cliente</span>
+          <strong>{{ v.cliente_nombre }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Total</span>
+          <strong>Bs. {{ v.total | number:'1.2-2' }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Cobrado</span>
+          <strong>Bs. {{ +(v.monto_cobrado || '0') | number:'1.2-2' }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Productos</span>
+          <strong class="productos-mobile">{{ productosResumen(v) }}</strong>
+        </div>
+        <div class="mobile-card-actions">
+          <button mat-stroked-button type="button" (click)="verDetalle(v)">
+            <mat-icon>visibility</mat-icon>
+            Ver
+          </button>
+          <button mat-stroked-button type="button" (click)="reimprimir(v)">
+            <mat-icon>print</mat-icon>
+            Imprimir
+          </button>
+          <button mat-stroked-button type="button" color="accent"
+                  *ngIf="v.status === 'credito'"
+                  (click)="cobrarCredito(v)">
+            <mat-icon>payments</mat-icon>
+            Cobrar
+          </button>
+          <button mat-stroked-button type="button" color="warn"
+                  *ngIf="isHoy(v) && v.status !== 'anulada'"
+                  (click)="anular(v)">
+            <mat-icon>cancel</mat-icon>
+            Anular
+          </button>
+        </div>
+      </article>
+      <p *ngIf="ventas.length === 0" class="mobile-empty-state">
+        No hay ventas en este período.
+      </p>
+    </div>
 
     <mat-paginator [length]="totalCount"
                    [pageSize]="pageSize"

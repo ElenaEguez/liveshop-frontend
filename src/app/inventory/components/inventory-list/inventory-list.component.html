@@ -63,6 +63,11 @@
   </p>
 
   <div class="inventory-table-card">
+    <p class="table-scroll-hint desktop-only" *ngIf="inventory.length > 0">
+      Desliza horizontalmente para ver todas las columnas.
+    </p>
+
+    <div class="responsive-table-wrapper desktop-only">
     <table mat-table [dataSource]="inventory" class="inventory-table">
 
       <ng-container matColumnDef="product_name">
@@ -88,7 +93,7 @@
             <span *ngFor="let v of item.variantes" class="variante-chip">
               {{ variantLabel(v) }}: <strong>{{ v.disponible }}</strong>
             </span>
-            <span *ngIf="item.sin_asignar_variante > 0" class="variante-chip sin-asignar">
+            <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar">
               Sin variante: <strong>{{ item.sin_asignar_variante }}</strong>
             </span>
           </div>
@@ -109,6 +114,34 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="inventory.length > 0">
+      <article class="mobile-data-card" *ngFor="let item of inventory">
+        <div class="mobile-card-header">
+          <div class="mobile-card-title">{{ item.product_name }}</div>
+          <span class="disp-badge"
+                [style.background]="getAvailableBg(item.available_quantity)"
+                [style.color]="getAvailableColor(item.available_quantity)">
+            {{ item.available_quantity <= 0 ? 'Agotado' : item.available_quantity + ' uds.' }}
+          </span>
+        </div>
+        <div class="disp-variantes mobile-variantes" *ngIf="item.variantes?.length">
+          <span *ngFor="let v of item.variantes" class="variante-chip">
+            {{ variantLabel(v) }}: <strong>{{ v.disponible }}</strong>
+          </span>
+          <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar">
+            Sin variante: <strong>{{ item.sin_asignar_variante }}</strong>
+          </span>
+        </div>
+        <div class="mobile-card-actions">
+          <button mat-stroked-button type="button" (click)="openDetalle(item)">
+            <mat-icon>visibility</mat-icon>
+            Ver detalle
+          </button>
+        </div>
+      </article>
+    </div>
 
     <div *ngIf="inventory.length === 0" class="empty-state">
       <mat-icon>inventory</mat-icon>

@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   OnDestroy,
   OnInit,
@@ -17,6 +16,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import {
   DashboardData,
   DashboardService,
+  MovimientoCaja,
   SalesByProduct,
   SalesDashboardData,
   SalesDashboardParams,
@@ -36,7 +36,7 @@ import {
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy {
 
   loading = false;
   error   = false;
@@ -59,6 +59,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   salesData: SalesDashboardData | null = null;
   vendorData: DashboardData | null = null;
   categories: Category[] = [];
+
+  movimientos: MovimientoCaja[] = [];
+  movimientosLoading = false;
+  movimientosPage = 1;
+  movimientosPages = 1;
+  movimientosCount = 0;
+  movDisplayedColumns = ['fecha', 'caja', 'tipo', 'usuario', 'detalle', 'monto'];
 
   tableDataSource = new MatTableDataSource<SalesByProduct>([]);
   displayedColumns = ['product_name', 'category', 'units_sold', 'revenue', 'detalle'];
@@ -90,8 +97,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.from(set).sort();
   }
 
-  @ViewChild(MatSort)      sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  private productSort?: MatSort;
+  private productPaginator?: MatPaginator;
+
+  /** Enlaza sort/paginator cuando el *ngIf del dashboard ya renderizó la tabla. */
+  @ViewChild(MatSort) set matSort(sort: MatSort | undefined) {
+    this.productSort = sort;
+    if (sort) {
+      this.tableDataSource.sort = sort;
+    }
+  }
+
+  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator | undefined) {
+    this.productPaginator = paginator;
+    if (paginator) {
+      this.tableDataSource.paginator = paginator;
+    }
+  }
 
   private socketSub?: Subscription;
 
@@ -108,11 +130,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadCategories();
     this.loadSalesDashboard();
     this.connectSocket();
-  }
-
-  ngAfterViewInit(): void {
-    this.tableDataSource.sort      = this.sort;
-    this.tableDataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
@@ -151,6 +168,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.tableFilterColor = '';
         this.tableDataSource.data = [...data.sales_by_product];
         this.loading = false;
+        // La tabla está en *ngIf; el paginator existe tras el siguiente ciclo de render.
+        setTimeout(() => this.reconnectProductsTable(), 0);
+        this.loadMovimientosCaja(1);
       },
       error: () => {
         this.error   = true;
@@ -211,7 +231,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.tableDataSource.data = data;
-    this.paginator?.firstPage();
+    this.productPaginator?.firstPage();
+  }
+
+  /** Re-enlaza paginator/sort tras cargar datos (la tabla vive dentro de *ngIf). */
+  private reconnectProductsTable(): void {
+    if (this.productSort) {
+      this.tableDataSource.sort = this.productSort;
+    }
+    if (this.productPaginator) {
+      this.tableDataSource.paginator = this.productPaginator;
+      this.productPaginator.firstPage();
+    }
   }
 
   resetTableFilters(): void {
@@ -223,10 +254,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Filas visibles en móvil; misma página que MatPaginator de la tabla. */
   get mobileProductRows(): SalesByProduct[] {
-    const data = this.tableDataSource.data;
-    if (!this.paginator) return data;
-    const start = this.paginator.pageIndex * this.paginator.pageSize;
-    return data.slice(start, start + this.paginator.pageSize);
+    const data = this.tableDataSource.filteredData?.length
+      ? this.tableDataSource.filteredData
+      : this.tableDataSource.data;
+    const p = this.productPaginator;
+    if (!p) return data;
+    const start = p.pageIndex * p.pageSize;
+    return data.slice(start, start + p.pageSize);
   }
 
   private escapeRegExp(value: string): string {
@@ -345,6 +379,114 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (n.includes('tarjeta') || n.includes('débito') || n.includes('crédito')) return 'credit_card';
     if (n.includes('transfer')) return 'account_balance';
     return 'attach_money';
+  }
+
+  get flujoIngresosCaja(): number {
+    return +(this.salesData?.total_ingresos_caja ?? 0);
+  }
+
+  get flujoRetirosCaja(): number {
+    return +(this.salesData?.total_retiros_caja ?? 0);
+  }
+
+  get flujoContadoArqueo(): number {
+    return +(this.salesData?.ingresos_contado_arqueo ?? 0);
+  }
+
+  get flujoEsperadoArqueo(): number {
+    return +(this.salesData?.efectivo_esperado_arqueo ?? 0);
+  }
+
+  get showFlujoCaja(): boolean {
+    if (!this.salesData) return false;
+    return (
+      this.flujoIngresosCaja > 0
+      || this.flujoRetirosCaja > 0
+      || this.flujoContadoArqueo > 0
+      || this.flujoEsperadoArqueo > 0
+    );
+  }
+
+  loadMovimientosCaja(page = 1): void {
+    this.movimientosLoading = true;
+    this.movimientosPage = page;
+    const period = this.mapPeriodToMovimientos();
+    this.dashboardService.getMovimientosCaja(period, page, 10).subscribe({
+      next: res => {
+        this.movimientos = res.results;
+        this.movimientosCount = res.count;
+        this.movimientosPages = res.pages;
+        this.movimientosLoading = false;
+      },
+      error: () => {
+        this.movimientosLoading = false;
+      },
+    });
+  }
+
+  movimientosPrev(): void {
+    if (this.movimientosPage > 1) {
+      this.loadMovimientosCaja(this.movimientosPage - 1);
+    }
+  }
+
+  movimientosNext(): void {
+    if (this.movimientosPage < this.movimientosPages) {
+      this.loadMovimientosCaja(this.movimientosPage + 1);
+    }
+  }
+
+  private mapPeriodToMovimientos(): string {
+    if (this.selectedPeriod === 'day') return 'today';
+    if (this.selectedPeriod === 'week') return 'week';
+    if (this.selectedPeriod === 'month') return 'month';
+    return 'year';
+  }
+
+  formatMovFecha(iso: string): string {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('es-BO', {
+      day: '2-digit', month: '2-digit', year: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  movBadgeClass(tipo: string): string {
+    const t = (tipo || '').toLowerCase();
+    if (t === 'apertura') return 'badge-apertura';
+    if (t.includes('cierre')) return 'badge-cierre';
+    if (t.includes('venta') || t.includes('cobro')) return 'badge-venta';
+    if (t === 'ingreso') return 'badge-ingreso';
+    return 'badge-egreso';
+  }
+
+  movMontoClass(tipo: string): string {
+    return this.isMovIngreso(tipo) ? 'mov-ingreso' : 'mov-egreso';
+  }
+
+  isMovIngreso(tipo: string): boolean {
+    const t = (tipo || '').toUpperCase();
+    if (t === 'EGRESO') return false;
+    return (
+      t === 'APERTURA'
+      || t === 'INGRESO'
+      || t === 'INGRESOVENTA'
+      || t === 'COBRO_CREDITO'
+      || t.includes('CIERRE')
+    );
+  }
+
+  movTipoLabel(tipo: string): string {
+    const labels: Record<string, string> = {
+      apertura: 'Apertura',
+      INGRESOVENTA: 'Venta',
+      INGRESO: 'Ingreso',
+      EGRESO: 'Retiro',
+      COBRO_CREDITO: 'Abono crédito',
+    };
+    if (tipo?.toLowerCase().includes('cierre')) return 'Cierre';
+    return labels[tipo] || tipo || '—';
   }
 
   private connectSocket(): void {

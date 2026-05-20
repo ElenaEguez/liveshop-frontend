@@ -71,7 +71,7 @@ export class CerrarCajaDialogComponent implements OnInit, OnDestroy {
       this.diferenciaAbs = 0;
       return;
     }
-    this.diferencia = cierre - this.efectivoEsperado;
+    this.diferencia = Math.round((cierre - this.efectivoEsperado) * 100) / 100;
     this.diferenciaAbs = Math.abs(this.diferencia);
   }
 
@@ -104,7 +104,9 @@ export class CerrarCajaDialogComponent implements OnInit, OnDestroy {
       `Cajero:   ${turno.usuario_nombre ?? '—'}`,
       '--------------------------------',
       `Fondo inicial:   Bs. ${parseFloat(turno.monto_apertura).toFixed(2)}`,
-      `Ventas efectivo: Bs. ${parseFloat(this.resumen.total_ventas_efectivo).toFixed(2)}`,
+      `Cobros efectivo: Bs. ${parseFloat(this.resumen.total_ventas_efectivo).toFixed(2)}`,
+      ...(+(this.resumen.pagos_credito_efectivo || 0) > 0
+        ? [`  Abonos crédito: Bs. ${parseFloat(this.resumen.pagos_credito_efectivo!).toFixed(2)}`] : []),
       ...(+this.resumen.total_ingresos > 0 ? [`Ingresos:        Bs. ${parseFloat(this.resumen.total_ingresos).toFixed(2)}`] : []),
       ...(+this.resumen.total_retiros > 0  ? [`Retiros:        -Bs. ${parseFloat(this.resumen.total_retiros).toFixed(2)}`] : []),
       `Efectivo esperado: Bs. ${this.efectivoEsperado.toFixed(2)}`,

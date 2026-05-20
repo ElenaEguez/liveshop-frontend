@@ -34,6 +34,22 @@
   color: #374151;
 }
 
+mat-card {
+  overflow: visible;
+}
+
+.supervision-table,
+.items-revision-table {
+  min-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .revision-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
 .loading {
   display: flex;
   justify-content: center;

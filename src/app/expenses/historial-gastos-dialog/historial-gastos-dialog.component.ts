@@ -12,6 +12,18 @@ export interface HistorialDialogData {
 @Component({
   selector: 'app-historial-gastos-dialog',
   templateUrl: './historial-gastos-dialog.component.html',
+  styles: [`
+    .historial-dialog-content { min-width: 0; }
+    .historial-table { width: 100%; min-width: 680px; }
+    .loading-center { display: flex; justify-content: center; padding: 32px; }
+    .no-data { text-align: center; padding: 24px; color: #888; }
+    .status-chip {
+      padding: 2px 8px; border-radius: 10px; font-size: 11px;
+      &.status-aprobado { background: #e8f5e9; color: #2e7d32; }
+      &.status-pendiente { background: #fff3e0; color: #e65100; }
+      &.status-anulado { background: #eee; color: #888; }
+    }
+  `],
 })
 export class HistorialGastosDialogComponent implements OnInit {
   gastos: GastoOperativo[] = [];

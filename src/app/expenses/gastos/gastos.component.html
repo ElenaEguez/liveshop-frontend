@@ -40,7 +40,9 @@
   <mat-card class="table-card">
     <div class="loading-shade" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
 
-    <mat-table [dataSource]="catRows">
+    <p class="table-scroll-hint desktop-only" *ngIf="catRows.length">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+    <mat-table [dataSource]="catRows" class="gastos-table">
 
       <ng-container matColumnDef="categoria">
         <mat-header-cell *matHeaderCellDef>Categoría</mat-header-cell>
@@ -79,5 +81,32 @@
         <td class="mat-cell no-data" [attr.colspan]="3">Sin gastos en este período.</td>
       </tr>
     </mat-table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="catRows.length">
+      <article class="mobile-data-card" *ngFor="let r of catRows">
+        <div class="mobile-card-header">
+          <mat-icon class="cat-icon">folder</mat-icon>
+          <div>
+            <div class="mobile-card-title">{{ r.categoria.nombre }}</div>
+            <span class="count-badge">{{ r.count }} gasto{{ r.count !== 1 ? 's' : '' }}</span>
+          </div>
+        </div>
+        <div class="mobile-label-row">
+          <span>Total</span>
+          <strong class="total-amount">Bs. {{ r.total | number:'1.2-2' }}</strong>
+        </div>
+        <div class="mobile-card-actions">
+          <button mat-stroked-button type="button" class="action-btn" (click)="verGastos(r)">
+            <mat-icon>list</mat-icon> Ver gastos
+          </button>
+          <button mat-stroked-button type="button" color="warn"
+                  [disabled]="r.categoria.id === 0"
+                  (click)="eliminarCategoria(r)">
+            <mat-icon>delete</mat-icon> Eliminar
+          </button>
+        </div>
+      </article>
+    </div>
   </mat-card>
 </div>

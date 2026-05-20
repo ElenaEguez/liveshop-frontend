@@ -23,11 +23,35 @@
         <span class="arqueo-val">Bs. {{ resumen.turno.monto_apertura | number:'1.2-2' }}</span>
       </div>
 
-      <div class="arqueo-row green">
+      <div class="arqueo-row green" *ngIf="+(resumen.ventas_contado_efectivo || 0) > 0">
         <span class="arqueo-label">
           <mat-icon class="row-icon">point_of_sale</mat-icon>
-          Ventas en efectivo
-          <small *ngIf="resumen.cantidad_ventas_efectivo > 0">({{ resumen.cantidad_ventas_efectivo }})</small>
+          Ventas al contado (efectivo)
+        </span>
+        <span class="arqueo-val">+ Bs. {{ resumen.ventas_contado_efectivo | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row green" *ngIf="+(resumen.pagos_credito_efectivo || 0) > 0">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">payments</mat-icon>
+          Abonos de crédito (efectivo)
+        </span>
+        <span class="arqueo-val">+ Bs. {{ resumen.pagos_credito_efectivo | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row green" *ngIf="+(resumen.creditos_cobrados_efectivo || 0) > 0">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">credit_score</mat-icon>
+          Créditos cobrados (efectivo)
+        </span>
+        <span class="arqueo-val">+ Bs. {{ resumen.creditos_cobrados_efectivo | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="arqueo-row green"
+              *ngIf="!(+(resumen.ventas_contado_efectivo || 0)) && !(+(resumen.pagos_credito_efectivo || 0)) && !(+(resumen.creditos_cobrados_efectivo || 0)) && +(resumen.total_ventas_efectivo || 0) > 0">
+        <span class="arqueo-label">
+          <mat-icon class="row-icon">point_of_sale</mat-icon>
+          Cobros en efectivo
         </span>
         <span class="arqueo-val">+ Bs. {{ resumen.total_ventas_efectivo | number:'1.2-2' }}</span>
       </div>

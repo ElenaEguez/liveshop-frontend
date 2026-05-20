@@ -26,6 +26,9 @@ export interface Product {
   is_active_live?: boolean;
   is_active_pos?: boolean;
   is_active_web?: boolean;
+  web_is_bestseller?: boolean;
+  web_is_new?: boolean;
+  compare_at_price?: number | null;
 }
 
 export interface ProductInventoryDistribution {

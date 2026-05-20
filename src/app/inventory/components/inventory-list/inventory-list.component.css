@@ -24,7 +24,11 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  overflow-x: auto;
+  overflow: visible;
+}
+
+.mobile-variantes {
+  margin-top: 8px;
 }
 
 .inventory-table {
@@ -129,4 +133,24 @@
   font-size: 0.78rem;
   color: #6b7280;
   margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field,
+  .filter-search,
+  .filter-almacen {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .filter-bar button {
+    width: 100%;
+    min-height: 44px;
+  }
 }

@@ -9,6 +9,8 @@ import {
   ComprasService, OrdenCompra, OrdenCompraItem,
   Proveedor, ProductoLookup, VarianteDetalle, OrdenCompraItemDistribucion
 } from '../compras.service';
+import { httpErrorMessage } from '../../shared/api-utils';
+import { markAllAsTouched, invalidFieldLabels } from '../../shared/form-utils';
 
 @Component({
   selector: 'app-orden-form',
@@ -218,12 +220,51 @@ export class OrdenFormComponent implements OnInit {
     return v.id;
   }
 
-  onAgregarItem(): void {
+  private showSnack(msg: string, isError = false): void {
+    this.snackBar.open(msg, 'Cerrar', {
+      duration: isError ? 6000 : 4000,
+      panelClass: isError ? ['snack-error'] : undefined,
+    });
+  }
+
+  private validateItemForm(): boolean {
+    markAllAsTouched(this.itemForm);
     if (!this.productoSeleccionado) {
-      alert('Selecciona un producto');
-      return;
+      this.showSnack('Selecciona un producto de la lista de búsqueda.', true);
+      return false;
+    }
+    const labels: Record<string, string> = {
+      cantidad: 'Cantidad',
+      costo_mercaderia: 'Precio de compra',
+      precio_unitario: 'Precio pagado unitario',
+    };
+    const missing = invalidFieldLabels(this.itemForm, labels);
+    if (missing.length) {
+      this.showSnack(`Completa: ${missing.join(', ')}.`, true);
+      return false;
     }
     if (this.itemForm.invalid) {
+      this.showSnack('Revisa los valores del ítem (cantidad y costos).', true);
+      return false;
+    }
+    return true;
+  }
+
+  private validateOrdenForm(): boolean {
+    markAllAsTouched(this.form);
+    if (this.form.invalid) {
+      this.showSnack('La fecha de la orden es obligatoria.', true);
+      return false;
+    }
+    return true;
+  }
+
+  onAgregarItem(): void {
+    if (!this.validateItemForm()) {
+      return;
+    }
+    const producto = this.productoSeleccionado;
+    if (!producto) {
       return;
     }
 
@@ -238,8 +279,9 @@ export class OrdenFormComponent implements OnInit {
     if (this.variantesDisponibles.length > 0) {
       const sum = this.sumDistribucionEdicion;
       if (sum !== cantidad) {
-        alert(
-          `La distribución por variantes suma ${sum} uds. y debe ser igual a la cantidad total (${cantidad}).`
+        this.showSnack(
+          `La distribución por variantes suma ${sum} uds. y debe ser igual a la cantidad total (${cantidad}).`,
+          true,
         );
         return;
       }
@@ -254,8 +296,8 @@ export class OrdenFormComponent implements OnInit {
 
     const almacenVal = this.almacenControl.value;
     const nuevoItem: OrdenCompraItem = {
-      producto: this.productoSeleccionado.id,
-      producto_nombre: this.productoSeleccionado.name,
+      producto: producto.id,
+      producto_nombre: producto.name,
       variante: null,
       variante_detalle: null,
       distribuciones,
@@ -495,22 +537,46 @@ export class OrdenFormComponent implements OnInit {
     return 'Orden guardada';
   }
 
-  onGuardarBorrador(): void { this.guardar('borrador'); }
-
-  onEnviarPendiente(): void {
-    if (this.items.length === 0) {
-      alert('Agrega al menos un producto');
+  onGuardarBorrador(): void {
+    if (!this.validateOrdenForm()) {
       return;
     }
-    if (!this.form.get('almacen')?.value) {
-      alert('Seleccione el almacén destino de la compra (recepción).');
+    if (this.items.length === 0) {
+      const ok = confirm(
+        'La orden quedará en borrador sin productos. ¿Desea guardarla así?',
+      );
+      if (!ok) {
+        return;
+      }
+    }
+    this.guardar('borrador');
+  }
+
+  onEnviarPendiente(): void {
+    if (!this.validateOrdenForm()) {
+      return;
+    }
+    if (this.items.length === 0) {
+      this.showSnack('Agrega al menos un producto antes de enviar la orden.', true);
+      return;
+    }
+    const almacen = this.form.get('almacen')?.value;
+    const sinAlmacenEnItems = this.items.some(i => !this.resolveAlmacenItem(i));
+    if (!almacen && sinAlmacenEnItems) {
+      this.showSnack(
+        'Seleccione el almacén destino de la compra (en el ítem o en datos generales).',
+        true,
+      );
       return;
     }
     this.guardar('pendiente');
   }
 
   private guardar(estado: string): void {
-    if (this.form.invalid) {
+    if (!this.validateOrdenForm()) {
+      return;
+    }
+    if (this.guardando) {
       return;
     }
     this.guardando = true;
@@ -528,8 +594,11 @@ export class OrdenFormComponent implements OnInit {
       },
       error: (err) => {
         this.guardando = false;
-        alert(err.error?.error || 'Error al guardar la orden');
-      }
+        this.showSnack(
+          httpErrorMessage(err, err.error?.error || 'Error al guardar la orden'),
+          true,
+        );
+      },
     });
   }
 
@@ -581,7 +650,11 @@ export class OrdenFormComponent implements OnInit {
           };
         });
         this.cdr.markForCheck();
-      }
+      },
+      error: (err) => {
+        this.showSnack(httpErrorMessage(err, 'No se pudo cargar la orden.'), true);
+        this.router.navigate(['/compras']);
+      },
     });
   }
 

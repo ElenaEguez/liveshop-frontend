@@ -70,6 +70,7 @@ export interface SalesDashboardData {
   total_ingresos_caja: string;
   total_retiros_caja: string;
   ingresos_contado_arqueo: string;
+  efectivo_esperado_arqueo: string;
 }
 
 export interface MovimientoCaja {

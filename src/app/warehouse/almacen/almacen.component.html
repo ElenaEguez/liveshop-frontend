@@ -106,10 +106,12 @@
     </div>
   </mat-card>
 
-  <!-- Tabla -->
+  <!-- Tabla kardex -->
   <mat-card class="table-card">
     <div class="loading-shade" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
 
+    <p class="table-scroll-hint desktop-only" *ngIf="movimientos.length">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
     <mat-table [dataSource]="movimientos" class="kardex-table">
 
       <ng-container matColumnDef="fecha">
@@ -204,6 +206,42 @@
         </td>
       </tr>
     </mat-table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="movimientos.length">
+      <article class="mobile-data-card kardex-mobile-card" *ngFor="let m of movimientos">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title">{{ m.product_name }}</div>
+            <div class="mobile-card-subtitle">{{ m.created_at | date:'dd/MM/yy HH:mm' }}</div>
+          </div>
+          <span class="tipo-chip" [class]="tipoClass(m.tipo)">{{ tipoLabel(m.tipo) }}</span>
+        </div>
+        <div class="mobile-label-row" *ngIf="m.documento_ref">
+          <span>Documento</span>
+          <strong>{{ m.documento_ref }}</strong>
+        </div>
+        <div class="mobile-label-row" *ngIf="m.variant_name">
+          <span>Variante</span>
+          <strong>{{ m.variant_name }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Cantidad</span>
+          <strong [class.qty-entrada]="cantidadEsEntrada(m)" [class.qty-salida]="!cantidadEsEntrada(m) && (m.cantidad || 0) !== 0">
+            {{ formatCantidad(m) }}
+          </strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Stock</span>
+          <strong>{{ m.stock_anterior }} → {{ m.stock_actual }}</strong>
+        </div>
+        <div class="mobile-label-row" *ngIf="m.almacen_nombre">
+          <span>Almacén</span>
+          <strong>{{ m.almacen_nombre }}</strong>
+        </div>
+        <p class="motivo-mobile" *ngIf="motivoLabel(m.motivo)">{{ motivoLabel(m.motivo) }}</p>
+      </article>
+    </div>
 
     <mat-paginator [length]="totalCount"
                    [pageSize]="pageSize"
@@ -224,6 +262,8 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
 
+    <p class="table-scroll-hint desktop-only" *ngIf="stockVariantes.length">Desliza horizontalmente.</p>
+    <div class="responsive-table-wrapper desktop-only">
     <mat-table [dataSource]="stockVariantes" class="stock-variante-table">
       <ng-container matColumnDef="producto">
         <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
@@ -265,6 +305,28 @@
         'producto','variante','disponible','reservado']">
       </mat-row>
     </mat-table>
+    </div>
+
+    <div class="mobile-card-list mobile-only stock-mobile-list" *ngIf="stockVariantes.length">
+      <article class="mobile-data-card" *ngFor="let row of stockVariantes">
+        <div class="mobile-card-title">{{ row.producto_nombre }}</div>
+        <div class="mobile-label-row" *ngIf="row.variante">
+          <span>Variante</span>
+          <strong>
+            <span class="color-dot" [style.background]="row.variante.color_hex"></span>
+            {{ row.variante.talla }} / {{ row.variante.color }}
+          </strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Disponible</span>
+          <strong [class.stock-bajo]="row.disponible <= 3">{{ row.disponible }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Reservado</span>
+          <strong>{{ row.reserved }}</strong>
+        </div>
+      </article>
+    </div>
 
     <p *ngIf="stockVariantes.length === 0" class="empty-state">
       No hay stock registrado en este almacén.

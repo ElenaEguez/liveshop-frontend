@@ -19,28 +19,42 @@
 
   <div *ngIf="!loadingVariantes && variantesActuales.length" class="kd-variants-block">
     <h3 class="kd-variants-title">Desglose por variante</h3>
-    <table mat-table [dataSource]="variantesActuales" class="kd-variant-table">
-      <ng-container matColumnDef="talla">
-        <th mat-header-cell *matHeaderCellDef>Talla</th>
-        <td mat-cell *matCellDef="let v">{{ v.talla || '—' }}</td>
-      </ng-container>
-      <ng-container matColumnDef="color">
-        <th mat-header-cell *matHeaderCellDef>Color</th>
-        <td mat-cell *matCellDef="let v">{{ v.color || '—' }}</td>
-      </ng-container>
-      <ng-container matColumnDef="sku">
-        <th mat-header-cell *matHeaderCellDef>SKU</th>
-        <td mat-cell *matCellDef="let v">{{ v.sku || '—' }}</td>
-      </ng-container>
-      <ng-container matColumnDef="stock">
-        <th mat-header-cell *matHeaderCellDef>Disponible</th>
-        <td mat-cell *matCellDef="let v">
-          <strong [class.agotado]="v.disponible <= 0">{{ v.disponible }}</strong> uds.
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="['talla', 'color', 'sku', 'stock']"></tr>
-      <tr mat-row *matRowDef="let row; columns: ['talla', 'color', 'sku', 'stock'];"></tr>
-    </table>
+    <p class="table-scroll-hint desktop-only">Desliza horizontalmente para ver todas las columnas.</p>
+    <div class="responsive-table-wrapper desktop-only">
+      <table mat-table [dataSource]="variantesActuales" class="kd-variant-table">
+        <ng-container matColumnDef="talla">
+          <th mat-header-cell *matHeaderCellDef>Talla</th>
+          <td mat-cell *matCellDef="let v">{{ v.talla || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="color">
+          <th mat-header-cell *matHeaderCellDef>Color</th>
+          <td mat-cell *matCellDef="let v">{{ v.color || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="sku">
+          <th mat-header-cell *matHeaderCellDef>SKU</th>
+          <td mat-cell *matCellDef="let v">{{ v.sku || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="stock">
+          <th mat-header-cell *matHeaderCellDef>Disponible</th>
+          <td mat-cell *matCellDef="let v">
+            <strong [class.agotado]="v.disponible <= 0">{{ v.disponible }}</strong> uds.
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['talla', 'color', 'sku', 'stock']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['talla', 'color', 'sku', 'stock'];"></tr>
+      </table>
+    </div>
+
+    <div class="mobile-card-list mobile-only">
+      <article class="mobile-data-card" *ngFor="let v of variantesActuales">
+        <div class="mobile-card-title">{{ v.talla || '—' }} / {{ v.color || '—' }}</div>
+        <div class="mobile-label-row"><span>SKU</span><strong>{{ v.sku || '—' }}</strong></div>
+        <div class="mobile-label-row">
+          <span>Disponible</span>
+          <strong [class.agotado]="v.disponible <= 0">{{ v.disponible <= 0 ? 'Agotado' : v.disponible + ' uds.' }}</strong>
+        </div>
+      </article>
+    </div>
   </div>
 
   <p *ngIf="!loadingVariantes && (data.sinAsignarVariante ?? sinAsignarVariante) > 0"
@@ -65,4 +79,3 @@
   </button>
   <button mat-button mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>
-

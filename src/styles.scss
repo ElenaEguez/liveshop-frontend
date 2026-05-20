@@ -217,6 +217,41 @@ mat-sidenav-content {
   font-size: 0.9rem;
 }
 
+.mobile-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+
+  .mat-mdc-button,
+  .mat-mdc-outlined-button,
+  .mat-mdc-unelevated-button {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+    min-height: 44px;
+  }
+}
+
+.table-scroll-hint {
+  display: none;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
 // ── VARIANT SELECTOR (shared component) ────────────────────
 .variant-selector { margin: 8px 0; }
 
@@ -396,12 +431,8 @@ mat-sidenav-content {
 
 // ── RESPONSIVE GLOBAL ────────────────────────────────────────
 @media (max-width: 768px) {
-  // Tables scroll horizontally instead of overflowing
-  .mat-mdc-table-container,
-  .mat-table {
-    overflow-x: auto;
+  .table-scroll-hint {
     display: block;
-    width: 100%;
   }
 
   // Reduce paginator text on small screens
@@ -413,6 +444,19 @@ mat-sidenav-content {
   mat-form-field {
     width: 100%;
     min-width: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only,
+  .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 }
 

@@ -229,8 +229,9 @@
     <mat-card-title>Ítems del conteo</mat-card-title>
 
     <mat-card-content>
-
-      <mat-table [dataSource]="conteo.items">
+      <p class="table-scroll-hint desktop-only">Desliza horizontalmente para ver todas las columnas.</p>
+      <div class="responsive-table-wrapper desktop-only">
+      <mat-table [dataSource]="conteo.items" class="conteo-items-table">
 
         <ng-container matColumnDef="producto">
 
@@ -286,9 +287,9 @@
 
           <mat-cell *matCellDef="let i">
 
-            <span [class]="getDifColor(i.diferencia)">
+            <span [class]="getDifColor(i.diferencia ?? 0)">
 
-              {{ i.diferencia > 0 ? '+' : '' }}{{ i.diferencia }}
+              {{ (i.diferencia ?? 0) > 0 ? '+' : '' }}{{ i.diferencia ?? 0 }}
 
             </span>
 
@@ -309,6 +310,24 @@
         <mat-row *matRowDef="let r; columns: columnas;"></mat-row>
 
       </mat-table>
+      </div>
+
+      <div class="mobile-card-list mobile-only">
+        <article class="mobile-data-card" *ngFor="let i of conteo.items">
+          <div class="mobile-card-title">{{ i.producto_nombre }}</div>
+          <div class="mobile-label-row">
+            <span>Variante</span>
+            <strong *ngIf="i.variante_detalle">{{ i.variante_detalle.talla }} / {{ i.variante_detalle.color }}</strong>
+            <strong *ngIf="!i.variante_detalle">Sin variante</strong>
+          </div>
+          <div class="mobile-label-row"><span>Sistema / Físico</span><strong>{{ i.stock_sistema }} / {{ i.stock_fisico }}</strong></div>
+          <div class="mobile-label-row">
+            <span>Diferencia</span>
+            <strong [class]="getDifColor(i.diferencia ?? 0)">{{ (i.diferencia ?? 0) > 0 ? '+' : '' }}{{ i.diferencia ?? 0 }}</strong>
+          </div>
+          <div class="mobile-label-row" *ngIf="i.notas"><span>Notas</span><strong>{{ i.notas }}</strong></div>
+        </article>
+      </div>
 
     </mat-card-content>
 

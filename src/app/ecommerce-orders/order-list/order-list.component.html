@@ -40,8 +40,13 @@
     <span>Cargando pedidos...</span>
   </div>
 
-  <!-- Table -->
+  <!-- Table (escritorio) / tarjetas (móvil) -->
   <div *ngIf="!loading && !error" class="table-wrap">
+    <p class="table-scroll-hint desktop-only" *ngIf="orders.length > 0">
+      Desliza horizontalmente para ver todas las columnas.
+    </p>
+
+    <div class="responsive-table-wrapper desktop-only">
     <table mat-table [dataSource]="orders" class="orders-table mat-elevation-z1">
 
       <!-- ID -->
@@ -130,6 +135,58 @@
         class="order-row" (click)="openDetail(row)"></tr>
 
     </table>
+    </div>
+
+    <div class="mobile-card-list mobile-only" *ngIf="orders.length > 0">
+      <article class="mobile-data-card order-mobile-card" *ngFor="let row of orders"
+               (click)="openDetail(row)">
+        <div class="mobile-card-header">
+          <div>
+            <div class="mobile-card-title order-id">#{{ row.id }}</div>
+            <div class="mobile-card-subtitle">{{ row.customer_name }}</div>
+            <div class="customer-phone">{{ row.customer_phone }}</div>
+          </div>
+          <span class="status-badge" [ngClass]="'status-' + normalizeStatus(row.status)">
+            {{ getStatusLabel(row.status) }}
+          </span>
+        </div>
+        <div class="mobile-label-row">
+          <span>Total</span>
+          <strong class="total-amount">Bs {{ row.total_amount | number:'1.2-2' }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Pago</span>
+          <strong>{{ paymentLabels[row.payment_method] || row.payment_method }}</strong>
+        </div>
+        <div class="mobile-label-row">
+          <span>Entrega</span>
+          <strong>{{ deliveryLabels[row.delivery_method] || row.delivery_method }}</strong>
+        </div>
+        <div class="mobile-card-actions" (click)="$event.stopPropagation()">
+          <button mat-stroked-button type="button" *ngIf="isPendingState(row.status)"
+                  (click)="quickConfirm($event, row)">
+            <mat-icon>check_circle</mat-icon>
+            Confirmar
+          </button>
+          <button mat-stroked-button type="button" color="warn"
+                  *ngIf="isCancelableState(row.status)"
+                  (click)="quickCancel($event, row)">
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+          <button mat-stroked-button type="button"
+                  *ngIf="isDeletableCancelledState(row.status)"
+                  (click)="deleteCancelledOrder($event, row)">
+            <mat-icon>delete</mat-icon>
+            Eliminar
+          </button>
+          <button mat-stroked-button type="button" (click)="openDetail(row)">
+            <mat-icon>open_in_new</mat-icon>
+            Ver
+          </button>
+        </div>
+      </article>
+    </div>
 
     <!-- Empty state -->
     <div *ngIf="orders.length === 0" class="empty-state">

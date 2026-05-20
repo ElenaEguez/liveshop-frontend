@@ -139,7 +139,8 @@
         <p>El carrito está vacío</p>
       </div>
 
-      <mat-table [dataSource]="carrito" class="cart-table" *ngIf="carrito.length > 0">
+      <div class="responsive-table-wrapper desktop-only cart-table-wrap" *ngIf="carrito.length > 0">
+      <mat-table [dataSource]="carrito" class="cart-table">
 
         <ng-container matColumnDef="nombre">
           <mat-header-cell *matHeaderCellDef>Producto</mat-header-cell>
@@ -202,6 +203,40 @@
         <mat-header-row *matHeaderRowDef="['nombre','cantidad','precio','subtotal','accion']"></mat-header-row>
         <mat-row *matRowDef="let row; columns: ['nombre','cantidad','precio','subtotal','accion'];"></mat-row>
       </mat-table>
+      </div>
+
+      <div class="mobile-card-list mobile-only cart-mobile-list" *ngIf="carrito.length > 0">
+        <article class="mobile-data-card cart-mobile-item" *ngFor="let item of carrito">
+          <div class="mobile-card-title cart-prod-name">{{ item.product.name }}</div>
+          <div class="cart-variant" *ngIf="variantLabel(item)">{{ variantLabel(item) }}</div>
+          <div class="mobile-label-row">
+            <span>Cantidad</span>
+            <div class="qty-control">
+              <button mat-icon-button type="button" (click)="decrementar(item)">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="qty-value">{{ item.cantidad }}</span>
+              <button mat-icon-button type="button" (click)="incrementar(item)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="mobile-label-row">
+            <span>P. unit.</span>
+            <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+          </div>
+          <div class="mobile-label-row">
+            <span>Subtotal</span>
+            <strong>{{ moneda }} {{ (Math.max(0, item.precio_unitario - (item.descuento_unitario || 0)) * item.cantidad) | number:'1.2-2' }}</strong>
+          </div>
+          <div class="mobile-card-actions">
+            <button mat-stroked-button type="button" color="warn" (click)="eliminarItem(item)">
+              <mat-icon>delete</mat-icon>
+              Quitar
+            </button>
+          </div>
+        </article>
+      </div>
 
       <!-- Footer del carrito -->
       <div class="cart-footer" *ngIf="carrito.length > 0">

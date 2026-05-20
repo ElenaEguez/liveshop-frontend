@@ -1,1 +1,43 @@
-/* Estilos para ProductListComponent */
+.products-table-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.products-table {
+  width: 100%;
+  min-width: 640px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #9ca3af;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.empty-state p {
+  margin-top: 12px;
+  font-size: 1rem;
+}
+
+.stock-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .products-table-card + mat-paginator,
+  mat-paginator {
+    margin-top: 8px;
+  }
+}
