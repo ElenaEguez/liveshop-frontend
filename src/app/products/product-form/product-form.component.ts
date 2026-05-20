@@ -23,9 +23,10 @@ export const SELL_BY_OPTIONS = [
   styleUrls: ['./product-form.component.scss']
 })
 export class ProductFormComponent implements OnInit, OnDestroy {
-  /** Etiqueta térmica: 4,6 cm ancho × 5,6 cm alto */
+  /** Rollo 4,6 × 5,6 cm: cada producto usa la mitad superior (28 mm); la inferior queda para otro producto. */
   private static readonly LABEL_W_MM = 46;
-  private static readonly LABEL_H_MM = 56;
+  private static readonly LABEL_SLOT_H_MM = 28;
+  private static readonly SHEET_H_MM = 56;
 
   readonly maxImages = 3;
   productForm: FormGroup;
@@ -151,14 +152,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm.get('internal_code')!.setValue(code);
   }
 
-  printBarcodeLabel(): void {
+  printBarcodeLabel(slot: 'top' | 'bottom' = 'top'): void {
     const barcode = String(this.productForm.get('barcode')?.value || '').trim();
     const name = String(this.productForm.get('name')?.value || '').trim();
+    const internalCode = String(this.productForm.get('internal_code')?.value || '').trim();
+    const priceRaw = this.productForm.get('price')?.value;
+    const price = priceRaw != null && priceRaw !== '' ? String(priceRaw) : '';
     if (!barcode) {
       this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
       return;
     }
-    const canvas = this.renderBarcodeCanvas(barcode);
+    const canvas = this.renderBarcodeCanvas(barcode, true);
     if (!canvas) {
       this.snackBar.open(
         'No se pudo generar el código de barras. Use 13 dígitos (EAN-13) o un texto válido.',
@@ -168,7 +172,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       return;
     }
     const dataUrl = canvas.toDataURL('image/png');
-    const html = this.buildLabelPrintHtml(name, barcode, dataUrl);
+    const html = this.buildLabelPrintHtml(name, barcode, dataUrl, internalCode, price, slot);
     const win = window.open('', '_blank', 'width=320,height=400');
     if (win) {
       try {
@@ -196,7 +200,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       this.snackBar.open('Genera o ingresa un código de barras primero', 'Cerrar', { duration: 3000 });
       return;
     }
-    const canvas = this.renderBarcodeCanvas(barcode);
+    const canvas = this.renderBarcodeCanvas(barcode, true);
     if (!canvas) {
       this.snackBar.open('No se pudo generar la imagen del código.', 'Cerrar', { duration: 4000 });
       return;
@@ -230,8 +234,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       .replace(/"/g, '&quot;');
   }
 
-  /** EAN-13 si hay 12–13 dígitos; si no, CODE128. */
-  private renderBarcodeCanvas(raw: string): HTMLCanvasElement | null {
+  /** EAN-13 si hay 12–13 dígitos; si no, CODE128. forLabel incluye dígitos bajo las barras. */
+  private renderBarcodeCanvas(raw: string, forLabel = false): HTMLCanvasElement | null {
     const trimmed = (raw || '').trim();
     if (!trimmed) {
       return null;
@@ -239,14 +243,26 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const canvas = document.createElement('canvas');
     const onlyDigits = trimmed.replace(/\D/g, '');
     try {
-      const narrowOpts = {
-        width: 1.1,
-        height: 36,
-        displayValue: false,
-        margin: 2,
+      const labelOpts = {
+        width: 1.05,
+        height: 14,
+        displayValue: true,
+        fontSize: 6,
+        margin: 1,
+        textMargin: 0,
         background: '#ffffff',
         lineColor: '#000000',
       };
+      const narrowOpts = forLabel
+        ? labelOpts
+        : {
+            width: 1.1,
+            height: 36,
+            displayValue: false,
+            margin: 2,
+            background: '#ffffff',
+            lineColor: '#000000',
+          };
       if (onlyDigits.length === 13) {
         JsBarcode(canvas, onlyDigits, { ...narrowOpts, format: 'EAN13' });
         return canvas;
@@ -262,10 +278,12 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       }
       JsBarcode(canvas, trimmed, {
         format: 'CODE128',
-        width: 1,
-        height: 32,
-        displayValue: false,
-        margin: 2,
+        width: forLabel ? 1.05 : 1,
+        height: forLabel ? 14 : 32,
+        displayValue: forLabel,
+        fontSize: forLabel ? 6 : 12,
+        margin: forLabel ? 1 : 2,
+        textMargin: forLabel ? 0 : 2,
         background: '#ffffff',
         lineColor: '#000000',
       });
@@ -276,83 +294,136 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private buildLabelPrintHtml(productName: string, barcode: string, imageDataUrl: string): string {
-    const nameEsc = this.escapeHtml(productName || '—');
+  /** Recorta texto largo para que quepa en media etiqueta. */
+  private truncateForLabel(text: string, maxLen: number): string {
+    const t = (text || '').trim();
+    if (t.length <= maxLen) return t;
+    return t.slice(0, maxLen - 1) + '…';
+  }
+
+  private buildLabelPrintHtml(
+    productName: string,
+    barcode: string,
+    imageDataUrl: string,
+    internalCode = '',
+    price = '',
+    slot: 'top' | 'bottom' = 'top',
+  ): string {
+    const nameEsc = this.escapeHtml(this.truncateForLabel(productName || '—', 42));
     const codeEsc = this.escapeHtml(barcode);
+    const intEsc = internalCode ? this.escapeHtml(this.truncateForLabel(internalCode, 18)) : '';
+    const priceEsc = price ? this.escapeHtml(`Bs.${price}`) : '';
+    const metaParts = [intEsc, priceEsc].filter(Boolean);
+    const metaLine = metaParts.length ? metaParts.join(' · ') : '';
     const w = ProductFormComponent.LABEL_W_MM;
-    const h = ProductFormComponent.LABEL_H_MM;
+    const slotH = ProductFormComponent.LABEL_SLOT_H_MM;
+    const sheetH = ProductFormComponent.SHEET_H_MM;
+    const slotTop = slot === 'bottom' ? slotH : 0;
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Etiqueta</title>
 <style>
-  @page { size: ${w}mm ${h}mm; margin: 0; }
+  @page { size: ${w}mm ${sheetH}mm; margin: 0; }
   @media print {
-    html, body { width: ${w}mm; height: ${h}mm; margin: 0; padding: 0; background: #fff; overflow: hidden; }
+    html, body {
+      width: ${w}mm;
+      height: ${sheetH}mm;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
     width: ${w}mm;
-    height: ${h}mm;
-    text-align: center;
+    height: ${sheetH}mm;
+    position: relative;
     background: #fff;
     overflow: hidden;
   }
-  .label {
+  .sheet {
     width: ${w}mm;
-    height: ${h}mm;
-    padding: 1.2mm 1mm;
+    height: ${sheetH}mm;
+    position: relative;
+  }
+  .label-slot {
+    position: absolute;
+    left: 0;
+    top: ${slotTop}mm;
+    width: ${w}mm;
+    height: ${slotH}mm;
+    max-height: ${slotH}mm;
+    overflow: hidden;
+    padding: 0.5mm 1mm 0.4mm;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
+    text-align: center;
+  }
+  .text-block {
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 9mm;
     overflow: hidden;
   }
   .prod-name {
-    font-size: 7pt;
+    font-size: 5pt;
     font-weight: 700;
-    line-height: 1.15;
-    max-height: 11mm;
+    line-height: 1.05;
+    max-height: 5.5mm;
     overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     word-break: break-word;
     width: 100%;
-    flex-shrink: 0;
   }
-  .barcode-wrap {
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .barcode-img {
-    max-width: ${w - 2}mm;
-    max-height: 34mm;
-    width: auto;
-    height: auto;
-    display: block;
-    object-fit: contain;
-  }
-  .barcode-num {
-    font-size: 7pt;
-    letter-spacing: 0.08em;
-    line-height: 1.1;
-    color: #000;
-    flex-shrink: 0;
-    max-width: 100%;
+  .meta-line {
+    font-size: 4.5pt;
+    line-height: 1.05;
+    margin-top: 0.3mm;
+    max-height: 3mm;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    width: 100%;
+    color: #111;
+  }
+  .barcode-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 16mm;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .barcode-img {
+    width: ${w - 2}mm;
+    max-width: 100%;
+    max-height: 15.5mm;
+    height: auto;
+    object-fit: contain;
+    object-position: center bottom;
+    display: block;
   }
 </style></head><body>
-  <div class="label">
-    <div class="prod-name">${nameEsc}</div>
-    <div class="barcode-wrap"><img class="barcode-img" src="${imageDataUrl}" alt="" /></div>
-    <div class="barcode-num">${codeEsc}</div>
+  <div class="sheet">
+    <div class="label-slot">
+      <div class="text-block">
+        <div class="prod-name">${nameEsc}</div>
+        ${metaLine ? `<div class="meta-line">${metaLine}</div>` : ''}
+      </div>
+      <div class="barcode-wrap">
+        <img class="barcode-img" src="${imageDataUrl}" alt="${codeEsc}" />
+      </div>
+    </div>
   </div>
   <script>window.addEventListener('load', function () {
-    setTimeout(function () { window.focus(); window.print(); }, 200);
+    setTimeout(function () { window.focus(); window.print(); }, 250);
   });<\/script>
 </body></html>`;
   }

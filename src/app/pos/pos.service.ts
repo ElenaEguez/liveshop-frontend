@@ -125,7 +125,7 @@ export interface VentaPOS {
   monto_recibido: string | null;
   vuelto: string | null;
   cupon: number | null;
-  status: 'completada' | 'anulada' | 'credito';
+  status: 'completada' | 'anulada' | 'credito' | 'devuelto' | 'parcialmente_devuelto';
   usuario: number | null;
   usuario_nombre?: string;
   usuario_rol_nombre?: string | null;

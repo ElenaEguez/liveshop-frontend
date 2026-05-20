@@ -72,6 +72,18 @@
 
 
 
+.table-card .responsive-table-wrapper {
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+
+  max-width: 100%;
+
+}
+
+
+
 .loading-shade {
 
   position: absolute;

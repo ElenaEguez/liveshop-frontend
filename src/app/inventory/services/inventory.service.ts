@@ -59,6 +59,10 @@ export interface Inventory {
   } | null;
   variantes?: InventoryVariantStock[];
   sin_asignar_variante?: number;
+  inventario_disponible?: number;
+  almacen_nombre?: string | null;
+  sucursal_nombre?: string | null;
+  stock_scope?: 'almacen' | 'global';
 }
 
 export interface InventoryFilters {

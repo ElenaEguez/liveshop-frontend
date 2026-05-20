@@ -235,7 +235,7 @@ mat-sidenav-content {
 }
 
 .table-scroll-hint {
-  display: none;
+  display: block;
   margin: 0;
   padding: 8px 12px;
   font-size: 0.75rem;
@@ -434,6 +434,8 @@ mat-sidenav-content {
   .table-scroll-hint {
     display: block;
   }
+
+  /* ya visible en desktop; mantener en móvil */
 
   // Reduce paginator text on small screens
   .mat-mdc-paginator-range-label {

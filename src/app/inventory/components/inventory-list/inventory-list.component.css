@@ -36,6 +36,18 @@
   min-width: 720px;
 }
 
+.inventory-table-card .responsive-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.var-global-hint {
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-left: 2px;
+}
+
 .inventory-table th,
 .inventory-table td {
   white-space: nowrap;

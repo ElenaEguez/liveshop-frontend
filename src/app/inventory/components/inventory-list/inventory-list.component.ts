@@ -42,7 +42,7 @@ export class InventoryListComponent implements OnInit {
   selectedSucursalId: number | null = null;
   selectedAlmacenId: number | null = null;
 
-  displayedColumns = ['product_name', 'available_quantity', 'acciones'];
+  displayedColumns = ['product_name', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
 
   constructor(
     private inventoryService: InventoryService,
@@ -100,10 +100,13 @@ export class InventoryListComponent implements OnInit {
         this.totalCount = Array.isArray(data) ? list.length : (data.count ?? list.length);
         this.inventory = list.map(item => ({
           ...item,
-          available_quantity: item.available_quantity ?? Math.max(0, item.quantity - item.reserved_quantity),
+          available_quantity: item.available_quantity
+            ?? item.inventario_disponible
+            ?? Math.max(0, item.quantity - item.reserved_quantity),
           variantes: item.variantes ?? [],
           sin_asignar_variante: item.sin_asignar_variante ?? 0,
         }));
+        this.updateDisplayedColumns();
       },
       error: () => this.snackBar.open('Error al cargar el inventario', 'Cerrar', { duration: 3000 })
     });
@@ -140,7 +143,16 @@ export class InventoryListComponent implements OnInit {
 
   onAlmacenChange(): void {
     this.currentPage = 0;
+    this.updateDisplayedColumns();
     this.loadInventory();
+  }
+
+  private updateDisplayedColumns(): void {
+    if (this.selectedAlmacenId) {
+      this.displayedColumns = ['product_name', 'quantity', 'available_quantity', 'acciones'];
+    } else {
+      this.displayedColumns = ['product_name', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
+    }
   }
 
   onCategoryChange(): void {
@@ -154,6 +166,7 @@ export class InventoryListComponent implements OnInit {
     this.selectedAlmacenId  = null;
     this.currentPage = 0;
     this.searchControl.setValue('');
+    this.updateDisplayedColumns();
     this.loadInventory();
   }
 

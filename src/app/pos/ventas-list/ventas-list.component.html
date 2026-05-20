@@ -168,8 +168,8 @@
                   (click)="cobrarCredito(v)">
             <mat-icon>payments</mat-icon>
           </button>
-          <button mat-icon-button matTooltip="Anular"
-                  [disabled]="!isHoy(v) || v.status === 'anulada'"
+          <button mat-icon-button matTooltip="Anular venta y devolver stock a la sucursal"
+                  [disabled]="!puedeAnular(v)"
                   (click)="anular(v)" color="warn">
             <mat-icon>cancel</mat-icon>
           </button>
@@ -228,7 +228,7 @@
             Cobrar
           </button>
           <button mat-stroked-button type="button" color="warn"
-                  *ngIf="isHoy(v) && v.status !== 'anulada'"
+                  *ngIf="puedeAnular(v)"
                   (click)="anular(v)">
             <mat-icon>cancel</mat-icon>
             Anular

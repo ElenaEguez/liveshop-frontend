@@ -45,8 +45,6 @@ export class VentasListComponent implements OnInit {
 
   displayedColumns = ['numero_ticket', 'fecha', 'caja', 'cliente', 'productos', 'total', 'monto_cobrado', 'metodo', 'cajero', 'status', 'acciones'];
 
-  today = new Date().toISOString().substring(0, 10);
-
   constructor(
     private posService: PosService,
     private dialog: MatDialog,
@@ -211,8 +209,10 @@ export class VentasListComponent implements OnInit {
     });
   }
 
-  isHoy(venta: VentaPOS): boolean {
-    return venta.created_at.substring(0, 10) === this.today;
+  puedeAnular(venta: VentaPOS): boolean {
+    return venta.status !== 'anulada'
+      && venta.status !== 'devuelto'
+      && venta.status !== 'parcialmente_devuelto';
   }
 
   productosResumen(v: VentaPOS): string {
