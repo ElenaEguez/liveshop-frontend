@@ -192,6 +192,7 @@ export class InventoryListComponent implements OnInit {
       productName: item.product_name,
       variantes: item.variantes,
       disponibleTotal: item.available_quantity,
+      inventarioDisponible: item.inventario_disponible,
       sinAsignarVariante: item.sin_asignar_variante,
     };
     this.dialog.open(KardexDialogComponent, {

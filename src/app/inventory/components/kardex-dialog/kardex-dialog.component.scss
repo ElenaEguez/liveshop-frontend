@@ -55,7 +55,8 @@
   margin: 0 0 14px;
 }
 
-.kd-summary-total {
+.kd-summary-total,
+.kd-summary-fisico {
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -63,6 +64,11 @@
   padding: 12px 14px;
   background: #f9fafb;
   border-radius: 8px;
+}
+
+.kd-summary-fisico {
+  margin-top: -8px;
+  background: #eff6ff;
 }
 
 .kd-total-label {

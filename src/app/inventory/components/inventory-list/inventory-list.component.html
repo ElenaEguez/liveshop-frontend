@@ -55,11 +55,11 @@
   </div>
 
   <p *ngIf="!selectedAlmacenId" style="font-size:0.8rem; color:#6b7280; margin:0 0 8px;">
-    <strong>Disponible</strong> = unidades físicas en almacén (cantidad − reservado).
-    Con variantes, el desgalle talla/color es stock global de catálogo; el total principal coincide con Almacén.
+    <strong>Disponible</strong> = stock vendible por variante (POS). <strong>Cant.</strong> = físico en almacén.
+    «Sin variante» = unidades en almacén aún no reflejadas en talla/color (no se venden así).
   </p>
   <p *ngIf="selectedAlmacenId" style="font-size:0.8rem; color:#1d4ed8; margin:0 0 8px;">
-    Stock físico en: <strong>{{ selectedAlmacenNombre }}</strong> (misma cifra que módulo Almacén).
+    Filtro: <strong>{{ selectedAlmacenNombre }}</strong>. Disponible = catálogo por variante; Cant. = físico en este almacén.
   </p>
 
   <div class="inventory-table-card">
@@ -110,8 +110,9 @@
               {{ variantLabel(v) }}: <strong>{{ v.disponible }}</strong>
               <span *ngIf="item.stock_scope === 'almacen'" class="var-global-hint">(cat.)</span>
             </span>
-            <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar">
-              Sin variante: <strong>{{ item.sin_asignar_variante }}</strong>
+            <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar"
+                  matTooltip="En almacén pero no asignado a talla/color; no vendible en POS">
+              En almacén sin catálogo: <strong>{{ item.sin_asignar_variante }}</strong>
             </span>
           </div>
         </td>
@@ -147,8 +148,9 @@
           <span *ngFor="let v of item.variantes" class="variante-chip">
             {{ variantLabel(v) }}: <strong>{{ v.disponible }}</strong>
           </span>
-          <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar">
-            Sin variante: <strong>{{ item.sin_asignar_variante }}</strong>
+          <span *ngIf="(item.sin_asignar_variante ?? 0) > 0" class="variante-chip sin-asignar"
+                matTooltip="En almacén pero no asignado a talla/color; no vendible en POS">
+            En almacén sin catálogo: <strong>{{ item.sin_asignar_variante }}</strong>
           </span>
         </div>
         <div class="mobile-card-actions">

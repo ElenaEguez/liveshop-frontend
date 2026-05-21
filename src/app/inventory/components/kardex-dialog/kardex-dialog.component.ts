@@ -7,7 +7,10 @@ export interface KardexDialogData {
   productId: number;
   productName: string;
   variantes?: InventoryVariantStock[];
+  /** Stock vendible (suma variantes). */
   disponibleTotal?: number;
+  /** Físico en almacén (cantidad − reservado). */
+  inventarioDisponible?: number;
   sinAsignarVariante?: number;
 }
 

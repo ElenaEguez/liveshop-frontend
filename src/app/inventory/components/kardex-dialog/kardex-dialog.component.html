@@ -11,10 +11,14 @@
   </div>
 
   <div *ngIf="!loadingVariantes" class="kd-summary-total">
-    <span class="kd-total-label">Disponible (almacén)</span>
+    <span class="kd-total-label">Vendible (variantes)</span>
     <strong class="kd-total-value">
       {{ (data.disponibleTotal ?? disponibleTotal) <= 0 ? 'Agotado' : (data.disponibleTotal ?? disponibleTotal) + ' uds.' }}
     </strong>
+  </div>
+  <div *ngIf="!loadingVariantes && (data.inventarioDisponible ?? 0) > 0" class="kd-summary-fisico">
+    <span class="kd-total-label">Físico en almacén</span>
+    <strong>{{ data.inventarioDisponible }} uds.</strong>
   </div>
 
   <div *ngIf="!loadingVariantes && variantesActuales.length" class="kd-variants-block">
@@ -59,7 +63,8 @@
 
   <p *ngIf="!loadingVariantes && (data.sinAsignarVariante ?? sinAsignarVariante) > 0"
      class="kd-sin-asignar">
-    {{ data.sinAsignarVariante ?? sinAsignarVariante }} uds. en stock general sin asignar a variantes.
+    {{ data.sinAsignarVariante ?? sinAsignarVariante }} uds. en almacén sin reflejar en talla/color
+    (no vendibles en POS). Reconstruya stock desde kardex o ajuste por variante.
   </p>
 
   <p class="kd-variants-empty" *ngIf="!loadingVariantes && !variantesActuales.length">
