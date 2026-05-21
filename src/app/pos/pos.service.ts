@@ -245,8 +245,11 @@ export class PosService {
 
   // ── Productos ────────────────────────────────────────────────────────────
 
-  buscarProducto(q: string): Observable<ScanResult> {
-    const params = new HttpParams().set('code', q);
+  buscarProducto(q: string, sucursalId?: number | null): Observable<ScanResult> {
+    let params = new HttpParams().set('code', q);
+    if (sucursalId != null) {
+      params = params.set('sucursal_id', String(sucursalId));
+    }
     return this.http.get<ScanResult>(`${API}/pos/scan/`, { params });
   }
 
@@ -416,4 +419,37 @@ export class PosService {
     const params = new HttpParams().set('codigo', codigo).set('total', String(total));
     return this.http.get<any>(`${API}/cupones/validar/`, { params });
   }
+}
+
+/** Mensaje legible desde errores 400 del API POS (items, error, detail, etc.). */
+export function parsePosApiError(err: { error?: Record<string, unknown> } | null | undefined): string {
+  const body = err?.error;
+  if (!body || typeof body !== 'object') {
+    return 'Error al procesar la venta.';
+  }
+  if (typeof body['error'] === 'string') {
+    return body['error'];
+  }
+  if (typeof body['detail'] === 'string') {
+    return body['detail'];
+  }
+  const items = body['items'];
+  if (items != null) {
+    return Array.isArray(items) ? items.join(' ') : String(items);
+  }
+  const cupon = body['cupon_codigo'];
+  if (cupon != null) {
+    return Array.isArray(cupon) ? cupon.join(' ') : String(cupon);
+  }
+  const keys = Object.keys(body);
+  if (keys.length) {
+    const v = body[keys[0]];
+    if (Array.isArray(v)) {
+      return v.join(' ');
+    }
+    if (typeof v === 'string') {
+      return v;
+    }
+  }
+  return 'Error al procesar la venta.';
 }

@@ -8,6 +8,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import {
   PosService, Sucursal, Caja, TurnoCaja, MetodoPago,
   ProductoPOS, ProductVariantPOS, CartItem, VentaPOS, ScanResult,
+  parsePosApiError,
 } from '../pos.service';
 import { AbrirCajaDialogComponent } from '../abrir-caja-dialog/abrir-caja-dialog.component';
 import { CerrarCajaDialogComponent } from '../cerrar-caja-dialog/cerrar-caja-dialog.component';
@@ -148,8 +149,12 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe(q => {
       const term = q?.trim() ?? '';
       if (term.length < 2) { this.searchResults = []; return; }
+      if (!this.selectedSucursal) {
+        this.searchResults = [];
+        return;
+      }
       this.searching = true;
-      this.posService.buscarProducto(term).subscribe({
+      this.posService.buscarProducto(term, this.selectedSucursal).subscribe({
         next: result => {
           this.searching = false;
           if (result.match === 'exact' && result.product) {
@@ -209,6 +214,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCaja = null;
     this.turnoActivo = null;
     this.cajas = [];
+    this.searchResults = [];
+    if (this.carrito.length > 0) {
+      this.snack.open(
+        'Cambiaste de sucursal. El stock mostrado es por sucursal; revisá los ítems del carrito.',
+        'OK',
+        { duration: 5000 },
+      );
+    }
     this.posService.getCajas(id).subscribe(c => {
       this.cajas = c.filter(x => x.activa);
     });
@@ -303,9 +316,13 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       console.warn('[POS] onSearchEnter: q vacío, return anticipado');
       return;
     }
+    if (!this.selectedSucursal) {
+      this.snack.open('Seleccioná una sucursal antes de buscar productos.', 'OK', { duration: 3000 });
+      return;
+    }
     console.log('[POS] buscarProducto("' + q + '")');
     this.searching = true;
-    this.posService.buscarProducto(q).subscribe({
+    this.posService.buscarProducto(q, this.selectedSucursal).subscribe({
       next: result => {
         this.searching = false;
         this.scanResult = result;
@@ -346,9 +363,30 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /** Producto con talla/color activos en catálogo. */
+  productoTieneVariantes(product: ProductoPOS): boolean {
+    return !!(product.variantes && product.variantes.length > 0);
+  }
+
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
-    // Si no se especificó variante y el producto tiene variantes, abrir selector
-    if (variant === null && product.variantes && product.variantes.length > 0) {
+    const variantes = product.variantes ?? [];
+
+    // Una sola variante: selección automática (evita cobrar sin variant_id)
+    if (variant === null && variantes.length === 1) {
+      const solo = variantes[0];
+      if (solo.stock_extra <= 0) {
+        this.snack.open(
+          `Sin stock en esta sucursal para "${product.name}".`,
+          'OK',
+          { duration: 4000, panelClass: 'snack-error' },
+        );
+        return;
+      }
+      variant = solo;
+    }
+
+    // Varias variantes: modal obligatorio
+    if (variant === null && variantes.length > 1) {
       this.productoParaVariante = product;
       this.mostrarSelectorVariante = true;
       this.searchResults = [];
@@ -386,6 +424,12 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchResults = [];
     this.scanResult = null;
     this.searchCtrl.setValue('', { emitEvent: false });
+    setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
+  }
+
+  cerrarSelectorVariante(): void {
+    this.mostrarSelectorVariante = false;
+    this.productoParaVariante = null;
     setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
   }
 
@@ -531,11 +575,55 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.carrito.length === 0;
   }
 
+  /** Ítems con variantes en catálogo pero sin variante elegida en carrito. */
+  get itemsSinVariante(): CartItem[] {
+    return this.carrito.filter(
+      c => this.productoTieneVariantes(c.product) && !c.variant,
+    );
+  }
+
+  get carritoListoParaCobrar(): boolean {
+    return this.itemsSinVariante.length === 0;
+  }
+
+  get avisoCarritoCobro(): string | null {
+    if (!this.selectedSucursal) {
+      return 'Seleccioná una sucursal.';
+    }
+    if (!this.turnoActivo) {
+      return 'Debés abrir caja para registrar ventas.';
+    }
+    const sinVar = this.itemsSinVariante;
+    if (sinVar.length) {
+      const nombres = sinVar.map(c => c.product.name).join(', ');
+      return `Seleccioná variante para: ${nombres}`;
+    }
+    return null;
+  }
+
+  get puedeCobrar(): boolean {
+    return !this.carritoVacio
+      && !!this.selectedSucursal
+      && !!this.selectedCaja
+      && !!this.turnoActivo
+      && this.carritoListoParaCobrar
+      && !this.cobrando;
+  }
+
   // ── Cobrar ──────────────────────────────────────────────────────────────────
 
   cobrar(): void {
     if (this.carritoVacio || !this.selectedSucursal || !this.selectedCaja || !this.turnoActivo) {
       this.snack.open('Debes seleccionar caja y abrir turno antes de cobrar.', 'OK', { duration: 3000 });
+      return;
+    }
+    if (!this.carritoListoParaCobrar) {
+      const msg = this.avisoCarritoCobro || 'Faltan variantes en el carrito.';
+      this.snack.open(msg, 'OK', { duration: 5000, panelClass: 'snack-error' });
+      return;
+    }
+    if (!this.selectedMetodo && !this.esCredito) {
+      this.snack.open('Seleccioná un método de pago.', 'OK', { duration: 3000, panelClass: 'snack-error' });
       return;
     }
     this.cobrando = true;
@@ -579,8 +667,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: err => {
         this.cobrando = false;
-        const msg = err.error?.error || err.error?.detail || 'Error al procesar la venta.';
-        this.snack.open(msg, 'OK', { duration: 5000, panelClass: 'snack-error' });
+        this.snack.open(parsePosApiError(err), 'OK', { duration: 6000, panelClass: 'snack-error' });
       },
     });
   }
