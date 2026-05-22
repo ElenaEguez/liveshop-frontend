@@ -9,6 +9,7 @@ import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductVariant, ProductService } from '../products.service';
 import { httpErrorMessage } from '../../shared/api-utils';
 import { markAllAsTouched } from '../../shared/form-utils';
+import { ean13ForRender, generateEan13, isValidEan13 } from '../../shared/barcode-utils';
 
 export const SELL_BY_OPTIONS = [
   { value: 'unidad', label: 'UNIDAD' },
@@ -132,15 +133,23 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   // ── Barcode / Internal code generators ──────────────────────────────────────
 
   generateBarcode(): void {
-    let digits = '';
-    for (let i = 0; i < 12; i++) digits += Math.floor(Math.random() * 10);
-    // EAN-13 check digit
-    let sum = 0;
-    for (let i = 0; i < 12; i++) {
-      sum += parseInt(digits[i]) * (i % 2 === 0 ? 1 : 3);
+    this.productForm.get('barcode')!.setValue(generateEan13());
+  }
+
+  private ensureScannableBarcodeInForm(notify: boolean): void {
+    const ctrl = this.productForm.get('barcode');
+    const current = String(ctrl?.value || '').trim();
+    if (isValidEan13(current)) {
+      return;
     }
-    const check = (10 - (sum % 10)) % 10;
-    this.productForm.get('barcode')!.setValue(digits + check);
+    ctrl?.setValue(generateEan13());
+    if (notify) {
+      this.snackBar.open(
+        'Se asignó un código EAN-13 escaneable (el anterior no era válido para lectores).',
+        'Cerrar',
+        { duration: 5000 },
+      );
+    }
   }
 
   generateInternalCode(): void {
@@ -176,7 +185,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       codigo,
       talla: this.getLabelTalla(),
       precio: this.getLabelPrecio(),
-      barcodeScan: barcode || codigo,
+      barcodeScan: isValidEan13(barcode) ? barcode : '',
       name: String(this.productForm.get('name')?.value || '').trim(),
     };
   }
@@ -216,9 +225,16 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   /** single = 46×28 mm; top/bottom = mitad en rollo 5,6 cm */
   printBarcodeLabel(mode: 'single' | 'top' | 'bottom' = 'single'): void {
+    if (!this.viewOnly) {
+      this.ensureScannableBarcodeInForm(true);
+    }
     const payload = this.getLabelPrintPayload();
     if (!payload) {
       this.snackBar.open('Ingresa código interno o código de barras', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    if (!payload.barcodeScan) {
+      this.snackBar.open('Guardá el producto con un EAN-13 válido antes de imprimir.', 'Cerrar', { duration: 4000 });
       return;
     }
     let barcodeDataUrl = '';
@@ -248,6 +264,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   downloadBarcodeLabelPng(): void {
+    if (!this.viewOnly) {
+      this.ensureScannableBarcodeInForm(true);
+    }
     const payload = this.getLabelPrintPayload();
     if (!payload) {
       this.snackBar.open('Ingresa código interno o código de barras', 'Cerrar', { duration: 3000 });
@@ -287,55 +306,22 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       .replace(/"/g, '&quot;');
   }
 
-  /** EAN-13 si hay 12–13 dígitos; si no, CODE128. forLabel incluye dígitos bajo las barras. */
+  /** Solo EAN-13 (escaneable en POS). forLabel usa resolución mayor para impresión térmica. */
   private renderBarcodeCanvas(raw: string, forLabel = false): HTMLCanvasElement | null {
-    const trimmed = (raw || '').trim();
-    if (!trimmed) {
+    const ean = ean13ForRender(raw);
+    if (!ean) {
       return null;
     }
     const canvas = document.createElement('canvas');
-    const onlyDigits = trimmed.replace(/\D/g, '');
     try {
-      const labelOpts = {
-        width: 1,
-        height: 12,
-        displayValue: false,
-        margin: 0,
-        textMargin: 0,
-        background: '#ffffff',
-        lineColor: '#000000',
-      };
-      const narrowOpts = forLabel
-        ? labelOpts
-        : {
-            width: 1.1,
-            height: 36,
-            displayValue: false,
-            margin: 2,
-            background: '#ffffff',
-            lineColor: '#000000',
-          };
-      if (onlyDigits.length === 13) {
-        JsBarcode(canvas, onlyDigits, { ...narrowOpts, format: 'EAN13' });
-        return canvas;
-      }
-      if (onlyDigits.length === 12) {
-        let sum = 0;
-        for (let i = 0; i < 12; i++) {
-          sum += parseInt(onlyDigits[i], 10) * (i % 2 === 0 ? 1 : 3);
-        }
-        const check = (10 - (sum % 10)) % 10;
-        JsBarcode(canvas, onlyDigits + check, { ...narrowOpts, format: 'EAN13' });
-        return canvas;
-      }
-      JsBarcode(canvas, trimmed, {
-        format: 'CODE128',
-        width: forLabel ? 1 : 1,
-        height: forLabel ? 12 : 32,
+      JsBarcode(canvas, ean, {
+        format: 'EAN13',
+        width: forLabel ? 2 : 2.2,
+        height: forLabel ? 28 : 48,
         displayValue: !forLabel,
-        fontSize: forLabel ? 6 : 12,
-        margin: forLabel ? 0 : 2,
-        textMargin: forLabel ? 0 : 2,
+        fontSize: forLabel ? 8 : 14,
+        margin: forLabel ? 4 : 6,
+        textMargin: forLabel ? 2 : 4,
         background: '#ffffff',
         lineColor: '#000000',
       });
@@ -601,6 +587,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       );
       return;
     }
+
+    this.ensureScannableBarcodeInForm(true);
 
     this.saving = true;
     const formData = new FormData();

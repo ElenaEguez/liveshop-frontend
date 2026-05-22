@@ -57,7 +57,7 @@
           <input matInput formControlName="barcode" placeholder="EAN-13">
         </mat-form-field>
         <button *ngIf="!viewOnly" type="button" mat-stroked-button (click)="generateBarcode()"
-                matTooltip="Generar EAN-13 aleatorio" class="code-btn">
+                matTooltip="Generar EAN-13 escaneable (único por producto)" class="code-btn">
           <mat-icon>refresh</mat-icon> Generar
         </button>
         <button *ngIf="canPrintLabel" type="button" mat-stroked-button color="primary"
