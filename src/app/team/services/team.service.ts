@@ -13,6 +13,7 @@ export interface CustomRole {
   perm_orders: boolean;
   perm_payments: boolean;
   perm_team: boolean;
+  perm_manage_roles: boolean;
   perm_dashboard: boolean;
   perm_pos: boolean;
   perm_warehouse: boolean;

@@ -28,7 +28,8 @@ export class PermissionsService {
   canViewMyStore():        boolean { return this.perm('my_store'); }
   canViewOrders():         boolean { return this.perm('orders'); }
   canConfirmPayments():    boolean { return this.perm('payments'); }
-  canManageTeam():         boolean { return this.perm('team'); }
+  canManageRoles():        boolean { return this.perm('manage_roles'); }
+  canManageTeam():         boolean { return this.perm('team') || this.canManageRoles(); }
   canViewDashboard():      boolean { return this.perm('dashboard'); }
   canUsePOS():             boolean { return this.perm('pos'); }
   canViewArqueos():        boolean { return this.perm('arqueos'); }

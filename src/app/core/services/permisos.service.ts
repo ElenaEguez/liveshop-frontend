@@ -46,6 +46,7 @@ export class PermisosService {
     const p = this.permisos;
     if (!p) return false;
     if (p.rol === 'superadmin' || p.es_propietario) return true;
+    if (modulo === 'team' && (p.permisos?.['manage_roles']?.[accion] ?? false)) return true;
     return p.permisos?.[modulo]?.[accion] ?? false;
   }
 

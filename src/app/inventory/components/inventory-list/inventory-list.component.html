@@ -77,6 +77,13 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="product_price">
+        <th mat-header-cell *matHeaderCellDef>Precio</th>
+        <td mat-cell *matCellDef="let item">
+          Bs. {{ item.product_price | number:'1.2-2' }}
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="ubicacion">
         <th mat-header-cell *matHeaderCellDef>Almacén / Sucursal</th>
         <td mat-cell *matCellDef="let item">
@@ -143,6 +150,9 @@
                 [style.color]="getAvailableColor(item.available_quantity)">
             {{ item.available_quantity <= 0 ? 'Agotado' : item.available_quantity + ' uds.' }}
           </span>
+        </div>
+        <div style="font-size:0.85rem; color:#374151; margin:2px 0 8px;">
+          Precio: <strong>Bs. {{ item.product_price | number:'1.2-2' }}</strong>
         </div>
         <div class="disp-variantes mobile-variantes" *ngIf="item.variantes?.length">
           <span *ngFor="let v of item.variantes" class="variante-chip">

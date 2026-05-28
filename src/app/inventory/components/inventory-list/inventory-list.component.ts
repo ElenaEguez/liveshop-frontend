@@ -42,7 +42,7 @@ export class InventoryListComponent implements OnInit {
   selectedSucursalId: number | null = null;
   selectedAlmacenId: number | null = null;
 
-  displayedColumns = ['product_name', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
+  displayedColumns = ['product_name', 'product_price', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
 
   constructor(
     private inventoryService: InventoryService,
@@ -149,9 +149,9 @@ export class InventoryListComponent implements OnInit {
 
   private updateDisplayedColumns(): void {
     if (this.selectedAlmacenId) {
-      this.displayedColumns = ['product_name', 'quantity', 'available_quantity', 'acciones'];
+      this.displayedColumns = ['product_name', 'product_price', 'quantity', 'available_quantity', 'acciones'];
     } else {
-      this.displayedColumns = ['product_name', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
+      this.displayedColumns = ['product_name', 'product_price', 'ubicacion', 'quantity', 'available_quantity', 'acciones'];
     }
   }
 

@@ -77,7 +77,7 @@ const routes: Routes = [
         path: 'team',
         loadChildren: () => import('./team/team.module').then(m => m.TeamModule),
         canActivate: [ModuloGuard],
-        data: { modulo: 'configuracion' }
+        data: { modulo: 'team' }
       },
       {
         path: 'vendor',

@@ -84,6 +84,7 @@ export class RoleDialogComponent {
       title: 'Administración',
       modules: [
         { key: 'perm_team', label: 'Equipo', description: 'Miembros y roles del equipo' },
+        { key: 'perm_manage_roles', label: 'Administrar roles/equipo', description: 'Crear/editar roles y gestionar asignaciones' },
         { key: 'perm_configuracion', label: 'Configuración', description: 'Ajustes generales del negocio' },
       ],
     },
@@ -113,6 +114,7 @@ export class RoleDialogComponent {
       perm_compras: [r?.perm_compras ?? false],
       perm_dashboard: [r?.perm_dashboard ?? false],
       perm_team: [r?.perm_team ?? false],
+      perm_manage_roles: [r?.perm_manage_roles ?? false],
       perm_arqueos: [r?.perm_arqueos ?? false],
       perm_ventas_pos: [r?.perm_ventas_pos ?? false],
       perm_devoluciones: [r?.perm_devoluciones ?? false],
