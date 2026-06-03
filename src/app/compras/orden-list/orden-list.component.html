@@ -14,6 +14,20 @@
   </div>
 
   <div class="filters-bar" *ngIf="!cargando">
+    <mat-form-field appearance="outline" class="filter-field filter-field-numero">
+      <mat-label>Buscar por código</mat-label>
+      <input matInput
+             [(ngModel)]="filtroNumeroInput"
+             (ngModelChange)="onNumeroBusquedaChange($event)"
+             placeholder="Buscar por código (ej: OC-000123)" />
+      <button mat-icon-button matSuffix type="button"
+              *ngIf="filtroNumeroInput"
+              (click)="limpiarBusquedaNumero()"
+              aria-label="Limpiar búsqueda">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Proveedor</mat-label>
       <mat-select [(ngModel)]="filtroProveedor" (selectionChange)="onFiltroChange()">
@@ -30,11 +44,20 @@
     </mat-form-field>
   </div>
 
+  <div class="filtro-numero-chip" *ngIf="!cargando && hayFiltroNumero">
+    <mat-chip-list>
+      <mat-chip removable (removed)="limpiarBusquedaNumero()">
+        Código: {{ etiquetaNumeroBusqueda }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+
   <p *ngIf="cargando" class="loading-hint">Cargando órdenes…</p>
 
   <mat-card *ngIf="!cargando">
     <mat-card-content>
-      <p *ngIf="ordenes.length === 0" class="empty-state">Sin órdenes registradas.</p>
+      <p *ngIf="ordenes.length === 0" class="empty-state">{{ mensajeSinResultados }}</p>
 
       <!-- Tabla: escritorio -->
       <div class="table-scroll desktop-only" *ngIf="ordenes.length > 0">

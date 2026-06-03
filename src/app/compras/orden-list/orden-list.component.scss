@@ -35,6 +35,19 @@
     flex: 1 1 200px;
     max-width: 280px;
   }
+
+  .filter-field-numero {
+    flex: 1 1 260px;
+    max-width: 360px;
+  }
+}
+
+.filtro-numero-chip {
+  margin-bottom: 12px;
+
+  mat-chip {
+    font-size: 0.85rem;
+  }
 }
 
 .loading-hint,

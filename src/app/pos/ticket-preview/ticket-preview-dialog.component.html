@@ -89,11 +89,21 @@
           <span>TOTAL:</span>
           <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ data.venta.total | number:'1.2-2' }}</span>
         </div>
-        <div *ngIf="data.venta.metodo_pago_nombre"
-             style="display:flex; justify-content:space-between; margin:2px 0; color:#555;">
-          <span>Pago:</span>
-          <span>{{ data.venta.metodo_pago_nombre }}</span>
-        </div>
+        <ng-container *ngIf="data.venta.pagos && data.venta.pagos.length > 1; else pagoUnico">
+          <div style="font-size:11px; color:#555; margin:4px 0 2px;">Pago:</div>
+          <div *ngFor="let p of data.venta.pagos"
+               style="display:flex; justify-content:space-between; margin:2px 0; font-size:11px;">
+            <span>{{ p.metodo_pago_nombre || '—' }}</span>
+            <span>{{ data.moneda || config?.moneda || 'Bs.' }} {{ p.monto | number:'1.2-2' }}</span>
+          </div>
+        </ng-container>
+        <ng-template #pagoUnico>
+          <div *ngIf="data.venta.metodo_pago_nombre"
+               style="display:flex; justify-content:space-between; margin:2px 0; color:#555;">
+            <span>Pago:</span>
+            <span>{{ data.venta.metodo_pago_nombre }}</span>
+          </div>
+        </ng-template>
         <div *ngIf="data.venta.monto_recibido !== null && data.venta.monto_recibido !== undefined && !data.venta.es_credito"
              style="display:flex; justify-content:space-between; margin:2px 0;">
           <span>Recibido:</span>

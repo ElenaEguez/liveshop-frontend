@@ -67,7 +67,12 @@ export interface ProductoPOS {
   name: string;
   barcode: string;
   internal_code: string;
+  /** Precio catálogo (Product.price). */
   price: number;
+  /** Precio efectivo POS: lote PEPS o fallback a price (backend: campo `precio`). */
+  precio?: number | string;
+  /** Precio del lote activo; null si usa precio base. */
+  precio_venta_lote?: number | string | null;
   purchase_cost: number | null;
   stock_disponible: number;
   sell_by: string[];
@@ -100,6 +105,20 @@ export interface VentaPOSItem {
   costo_unitario: string | null;
   subtotal: string;
   variant_detail?: string;
+}
+
+export interface VentaPOSPagoInput {
+  metodo_pago_id: number;
+  monto: number;
+}
+
+export interface VentaPOSPagoLine {
+  id?: number;
+  metodo_pago: number | null;
+  metodo_pago_nombre?: string | null;
+  metodo_pago_tipo?: string | null;
+  monto: string;
+  orden?: number;
 }
 
 export interface VentaPOS {
@@ -135,6 +154,7 @@ export interface VentaPOS {
   notas: string;
   created_at: string;
   items: VentaPOSItem[];
+  pagos?: VentaPOSPagoLine[];
   monto_pagado: string;
   saldo_pendiente: string;
   monto_cobrado?: string;
@@ -157,7 +177,13 @@ export interface VentaPOSCreatePayload {
   cliente_nombre?: string;
   cliente_telefono?: string;
   metodo_pago_id?: number | null;
-  items: { product_id: number; variant_id?: number | null; cantidad: number; precio_unitario: number }[];
+  pagos?: VentaPOSPagoInput[];
+  items: {
+    product_id: number;
+    variant_id?: number | null;
+    cantidad: number;
+    precio_unitario?: number;
+  }[];
   descuento?: number;
   discount_percentage?: number | null;
   discount_type?: string | null;

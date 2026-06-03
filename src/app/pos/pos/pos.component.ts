@@ -7,8 +7,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 import {
   PosService, Sucursal, Caja, TurnoCaja, MetodoPago,
-  ProductoPOS, ProductVariantPOS, CartItem, VentaPOS, ScanResult,
-  parsePosApiError,
+  ProductoPOS, ProductVariantPOS, CartItem, VentaPOS, VentaPOSPagoInput,
+  VentaPOSCreatePayload, ScanResult, parsePosApiError,
 } from '../pos.service';
 import { AbrirCajaDialogComponent } from '../abrir-caja-dialog/abrir-caja-dialog.component';
 import { CerrarCajaDialogComponent } from '../cerrar-caja-dialog/cerrar-caja-dialog.component';
@@ -37,6 +37,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Métodos de pago ────────────────────────────────────────────────────────
   metodosPago: MetodoPago[] = [];
   selectedMetodo: MetodoPago | null = null;
+  modoPago: 'simple' | 'mixto' = 'simple';
+  pagosMixtos: VentaPOSPagoInput[] = [];
+  mixtoMetodoId: number | null = null;
+  mixtoMonto: number | null = null;
+  readonly maxPagosMixtos = 3;
 
   // ── Búsqueda ───────────────────────────────────────────────────────────────
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
@@ -368,6 +373,23 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return !!(product.variantes && product.variantes.length > 0);
   }
 
+  /** Precio a cobrar: backend envía `precio` (lote PEPS o base). */
+  precioProducto(product: ProductoPOS): number {
+    if (product.precio != null && product.precio !== '') {
+      return Number(product.precio);
+    }
+    return Number(product.price);
+  }
+
+  /** True si el precio mostrado proviene del lote y difiere del precio catálogo. */
+  usaPrecioLote(product: ProductoPOS): boolean {
+    const lote = product.precio_venta_lote;
+    if (lote == null || lote === '') {
+      return false;
+    }
+    return Number(lote) !== Number(product.price);
+  }
+
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
     const variantes = product.variantes ?? [];
 
@@ -416,7 +438,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       const defaultUnidad = product.sell_by?.length ? product.sell_by[0] : 'unidad';
       this.carrito = [...this.carrito, {
         product, variant, cantidad: 1,
-        precio_unitario: Number(product.price),
+        precio_unitario: this.precioProducto(product),
         descuento_unitario: 0,
         unidad: defaultUnidad,
       }];
@@ -484,6 +506,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cuponAplicado = null;
     this.cuponError = '';
     this.selectedMetodo = null;
+    this.modoPago = 'simple';
+    this.pagosMixtos = [];
+    this.mixtoMetodoId = null;
+    this.mixtoMonto = null;
     this.canalVenta = 'TIENDA';
     this.direccionEnvio = '';
   }
@@ -601,13 +627,40 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return null;
   }
 
+  get montoPagadoMixto(): number {
+    return this.pagosMixtos.reduce((s, p) => s + (Number(p.monto) || 0), 0);
+  }
+
+  get montoRestante(): number {
+    return Math.max(0, this.total - this.montoPagadoMixto);
+  }
+
+  get pagoMixtoValido(): boolean {
+    return this.total > 0 && Math.abs(this.montoRestante) < 0.01;
+  }
+
+  get puedeAgregarPagoMixto(): boolean {
+    return this.pagosMixtos.length < this.maxPagosMixtos && this.montoRestante > 0.01;
+  }
+
+  get pagoListo(): boolean {
+    if (this.esCredito) {
+      return !!this.selectedMetodo;
+    }
+    if (this.modoPago === 'mixto') {
+      return this.pagoMixtoValido && this.pagosMixtos.length > 0;
+    }
+    return !!this.selectedMetodo;
+  }
+
   get puedeCobrar(): boolean {
     return !this.carritoVacio
       && !!this.selectedSucursal
       && !!this.selectedCaja
       && !!this.turnoActivo
       && this.carritoListoParaCobrar
-      && !this.cobrando;
+      && !this.cobrando
+      && this.pagoListo;
   }
 
   // ── Cobrar ──────────────────────────────────────────────────────────────────
@@ -622,19 +675,26 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       this.snack.open(msg, 'OK', { duration: 5000, panelClass: 'snack-error' });
       return;
     }
-    if (!this.selectedMetodo && !this.esCredito) {
-      this.snack.open('Seleccioná un método de pago.', 'OK', { duration: 3000, panelClass: 'snack-error' });
+    if (!this.pagoListo) {
+      if (this.modoPago === 'mixto' && !this.esCredito) {
+        this.snack.open(
+          `Completá el pago: restan ${this.moneda} ${this.montoRestante.toFixed(2)}.`,
+          'OK',
+          { duration: 4000, panelClass: 'snack-error' },
+        );
+      } else {
+        this.snack.open('Seleccioná un método de pago.', 'OK', { duration: 3000, panelClass: 'snack-error' });
+      }
       return;
     }
     this.cobrando = true;
 
-    const payload = {
+    const payload: VentaPOSCreatePayload = {
       sucursal_id: this.selectedSucursal,
       caja_id: this.selectedCaja ?? null,
       turno_id: this.turnoActivo?.id ?? null,
       cliente_nombre: this.clienteNombre || 'Genérico',
       cliente_telefono: this.clienteTelefono,
-      metodo_pago_id: this.selectedMetodo?.id ?? null,
       items: this.carrito.map(c => ({
         product_id: c.product.id,
         variant_id: c.variant?.id ?? null,
@@ -650,6 +710,15 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       canal_venta: this.canalVenta,
       direccion_envio: this.esEnvio ? this.direccionEnvio : null,
     };
+
+    if (this.modoPago === 'mixto' && !this.esCredito) {
+      payload.pagos = this.pagosMixtos.map(p => ({
+        metodo_pago_id: p.metodo_pago_id,
+        monto: Number(p.monto),
+      }));
+    } else {
+      payload.metodo_pago_id = this.selectedMetodo?.id ?? null;
+    }
 
     this.posService.crearVenta(payload).subscribe({
       next: venta => {
@@ -683,12 +752,68 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   selectMetodo(m: MetodoPago): void {
     this.selectedMetodo = m;
     if (m.tipo !== 'efectivo') this.montoRecibido = null;
-    // si el método es de tipo crédito, activa el toggle automáticamente
     if (m.tipo === 'credito') this.esCredito = true;
+  }
+
+  onModoPagoChange(modo: 'simple' | 'mixto'): void {
+    this.modoPago = modo;
+    if (modo === 'mixto') {
+      this.selectedMetodo = null;
+      this.montoRecibido = null;
+      this.pagosMixtos = [];
+      this.mixtoMetodoId = null;
+      this.mixtoMonto = null;
+    } else {
+      this.pagosMixtos = [];
+      this.mixtoMetodoId = null;
+      this.mixtoMonto = null;
+    }
+  }
+
+  nombreMetodoPago(metodoId: number): string {
+    return this.metodosPago.find(m => m.id === metodoId)?.nombre ?? '—';
+  }
+
+  agregarPagoMixto(metodoId: number | null, monto: number | null): void {
+    if (!metodoId) {
+      this.snack.open('Seleccioná un método de pago.', 'OK', { duration: 2500, panelClass: 'snack-error' });
+      return;
+    }
+    const montoNum = Number(monto);
+    if (!montoNum || montoNum <= 0) {
+      this.snack.open('Ingresá un monto mayor a 0.', 'OK', { duration: 2500, panelClass: 'snack-error' });
+      return;
+    }
+    if (this.pagosMixtos.length >= this.maxPagosMixtos) {
+      this.snack.open(`Máximo ${this.maxPagosMixtos} métodos de pago.`, 'OK', { duration: 3000 });
+      return;
+    }
+    if (montoNum > this.montoRestante + 0.01) {
+      this.snack.open(
+        `El monto no puede superar el restante (${this.moneda} ${this.montoRestante.toFixed(2)}).`,
+        'OK',
+        { duration: 4000, panelClass: 'snack-error' },
+      );
+      return;
+    }
+    this.pagosMixtos = [...this.pagosMixtos, { metodo_pago_id: metodoId, monto: montoNum }];
+    this.mixtoMetodoId = null;
+    this.mixtoMonto = null;
+  }
+
+  quitarPagoMixto(index: number): void {
+    this.pagosMixtos = this.pagosMixtos.filter((_, i) => i !== index);
   }
 
   onCreditoChange(value: boolean): void {
     this.esCredito = value;
-    if (!value) this.plazoDias = null;
+    if (!value) {
+      this.plazoDias = null;
+      return;
+    }
+    this.modoPago = 'simple';
+    this.pagosMixtos = [];
+    this.mixtoMetodoId = null;
+    this.mixtoMonto = null;
   }
 }

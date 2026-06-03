@@ -32,6 +32,23 @@
 
   <mat-card>
     <mat-card-content>
+      <div class="precios-toolbar" *ngIf="esRecibida()">
+        <button mat-stroked-button type="button" *ngIf="!editandoPrecios" (click)="iniciarEdicionPrecios()">
+          <mat-icon>edit</mat-icon>
+          Editar precios de venta
+        </button>
+        <ng-container *ngIf="editandoPrecios">
+          <button mat-raised-button color="primary" type="button"
+                  (click)="guardarPrecios()" [disabled]="guardandoPrecios">
+            Guardar cambios
+          </button>
+          <button mat-button type="button"
+                  (click)="cancelarEdicionPrecios()" [disabled]="guardandoPrecios">
+            Cancelar
+          </button>
+        </ng-container>
+      </div>
+
       <p class="table-scroll-hint desktop-only" *ngIf="o.items?.length">Desliza horizontalmente para ver todas las columnas.</p>
       <div class="responsive-table-wrapper desktop-only detail-table-wrap">
       <mat-table [dataSource]="o.items || []" class="detail-table">
@@ -85,13 +102,34 @@
         </ng-container>
 
         <ng-container matColumnDef="precio_venta">
-          <mat-header-cell *matHeaderCellDef>P. venta sug.</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef>{{ esRecibida() ? 'Precio venta' : 'P. venta sug.' }}</mat-header-cell>
           <mat-cell *matCellDef="let i">
-            <span class="precio-venta">
-              Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }}
-            </span>
-            <small class="text-muted" *ngIf="i.precio_venta_es_manual">Manual</small>
-            <small class="text-muted" *ngIf="!i.precio_venta_es_manual">{{ i.porcentaje_ganancia }}% ganancia</small>
+            <ng-container *ngIf="esRecibida() && i.id && preciosState[i.id]; else precioSoloLectura">
+              <div class="precio-edit-cell" [ngClass]="precioClase(i.id)">
+                <ng-container *ngIf="editandoPrecios; else precioLeido">
+                  <input type="number" class="precio-input"
+                         [(ngModel)]="preciosState[i.id].valor"
+                         min="0.01" step="0.01" />
+                </ng-container>
+                <ng-template #precioLeido>
+                  <span class="precio-venta">Bs. {{ preciosState[i.id].valor | number:'1.2-2' }}</span>
+                </ng-template>
+                <span class="badge-actualizado" *ngIf="preciosState[i.id].actualizado">Actualizado</span>
+                <small class="stock-lote" *ngIf="preciosState[i.id].stockRestante != null">
+                  Stock lote: {{ preciosState[i.id].stockRestante }} uds.
+                </small>
+                <small class="precio-error-msg" *ngIf="preciosState[i.id].error">
+                  {{ preciosState[i.id].error }}
+                </small>
+              </div>
+            </ng-container>
+            <ng-template #precioSoloLectura>
+              <span class="precio-venta">
+                Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }}
+              </span>
+              <small class="text-muted" *ngIf="i.precio_venta_es_manual">Manual</small>
+              <small class="text-muted" *ngIf="!i.precio_venta_es_manual">{{ i.porcentaje_ganancia }}% ganancia</small>
+            </ng-template>
           </mat-cell>
         </ng-container>
 
@@ -117,8 +155,30 @@
             <strong>Bs. {{ i.costo_unitario_total | number:'1.2-2' }}</strong>
           </div>
           <div class="mobile-label-row">
-            <span>P. venta / Subtotal</span>
-            <strong>Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }} · {{ i.subtotal | number:'1.2-2' }}</strong>
+            <span>{{ esRecibida() ? 'Precio venta' : 'P. venta' }} / Subtotal</span>
+            <ng-container *ngIf="esRecibida() && i.id && preciosState[i.id]; else mobilePrecioLectura">
+              <div class="precio-edit-cell mobile-precio" [ngClass]="precioClase(i.id)">
+                <ng-container *ngIf="editandoPrecios; else mobilePrecioLeido">
+                  <input type="number" class="precio-input"
+                         [(ngModel)]="preciosState[i.id].valor"
+                         min="0.01" step="0.01" />
+                </ng-container>
+                <ng-template #mobilePrecioLeido>
+                  <strong>Bs. {{ preciosState[i.id].valor | number:'1.2-2' }}</strong>
+                </ng-template>
+                <span class="badge-actualizado" *ngIf="preciosState[i.id].actualizado">Actualizado</span>
+                <small class="stock-lote" *ngIf="preciosState[i.id].stockRestante != null">
+                  Stock lote: {{ preciosState[i.id].stockRestante }} uds.
+                </small>
+                <small class="precio-error-msg" *ngIf="preciosState[i.id].error">
+                  {{ preciosState[i.id].error }}
+                </small>
+                <small class="text-muted">Subtotal: Bs. {{ i.subtotal | number:'1.2-2' }}</small>
+              </div>
+            </ng-container>
+            <ng-template #mobilePrecioLectura>
+              <strong>Bs. {{ i.precio_venta_sugerido | number:'1.2-2' }} · {{ i.subtotal | number:'1.2-2' }}</strong>
+            </ng-template>
           </div>
         </article>
       </div>

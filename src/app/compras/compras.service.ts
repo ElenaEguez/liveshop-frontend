@@ -71,6 +71,31 @@ export interface OrdenCompra {
   created_at?: string;
 }
 
+export interface ActualizarPreciosItemPayload {
+  id: number;
+  precio_venta_sugerido: number;
+}
+
+export interface ActualizarPreciosActualizado {
+  item_id: number;
+  producto: string;
+  precio_anterior: number;
+  precio_nuevo: number;
+  inventory_id: number;
+  stock_restante: number;
+}
+
+export interface ActualizarPreciosError {
+  item_id: number | null;
+  error: string;
+}
+
+export interface ActualizarPreciosResponse {
+  actualizados: ActualizarPreciosActualizado[];
+  errores: ActualizarPreciosError[];
+  mensaje: string;
+}
+
 export interface ProductoLookup {
   id: number;
   name: string;
@@ -137,6 +162,7 @@ export class ComprasService {
     page_size?: number;
     proveedor_id?: number;
     estado?: string;
+    numero?: string;
   }): Observable<any> {
     let httpParams = new HttpParams();
     const paginatedRequest = params?.page != null;
@@ -154,6 +180,9 @@ export class ComprasService {
     }
     if (params?.estado) {
       httpParams = httpParams.set('estado', params.estado);
+    }
+    if (params?.numero) {
+      httpParams = httpParams.set('numero', params.numero);
     }
 
     return this.http.get<any>(this.ordenesUrl, { params: httpParams }).pipe(
@@ -194,6 +223,16 @@ export class ComprasService {
 
   cancelarOrden(id: number): Observable<OrdenCompra> {
     return this.http.post<OrdenCompra>(`${this.ordenesUrl}${id}/cancelar/`, {});
+  }
+
+  actualizarPrecios(
+    ordenId: number,
+    items: ActualizarPreciosItemPayload[],
+  ): Observable<ActualizarPreciosResponse> {
+    return this.http.patch<ActualizarPreciosResponse>(
+      `${this.ordenesUrl}${ordenId}/actualizar-precios/`,
+      { items },
+    );
   }
 
   buscarDevolucion(params?: {

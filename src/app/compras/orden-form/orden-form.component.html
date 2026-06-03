@@ -167,12 +167,17 @@
                 </div>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Precio venta sugerido (Bs.)</mat-label>
+                  <mat-label>Precio venta al recibir (Bs.)</mat-label>
                   <input matInput type="number"
                          formControlName="precio_venta_sugerido"
-                         min="0">
-                  <mat-hint *ngIf="!itemForm.get('precio_venta_manual')?.value">Sobre costo unitario</mat-hint>
-                  <mat-hint *ngIf="itemForm.get('precio_venta_manual')?.value">Valor manual</mat-hint>
+                         min="0"
+                         placeholder="Precio venta al recibir">
+                  <mat-hint *ngIf="!itemForm.get('precio_venta_manual')?.value">
+                    Opcional — calculado desde % ganancia; se guarda en el lote al confirmar
+                  </mat-hint>
+                  <mat-hint *ngIf="itemForm.get('precio_venta_manual')?.value">
+                    Valor manual al recibir la mercadería
+                  </mat-hint>
                 </mat-form-field>
               </div>
               <div class="form-row">
@@ -363,6 +368,10 @@
                 <div class="mobile-label-row">
                   <span>Costo unit.</span>
                   <strong>Bs. {{ item.costo_unitario_total | number:'1.2-2' }}</strong>
+                </div>
+                <div class="mobile-label-row">
+                  <span>P. venta al recibir</span>
+                  <strong>Bs. {{ item.precio_venta_sugerido | number:'1.2-2' }}</strong>
                 </div>
                 <div class="mobile-label-row">
                   <span>Subtotal</span>

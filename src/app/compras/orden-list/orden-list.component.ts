@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ComprasService, OrdenCompra, Proveedor } from '../compras.service';
 
 @Component({
@@ -9,15 +11,21 @@ import { ComprasService, OrdenCompra, Proveedor } from '../compras.service';
   templateUrl: './orden-list.component.html',
   styleUrls: ['./orden-list.component.scss']
 })
-export class OrdenListComponent implements OnInit {
+export class OrdenListComponent implements OnInit, OnDestroy {
   ordenes: OrdenCompra[] = [];
   proveedores: Proveedor[] = [];
   filtroProveedor: number | null = null;
   filtroEstado = '';
+  filtroNumeroInput = '';
+  /** Valor enviado al API tras debounce (AND con otros filtros). */
+  filtroNumero = '';
   currentPage = 1;
   totalItems = 0;
   pageSize = 10;
   cargando = false;
+
+  private readonly destroy$ = new Subject<void>();
+  private readonly numeroSearch$ = new Subject<string>();
 
   readonly estadosFiltro = [
     { value: '', label: 'Todos' },
@@ -34,11 +42,64 @@ export class OrdenListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.numeroSearch$.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$),
+    ).subscribe((valor) => {
+      this.filtroNumero = this.normalizarNumeroBusqueda(valor);
+      this.currentPage = 1;
+      this.cargarOrdenes();
+    });
+
     this.comprasService.getProveedores().subscribe({
       next: (rows) => { this.proveedores = rows || []; },
       error: () => {},
     });
     this.cargarOrdenes();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onNumeroBusquedaChange(valor: string): void {
+    this.numeroSearch$.next(valor);
+  }
+
+  limpiarBusquedaNumero(): void {
+    this.filtroNumeroInput = '';
+    this.filtroNumero = '';
+    this.currentPage = 1;
+    this.cargarOrdenes();
+  }
+
+  get hayFiltroNumero(): boolean {
+    return !!this.filtroNumero;
+  }
+
+  get etiquetaNumeroBusqueda(): string {
+    const v = this.filtroNumeroInput.trim();
+    if (!v) {
+      return '';
+    }
+    return /^OC-/i.test(v) ? v : `OC-${v}`;
+  }
+
+  get mensajeSinResultados(): string {
+    if (this.hayFiltroNumero) {
+      return `Sin resultados para ${this.etiquetaNumeroBusqueda}`;
+    }
+    return 'Sin órdenes registradas.';
+  }
+
+  private normalizarNumeroBusqueda(valor: string): string {
+    const raw = (valor || '').trim();
+    if (!raw) {
+      return '';
+    }
+    return raw.replace(/^OC-/i, '');
   }
 
   cargarOrdenes(): void {
@@ -48,6 +109,7 @@ export class OrdenListComponent implements OnInit {
       page_size: number;
       proveedor_id?: number;
       estado?: string;
+      numero?: string;
     } = {
       page: this.currentPage,
       page_size: this.pageSize,
@@ -57,6 +119,9 @@ export class OrdenListComponent implements OnInit {
     }
     if (this.filtroEstado) {
       params.estado = this.filtroEstado;
+    }
+    if (this.filtroNumero) {
+      params.numero = this.filtroNumero;
     }
 
     this.comprasService.getOrdenes(params).subscribe({

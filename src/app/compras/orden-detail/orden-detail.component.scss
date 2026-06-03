@@ -142,3 +142,71 @@
   min-width: 200px;
   max-width: 320px;
 }
+
+.precios-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.precio-edit-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+
+  &.precio-modificado {
+    border-color: #fbbf24;
+    background: #fffbeb;
+  }
+
+  &.precio-actualizado {
+    border-color: #22c55e;
+    background: #f0fdf4;
+  }
+
+  &.precio-error {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+}
+
+.mobile-precio {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.precio-input {
+  width: 100px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.badge-actualizado {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.stock-lote {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.precio-error-msg {
+  color: #dc2626;
+  font-size: 0.75rem;
+}

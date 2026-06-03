@@ -126,7 +126,19 @@
               </button>
             </div>
           </div>
-          <div class="search-item-price">Bs. {{ p.price | number:'1.2-2' }}</div>
+          <div class="search-item-price">
+            <span class="precio-tipo-badge precio-tipo-lote"
+                  *ngIf="usaPrecioLote(p)"
+                  matTooltip="Precio del lote más antiguo (PEPS)">
+              Precio lote
+            </span>
+            <span class="precio-tipo-badge precio-tipo-base"
+                  *ngIf="!usaPrecioLote(p)"
+                  matTooltip="Precio de catálogo del producto">
+              Precio base
+            </span>
+            Bs. {{ precioProducto(p) | number:'1.2-2' }}
+          </div>
         </div>
       </div>
     </div>
@@ -182,7 +194,14 @@
         <ng-container matColumnDef="precio">
           <mat-header-cell *matHeaderCellDef>P.U.</mat-header-cell>
           <mat-cell *matCellDef="let item">
-            <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+            <div class="cart-precio-cell">
+              <span class="precio-tipo-badge precio-tipo-lote"
+                    *ngIf="usaPrecioLote(item.product)"
+                    matTooltip="Precio del lote PEPS">
+                Precio lote
+              </span>
+              <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+            </div>
           </mat-cell>
         </ng-container>
 
@@ -228,7 +247,11 @@
           </div>
           <div class="mobile-label-row">
             <span>P. unit.</span>
-            <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+            <div class="cart-precio-cell">
+              <span class="precio-tipo-badge precio-tipo-lote"
+                    *ngIf="usaPrecioLote(item.product)">Precio lote</span>
+              <input class="price-input" type="number" [(ngModel)]="item.precio_unitario" min="0">
+            </div>
           </div>
           <div class="mobile-label-row">
             <span>Subtotal</span>
@@ -319,6 +342,17 @@
       <div class="section-title">
         <mat-icon>payments</mat-icon> Método de pago
       </div>
+
+      <mat-button-toggle-group [(ngModel)]="modoPago" name="modoPago"
+                               (ngModelChange)="onModoPagoChange($event)"
+                               [disabled]="esCredito"
+                               class="modo-pago-toggle">
+        <mat-button-toggle value="simple">Pago simple</mat-button-toggle>
+        <mat-button-toggle value="mixto">Dividir pago</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <!-- Pago simple (UI original) -->
+      <ng-container *ngIf="modoPago === 'simple'">
       <div class="metodos-grid">
         <button *ngFor="let m of metodosPago"
                 class="metodo-btn"
@@ -331,9 +365,47 @@
           Sin métodos configurados
         </div>
       </div>
+      </ng-container>
 
-      <!-- Efectivo: monto recibido + vuelto -->
-      <div *ngIf="selectedMetodo?.tipo === 'efectivo'" class="efectivo-section">
+      <!-- Pago mixto -->
+      <div *ngIf="modoPago === 'mixto' && !esCredito" class="pago-mixto-section">
+        <div class="pago-mixto-total">
+          Total a cobrar: <strong>{{ moneda }} {{ total | number:'1.2-2' }}</strong>
+        </div>
+
+        <div class="pago-mixto-row" *ngFor="let p of pagosMixtos; let i = index">
+          <span class="pago-mixto-nombre">{{ nombreMetodoPago(p.metodo_pago_id) }}</span>
+          <span class="pago-mixto-monto">{{ moneda }} {{ p.monto | number:'1.2-2' }}</span>
+          <button mat-icon-button type="button" color="warn" (click)="quitarPagoMixto(i)"
+                  matTooltip="Quitar">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="pago-mixto-restante" [class.pago-mixto-restante--pendiente]="montoRestante > 0.01">
+          Restante: {{ moneda }} {{ montoRestante | number:'1.2-2' }}
+        </div>
+
+        <div class="pago-mixto-add" *ngIf="puedeAgregarPagoMixto">
+          <mat-form-field appearance="outline" class="pago-mixto-field">
+            <mat-label>Método</mat-label>
+            <mat-select [(ngModel)]="mixtoMetodoId">
+              <mat-option *ngFor="let m of metodosPago" [value]="m.id">{{ m.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="pago-mixto-field monto-field">
+            <mat-label>Monto ({{ moneda }})</mat-label>
+            <input matInput type="number" [(ngModel)]="mixtoMonto" min="0" [max]="montoRestante">
+          </mat-form-field>
+          <button mat-stroked-button type="button" color="primary"
+                  (click)="agregarPagoMixto(mixtoMetodoId, mixtoMonto)">
+            <mat-icon>add</mat-icon> Agregar método
+          </button>
+        </div>
+      </div>
+
+      <!-- Efectivo: monto recibido + vuelto (solo pago simple) -->
+      <div *ngIf="modoPago === 'simple' && selectedMetodo?.tipo === 'efectivo'" class="efectivo-section">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Monto recibido ({{ moneda }})</mat-label>
           <input matInput type="number" [(ngModel)]="montoRecibido" min="0">
@@ -345,7 +417,7 @@
       </div>
 
       <!-- QR: mostrar imagen del QR de la tienda -->
-      <div *ngIf="selectedMetodo?.tipo === 'qr'" class="qr-section">
+      <div *ngIf="modoPago === 'simple' && selectedMetodo?.tipo === 'qr'" class="qr-section">
         <div *ngIf="vendorQrImage; else noQr" class="qr-image-wrap">
           <p class="qr-label">Pagar con QR</p>
           <img [src]="vendorQrImage" class="qr-image" alt="QR de pago">
