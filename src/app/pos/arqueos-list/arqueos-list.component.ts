@@ -14,7 +14,7 @@ import {
 export class ArqueosListComponent implements OnInit {
   turnos: TurnoCaja[] = [];
   loading = false;
-  periodo = 'month';
+  periodo = 'today';
   semana: number | null = null;
   page = 1;
   pages = 1;
