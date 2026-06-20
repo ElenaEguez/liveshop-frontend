@@ -60,6 +60,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
+      price:                [data.product?.price ?? '', [Validators.required, Validators.min(0)]],
       stock:                [0],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
@@ -214,9 +215,13 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   private getLabelPrecio(): string {
+    const fromForm = this.productForm.get('price')?.value;
     const fromProduct = this.data.product?.price;
-    if (fromProduct != null && !Number.isNaN(Number(fromProduct))) {
-      const n = Number(fromProduct);
+    const raw = fromForm !== null && fromForm !== '' && fromForm !== undefined
+      ? fromForm
+      : fromProduct;
+    if (raw != null && !Number.isNaN(Number(raw))) {
+      const n = Number(raw);
       const formatted = Number.isInteger(n) ? String(n) : n.toFixed(2);
       return `${formatted} bs.`;
     }
@@ -612,14 +617,21 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         if (raw !== null && raw !== '' && raw !== undefined) {
           formData.append(key, String(raw));
         }
+      } else if (key === 'price') {
+        const raw = val[key];
+        if (raw !== null && raw !== '' && raw !== undefined) {
+          formData.append(key, String(raw));
+        }
       } else {
         formData.append(key, val[key]);
       }
     });
-    // Compatibilidad con servidores que aun requieren price en el serializer.
-    // El precio oficial se actualiza desde Compras, no desde este formulario.
+    // Precio editable desde panel; compras puede sobrescribir al recibir mercadería
     if (!formData.has('price')) {
-      formData.append('price', '0');
+      const priceValue = this.productForm.get('price')?.value;
+      if (priceValue !== null && priceValue !== undefined && priceValue !== '') {
+        formData.append('price', String(priceValue));
+      }
     }
 
     this.selectedFiles.forEach(file => formData.append('images', file));
