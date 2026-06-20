@@ -36,7 +36,13 @@ export class AuthService {
 
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refresh_token');
-    return this.http.post(`${this.apiUrl}/refresh/`, { refresh: refreshToken });
+    return this.http.post(`${this.apiUrl}/refresh/`, { refresh: refreshToken }).pipe(
+      tap((response: any) => {
+        if (response?.access) {
+          localStorage.setItem('access_token', response.access);
+        }
+      }),
+    );
   }
 
   private isTokenExpired(token: string): boolean {
