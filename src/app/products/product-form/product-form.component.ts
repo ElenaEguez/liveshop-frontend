@@ -67,7 +67,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
       price:                [data.product?.price ?? '',
-        this.precioEditable ? [Validators.required, Validators.min(0)] : []],
+        this.precioEditable
+          ? [Validators.required, Validators.min(0)]
+          : [Validators.min(0)]],
       stock:                [0],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
@@ -607,6 +609,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const val = this.productForm.value;
 
     Object.keys(val).forEach(key => {
+      if (key === 'price') {
+        return;
+      }
       if (key === 'variants') {
         formData.append(key, JSON.stringify(val[key]));
       } else if (key === 'sell_by') {
@@ -624,17 +629,11 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         if (raw !== null && raw !== '' && raw !== undefined) {
           formData.append(key, String(raw));
         }
-      } else if (key === 'price') {
-        const raw = val[key];
-        if (raw !== null && raw !== '' && raw !== undefined) {
-          formData.append(key, String(raw));
-        }
       } else {
         formData.append(key, val[key]);
       }
     });
-    // Precio editable desde panel; compras puede sobrescribir al recibir mercadería
-    if (!formData.has('price')) {
+    if (this.precioEditable) {
       const priceValue = this.productForm.get('price')?.value;
       if (priceValue !== null && priceValue !== undefined && priceValue !== '') {
         formData.append('price', String(priceValue));
