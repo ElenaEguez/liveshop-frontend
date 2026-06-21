@@ -7,6 +7,7 @@ import { Inject } from '@angular/core';
 import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductVariant, ProductService } from '../products.service';
+import { AuthService } from '../../auth/auth.service';
 import { httpErrorMessage } from '../../shared/api-utils';
 import { markAllAsTouched } from '../../shared/form-utils';
 import { ean13ForRender, generateEan13, isValidEan13 } from '../../shared/barcode-utils';
@@ -40,10 +41,12 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   saving = false;
   sellByOptions = SELL_BY_OPTIONS;
   sellByError = false;
+  precioEditable = true;
 
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private authService: AuthService,
     private sanitizer: DomSanitizer,
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<ProductFormComponent>,
@@ -53,6 +56,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.viewOnly = !!data.viewOnly;
     this.existingImages = data.product?.images ? [...data.product.images] : [];
 
+    const payload = this.authService.getTokenPayload();
+    this.precioEditable = payload?.precio_editable ?? true;
+
     const sellByValues = data.product?.sell_by ?? ['unidad'];
     const sellByGroup: Record<string, boolean> = {};
     SELL_BY_OPTIONS.forEach(o => { sellByGroup[o.value] = sellByValues.includes(o.value); });
@@ -60,7 +66,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
-      price:                [data.product?.price ?? '', [Validators.required, Validators.min(0)]],
+      price:                [data.product?.price ?? '',
+        this.precioEditable ? [Validators.required, Validators.min(0)] : []],
       stock:                [0],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],

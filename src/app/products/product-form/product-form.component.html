@@ -39,17 +39,19 @@
                   placeholder="Descripción del producto..."></textarea>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Precio de venta (Bs.)</mat-label>
-        <input matInput type="number" formControlName="price" min="0" step="0.01"
-               placeholder="Ej: 60.00">
-        <mat-error *ngIf="productForm.get('price')?.hasError('required')">
-          El precio es requerido
-        </mat-error>
-        <mat-error *ngIf="productForm.get('price')?.hasError('min')">
-          El precio no puede ser negativo
-        </mat-error>
-      </mat-form-field>
+      <div *ngIf="precioEditable">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Precio de venta (Bs.)</mat-label>
+          <input matInput type="number" formControlName="price" min="0" step="0.01"
+                 placeholder="Ej: 60.00">
+          <mat-error *ngIf="productForm.get('price')?.hasError('required')">
+            El precio es requerido
+          </mat-error>
+          <mat-error *ngIf="productForm.get('price')?.hasError('min')">
+            El precio no puede ser negativo
+          </mat-error>
+        </mat-form-field>
+      </div>
 
       <div class="toggle-row">
         <mat-slide-toggle formControlName="is_active" color="primary">
