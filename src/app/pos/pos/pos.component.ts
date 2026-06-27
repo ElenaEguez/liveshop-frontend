@@ -368,6 +368,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /** Variantes con stock vendible en la sucursal actual. */
+  variantesConStock(product: ProductoPOS): ProductVariantPOS[] {
+    return (product.variantes ?? []).filter(v => (v.stock_extra ?? 0) > 0);
+  }
+
   /** Producto con talla/color activos en catálogo. */
   productoTieneVariantes(product: ProductoPOS): boolean {
     return !!(product.variantes && product.variantes.length > 0);
@@ -391,9 +396,19 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   agregarProducto(product: ProductoPOS, variant: ProductVariantPOS | null = null): void {
-    const variantes = product.variantes ?? [];
+    const todasVariantes = product.variantes ?? [];
+    const variantes = this.variantesConStock(product);
 
-    // Una sola variante: selección automática (evita cobrar sin variant_id)
+    if (todasVariantes.length > 0 && variantes.length === 0) {
+      this.snack.open(
+        `Sin stock en esta sucursal para "${product.name}".`,
+        'OK',
+        { duration: 4000, panelClass: 'snack-error' },
+      );
+      return;
+    }
+
+    // Una sola variante con stock: selección automática (evita cobrar sin variant_id)
     if (variant === null && variantes.length === 1) {
       const solo = variantes[0];
       if (solo.stock_extra <= 0) {

@@ -11,18 +11,14 @@
     </div>
 
     <div class="variante-modal-grid">
-      <button *ngFor="let v of productoParaVariante.variantes"
+      <button *ngFor="let v of variantesConStock(productoParaVariante)"
               class="variante-modal-btn"
-              [class.agotada]="v.stock_extra <= 0"
-              [disabled]="v.stock_extra <= 0"
               (click)="confirmarVariante(v)">
         <span class="variante-modal-label">
           {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
         </span>
         <span class="variante-modal-stock">
-          {{ v.stock_extra <= 0
-             ? 'Agotado'
-             : v.stock_extra + ' en stock' }}
+          {{ v.stock_extra + ' en stock' }}
         </span>
       </button>
     </div>
@@ -118,14 +114,11 @@
               {{ p.barcode || p.internal_code || '' }}
               · Stock: {{ p.stock_disponible }}
             </div>
-            <div class="search-item-variants" *ngIf="p.variantes.length > 0">
+            <div class="search-item-variants" *ngIf="variantesConStock(p).length > 0">
               <button mat-stroked-button class="variant-btn"
-                      *ngFor="let v of p.variantes"
-                      [class.agotada]="v.stock_extra <= 0"
-                      [disabled]="v.stock_extra <= 0"
+                      *ngFor="let v of variantesConStock(p)"
                       (click)="$event.stopPropagation(); agregarProducto(p, v)">
                 {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
-                <span *ngIf="v.stock_extra <= 0"> (agotado)</span>
               </button>
             </div>
           </div>
