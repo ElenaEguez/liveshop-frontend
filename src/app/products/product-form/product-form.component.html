@@ -53,6 +53,18 @@
         </mat-form-field>
       </div>
 
+      <!-- MODO SIMPLE - stock inicial visible solo para vendedores simples -->
+      <mat-form-field appearance="outline" *ngIf="modoSimple" class="field-stock-simple full-width">
+        <mat-label>Stock inicial</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="stock"
+          placeholder="¿Cuántas unidades tienes?">
+        <mat-hint>Puedes actualizarlo después desde Almacén</mat-hint>
+      </mat-form-field>
+
       <div class="toggle-row">
         <mat-slide-toggle formControlName="is_active" color="primary">
           Producto Activo

@@ -121,8 +121,11 @@
             <div class="search-item-variants" *ngIf="p.variantes.length > 0">
               <button mat-stroked-button class="variant-btn"
                       *ngFor="let v of p.variantes"
+                      [class.agotada]="v.stock_extra <= 0"
+                      [disabled]="v.stock_extra <= 0"
                       (click)="$event.stopPropagation(); agregarProducto(p, v)">
                 {{ v.talla }}{{ v.talla && v.color ? ' / ' : '' }}{{ v.color }}
+                <span *ngIf="v.stock_extra <= 0"> (agotado)</span>
               </button>
             </div>
           </div>

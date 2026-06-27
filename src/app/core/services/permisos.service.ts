@@ -14,6 +14,7 @@ export interface MisPermisos {
   vendor_id: number | null;
   vendor_nombre: string | null;
   estado_suscripcion: string;
+  modo_simple?: boolean;
   permisos: Record<string, PermisosModulo>;
   es_propietario: boolean;
   max_usuarios: number | null;

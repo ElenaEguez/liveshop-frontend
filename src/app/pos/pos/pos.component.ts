@@ -417,6 +417,13 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    if (variant && variant.stock_extra <= 0) {
+      this.snack.open('Esta variante está agotada', 'OK', {
+        duration: 2500, panelClass: 'snack-error',
+      });
+      return;
+    }
+
     const existing = this.carrito.find(
       c => Number(c.product.id) === Number(product.id) &&
            (c.variant?.id ?? null) === (variant?.id ?? null),

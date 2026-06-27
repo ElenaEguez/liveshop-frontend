@@ -42,6 +42,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   sellByOptions = SELL_BY_OPTIONS;
   sellByError = false;
   precioEditable = true;
+  /** MODO SIMPLE - muestra campo stock inicial al crear producto */
+  modoSimple = false;
 
   constructor(
     private fb: FormBuilder,
@@ -58,6 +60,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     const payload = this.authService.getTokenPayload();
     this.precioEditable = payload?.precio_editable ?? true;
+    this.modoSimple = payload?.modo_simple === true;
 
     const sellByValues = data.product?.sell_by ?? ['unidad'];
     const sellByGroup: Record<string, boolean> = {};

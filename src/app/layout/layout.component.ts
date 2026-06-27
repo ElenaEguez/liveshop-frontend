@@ -21,6 +21,8 @@ interface NavItem {
   route: string;
   jwtPerm: JwtPermKey;
   moduloApi: string;
+  /** MODO SIMPLE - ocultar en sidebar cuando modo_simple=true */
+  ocultarEnModoSimple?: boolean;
 }
 
 @Component({
@@ -35,6 +37,8 @@ export class LayoutComponent implements OnInit {
   vendorName = 'Mi Tienda';
   logoUrl: string | null = null;
   pendingEcomOrders = 0;
+  /** MODO SIMPLE - oculta módulos avanzados del sidebar */
+  modoSimple = false;
 
   private allNavItems: NavItem[] = [
     { label: 'Dashboard',       icon: 'dashboard',           route: '/dashboard',              jwtPerm: 'dashboard',        moduloApi: 'dashboard'        },
@@ -43,12 +47,12 @@ export class LayoutComponent implements OnInit {
     { label: 'Arqueos Caja',    icon: 'calculate',           route: '/vendor/arqueos',         jwtPerm: 'arqueos',          moduloApi: 'arqueos'          },
     { label: 'Ventas POS',      icon: 'receipt',             route: '/vendor/ventas',          jwtPerm: 'ventas_pos',       moduloApi: 'ventas_pos'       },
     { label: 'Devoluciones',    icon: 'assignment_return',   route: '/devoluciones',           jwtPerm: 'devoluciones',     moduloApi: 'devoluciones'     },
-    { label: 'Conteo físico',   icon: 'fact_check',          route: '/almacen/conteos',        jwtPerm: 'conteos',          moduloApi: 'conteos'          },
-    { label: 'Control conteos', icon: 'verified_user',       route: '/almacen/conteos-control', jwtPerm: 'conteos_control', moduloApi: 'conteos_control'  },
-    { label: 'Transferencias',  icon: 'swap_horiz',          route: '/almacen/transferencias', jwtPerm: 'transferencias',   moduloApi: 'transferencias'   },
+    { label: 'Conteo físico',   icon: 'fact_check',          route: '/almacen/conteos',        jwtPerm: 'conteos',          moduloApi: 'conteos',          ocultarEnModoSimple: true },
+    { label: 'Control conteos', icon: 'verified_user',       route: '/almacen/conteos-control', jwtPerm: 'conteos_control', moduloApi: 'conteos_control',  ocultarEnModoSimple: true },
+    { label: 'Transferencias',  icon: 'swap_horiz',          route: '/almacen/transferencias', jwtPerm: 'transferencias',   moduloApi: 'transferencias',   ocultarEnModoSimple: true },
     { label: 'Almacén',         icon: 'warehouse',           route: '/almacen',                jwtPerm: 'almacen',          moduloApi: 'almacen'          },
     { label: 'Inventario',      icon: 'inventory',           route: '/inventory',              jwtPerm: 'inventory',        moduloApi: 'inventory'        },
-    { label: 'Compras',         icon: 'shopping_basket',     route: '/compras',                jwtPerm: 'compras',          moduloApi: 'compras'          },
+    { label: 'Compras',         icon: 'shopping_basket',     route: '/compras',                jwtPerm: 'compras',          moduloApi: 'compras',          ocultarEnModoSimple: true },
     { label: 'Proveedores',     icon: 'business',            route: '/compras/proveedores',    jwtPerm: 'proveedores',      moduloApi: 'proveedores'      },
     { label: 'Productos',       icon: 'inventory_2',         route: '/products',               jwtPerm: 'products',         moduloApi: 'products'         },
     { label: 'Categorías',      icon: 'category',            route: '/categories',             jwtPerm: 'categories',       moduloApi: 'categories'       },
@@ -99,9 +103,20 @@ export class LayoutComponent implements OnInit {
 
   get navItems(): NavItem[] {
     return this.allNavItems.filter(item => {
+      if (this.modoSimple && item.ocultarEnModoSimple) return false;
       if (!this.jwtPermOk(item.jwtPerm)) return false;
       return this.seeModuleViaApi(item.moduloApi);
     });
+  }
+
+  /** MODO SIMPLE - visibilidad de ítem en sidebar */
+  showNavItem(item: NavItem): boolean {
+    return !(this.modoSimple && item.ocultarEnModoSimple);
+  }
+
+  private applyModoSimpleFromPayload(payload: Record<string, unknown> | null): void {
+    if (!payload) return;
+    this.modoSimple = payload['modo_simple'] === true;
   }
 
   constructor(
@@ -134,13 +149,19 @@ export class LayoutComponent implements OnInit {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         this.vendorName = payload.store_name || payload.username || payload.email || 'Mi Tienda';
+        this.applyModoSimpleFromPayload(payload);
       } catch {
         // keep default
       }
     }
 
     if (this.authService.isAuthenticated()) {
-      this.permisosService.cargarPermisos().subscribe({ error: () => {} });
+      this.permisosService.cargarPermisos().subscribe({
+        next: (permisos) => {
+          this.modoSimple = permisos?.modo_simple ?? this.modoSimple;
+        },
+        error: () => {},
+      });
     }
 
     this.ecomOrdersService.getPendingCount().subscribe({

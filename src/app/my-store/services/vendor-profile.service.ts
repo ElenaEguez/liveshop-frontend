@@ -20,6 +20,7 @@ export interface VendorProfile {
   is_verified: boolean;
   created_at: string;
   updated_at: string;
+  modo_simple?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
