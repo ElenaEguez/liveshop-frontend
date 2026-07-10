@@ -148,7 +148,6 @@ export class OrderListComponent implements OnInit {
         const ref = this.dialog.open(OrderDetailComponent, {
           width: '860px',
           maxWidth: '95vw',
-          height: 'auto',
           maxHeight: '90vh',
           autoFocus: false,
           disableClose: false,
