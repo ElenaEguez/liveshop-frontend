@@ -46,7 +46,7 @@ export class LayoutComponent implements OnInit {
     { label: 'Vender',          icon: 'point_of_sale',       route: '/vendor/pos',             jwtPerm: 'pos',              moduloApi: 'pos'              },
     { label: 'Arqueos Caja',    icon: 'calculate',           route: '/vendor/arqueos',         jwtPerm: 'arqueos',          moduloApi: 'arqueos'          },
     { label: 'Ventas POS',      icon: 'receipt',             route: '/vendor/ventas',          jwtPerm: 'ventas_pos',       moduloApi: 'ventas_pos'       },
-    { label: 'Devoluciones',    icon: 'assignment_return',   route: '/devoluciones',           jwtPerm: 'devoluciones',     moduloApi: 'devoluciones'     },
+    { label: 'Devoluciones',    icon: 'assignment_return',   route: '/devoluciones',           jwtPerm: 'devoluciones',     moduloApi: 'devoluciones',     ocultarEnModoSimple: true },
     { label: 'Conteo físico',   icon: 'fact_check',          route: '/almacen/conteos',        jwtPerm: 'conteos',          moduloApi: 'conteos',          ocultarEnModoSimple: true },
     { label: 'Control conteos', icon: 'verified_user',       route: '/almacen/conteos-control', jwtPerm: 'conteos_control', moduloApi: 'conteos_control',  ocultarEnModoSimple: true },
     { label: 'Transferencias',  icon: 'swap_horiz',          route: '/almacen/transferencias', jwtPerm: 'transferencias',   moduloApi: 'transferencias',   ocultarEnModoSimple: true },
@@ -61,8 +61,8 @@ export class LayoutComponent implements OnInit {
     { label: 'Mi Tienda',       icon: 'storefront',          route: '/my-store',               jwtPerm: 'my_store',         moduloApi: 'my_store'         },
     { label: 'Lives',           icon: 'live_tv',             route: '/live-sessions',          jwtPerm: 'live_sessions',    moduloApi: 'livestream'       },
     { label: 'Pedidos',         icon: 'shopping_cart',       route: '/orders',                 jwtPerm: 'orders',           moduloApi: 'pedidos'          },
-    { label: 'Pagos',           icon: 'credit_card',         route: '/payments',               jwtPerm: 'payments',         moduloApi: 'pagos'            },
-    { label: 'Pedidos Web',     icon: 'shopping_bag',        route: '/ecommerce-orders',       jwtPerm: 'ecommerce_orders', moduloApi: 'ecommerce_orders' },
+    { label: 'Pagos',           icon: 'credit_card',         route: '/payments',               jwtPerm: 'payments',         moduloApi: 'pagos',            ocultarEnModoSimple: true },
+    { label: 'Pedidos Web',     icon: 'shopping_bag',        route: '/ecommerce-orders',       jwtPerm: 'ecommerce_orders', moduloApi: 'ecommerce_orders', ocultarEnModoSimple: true },
   ];
 
   private jwtPermOk(key: JwtPermKey): boolean {

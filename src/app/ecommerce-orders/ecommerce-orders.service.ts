@@ -8,6 +8,7 @@ export interface EcomOrderItem {
   id: number;
   product_id: number;
   product_name: string;
+  product_code?: string;
   product_image?: string;
   variant_id?: number;
   variant_detail?: string;

@@ -81,6 +81,7 @@
           </div>
           <div class="item-info">
             <span class="item-name">{{ item.product_name }}</span>
+            <span class="item-code" *ngIf="item.product_code">Código: {{ item.product_code }}</span>
             <span class="item-variant" *ngIf="item.variant_detail">{{ item.variant_detail }}</span>
           </div>
           <div class="item-qty">× {{ item.quantity }}</div>

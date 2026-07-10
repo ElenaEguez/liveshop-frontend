@@ -28,7 +28,7 @@ export class OrderListComponent implements OnInit {
     { label: 'Cancelados',  value: 'cancelled' },
   ];
 
-  readonly displayedColumns = ['id', 'customer', 'total', 'payment', 'delivery', 'status', 'actions'];
+  readonly displayedColumns = ['id', 'customer', 'products', 'total', 'payment', 'delivery', 'status', 'actions'];
 
   orders: EcomOrder[] = [];
   totalCount = 0;
@@ -140,6 +140,13 @@ export class OrderListComponent implements OnInit {
 
   get totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize);
+  }
+
+  getProductCodes(order: EcomOrder): string {
+    const codes = (order.items || [])
+      .map(item => item.product_code?.trim())
+      .filter((code): code is string => !!code);
+    return [...new Set(codes)].join(', ');
   }
 
   openDetail(order: EcomOrder): void {
