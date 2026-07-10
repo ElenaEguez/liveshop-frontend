@@ -1,5 +1,4 @@
-<div class="detail-dialog">
-  <div mat-dialog-title class="detail-header">
+<div mat-dialog-title class="detail-header">
     <div>
       <h2 class="detail-title">Pedido #{{ order.id }}</h2>
       <span class="status-badge" [ngClass]="'status-' + normalizeStatus(order.status)">
@@ -197,11 +196,9 @@
       <!-- Estados finales -->
       <ng-container *ngSwitchDefault>
         <span class="status-final">
-          Pedido {{ statusLabels[order.status] || order.status }}
+          Pedido {{ statusLabels[normalizeStatus(order.status)] || normalizeStatus(order.status) }}
         </span>
       </ng-container>
 
     </ng-container>
   </mat-dialog-actions>
-
-</div>
