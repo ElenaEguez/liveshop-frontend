@@ -78,7 +78,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       is_active:            [data.product?.is_active ?? true],
       is_active_live:       [data.product?.is_active_live ?? true],
       is_active_pos:        [data.product?.is_active_pos ?? true],
-      is_active_web:        [data.product?.is_active_web ?? true],
+      is_active_web:        [data.product?.is_active_web ?? (this.modoSimple ? false : true)],
       web_is_bestseller:    [data.product?.web_is_bestseller ?? false],
       web_is_new:           [data.product?.web_is_new ?? false],
       compare_at_price:     [data.product?.compare_at_price ?? null],
@@ -612,7 +612,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const val = this.productForm.value;
 
     Object.keys(val).forEach(key => {
-      if (key === 'price') {
+      if (key === 'price' || key === 'stock') {
         return;
       }
       if (key === 'variants') {
@@ -641,6 +641,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       if (priceValue !== null && priceValue !== undefined && priceValue !== '') {
         formData.append('price', String(priceValue));
       }
+    }
+    if (this.modoSimple) {
+      const stockVal = this.productForm.get('stock')?.value;
+      formData.append('stock', String(stockVal ?? 0));
     }
 
     this.selectedFiles.forEach(file => formData.append('images', file));

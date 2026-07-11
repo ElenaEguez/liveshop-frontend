@@ -141,12 +141,12 @@
       <div class="sell-by-grid">
         <mat-checkbox formControlName="is_active_live" color="primary">LiveShop</mat-checkbox>
         <mat-checkbox formControlName="is_active_pos" color="primary">Tienda física (POS)</mat-checkbox>
-        <mat-checkbox formControlName="is_active_web" color="primary">Web</mat-checkbox>
+        <mat-checkbox *ngIf="!modoSimple" formControlName="is_active_web" color="primary">Web</mat-checkbox>
       </div>
     </div>
 
     <!-- SECCIÓN: Destacados en tienda web -->
-    <div class="form-section" *ngIf="productForm.get('is_active_web')?.value">
+    <div class="form-section" *ngIf="!modoSimple && productForm.get('is_active_web')?.value">
       <h3 class="section-title">Destacados en tienda web</h3>
       <p class="section-hint">
         Controla en qué secciones de la página principal aparece el producto y las etiquetas de precio.
