@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormArray, ValidationErrors, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -8,6 +8,7 @@ import { printHtmlInHiddenIframe } from '../../shared/print-utils';
 import JsBarcode from 'jsbarcode';
 import { Product, Category, Variant, ProductVariant, ProductService } from '../products.service';
 import { AuthService } from '../../auth/auth.service';
+import { PermisosService } from '../../core/services/permisos.service';
 import { httpErrorMessage } from '../../shared/api-utils';
 import { markAllAsTouched } from '../../shared/form-utils';
 import { ean13ForRender, generateEan13, isValidEan13 } from '../../shared/barcode-utils';
@@ -49,6 +50,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private productService: ProductService,
     private authService: AuthService,
+    private permisosService: PermisosService,
     private sanitizer: DomSanitizer,
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<ProductFormComponent>,
@@ -60,7 +62,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     const payload = this.authService.getTokenPayload();
     this.precioEditable = payload?.precio_editable ?? true;
-    this.modoSimple = payload?.modo_simple === true;
+    this.modoSimple = this.resolveModoSimple(payload?.modo_simple);
 
     const sellByValues = data.product?.sell_by ?? ['unidad'];
     const sellByGroup: Record<string, boolean> = {};
@@ -69,10 +71,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.productForm = this.fb.group({
       name:                 [data.product?.name ?? '', Validators.required],
       description:          [data.product?.description ?? ''],
-      price:                [data.product?.price ?? '',
-        this.precioEditable
-          ? [Validators.required, Validators.min(0)]
-          : [Validators.min(0)]],
+      price:                [data.product?.price ?? '', this.buildPriceValidators()],
       stock:                [0],
       category:             [data.product?.category ?? '', Validators.required],
       is_active:            [data.product?.is_active ?? true],
@@ -95,6 +94,60 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCategories();
+    this.syncModoSimpleFromPermisos();
+  }
+
+  private resolveModoSimple(value: unknown): boolean {
+    return value === true || value === 'true' || value === 1 || value === '1';
+  }
+
+  private buildPriceValidators() {
+    if (this.modoSimple && this.precioEditable) {
+      return [Validators.required, Validators.min(0)];
+    }
+    return [this.optionalMinPriceValidator];
+  }
+
+  private optionalMinPriceValidator = (control: AbstractControl): ValidationErrors | null => {
+    const raw = control.value;
+    if (raw === null || raw === undefined || raw === '') {
+      return null;
+    }
+    const value = Number(raw);
+    if (Number.isNaN(value) || value < 0) {
+      return { min: { min: 0, actual: raw } };
+    }
+    return null;
+  };
+
+  private applyPriceValidators(): void {
+    const priceCtrl = this.productForm.get('price');
+    if (!priceCtrl) {
+      return;
+    }
+    priceCtrl.setValidators(this.buildPriceValidators());
+    priceCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private syncModoSimpleFromPermisos(): void {
+    const apply = (modoSimple: boolean) => {
+      if (this.modoSimple === modoSimple) {
+        return;
+      }
+      this.modoSimple = modoSimple;
+      this.applyPriceValidators();
+    };
+
+    const cached = this.permisosService.permisos;
+    if (cached) {
+      apply(this.resolveModoSimple(cached.modo_simple));
+      return;
+    }
+
+    this.permisosService.cargarPermisos().subscribe({
+      next: (permisos) => apply(this.resolveModoSimple(permisos.modo_simple)),
+      error: () => {},
+    });
   }
 
   /** Preferir variantes de BD (compras/POS); fallback al JSON legacy. */
@@ -572,6 +625,25 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private getBlockingValidationErrors(): string[] {
+    const errors: string[] = [];
+    if (this.productForm.get('name')?.invalid) {
+      errors.push('nombre');
+    }
+    if (this.productForm.get('category')?.invalid) {
+      errors.push('categoría');
+    }
+    if (this.modoSimple && this.precioEditable && this.productForm.get('price')?.invalid) {
+      errors.push('precio');
+    } else if (this.productForm.get('price')?.hasError('min')) {
+      errors.push('precio válido');
+    }
+    if (!this.hasSellBySelected()) {
+      errors.push('al menos una unidad de venta');
+    }
+    return errors;
+  }
+
   onSubmit(): void {
     this.sellByError = false;
     if (this.saving) {
@@ -596,9 +668,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       );
       return;
     }
-    if (this.productForm.invalid || this.sellByError) {
+    const blockingErrors = this.getBlockingValidationErrors();
+    if (blockingErrors.length) {
       this.snackBar.open(
-        'Completa los campos obligatorios: nombre, categoría y al menos una unidad de venta.',
+        `Completa los campos obligatorios: ${blockingErrors.join(', ')}.`,
         'Cerrar',
         { duration: 5000, panelClass: ['snack-error'] },
       );
