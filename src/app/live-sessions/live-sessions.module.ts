@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { LiveSessionsRoutingModule } from './live-sessions-routing.module';
 import { LiveSessionListComponent } from './live-session-list/live-session-list.component';
@@ -38,7 +39,8 @@ import { LiveSessionDetailComponent } from './live-session-detail/live-session-d
     MatSelectModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatSnackBarModule
   ]
 })
 export class LiveSessionsModule { }
