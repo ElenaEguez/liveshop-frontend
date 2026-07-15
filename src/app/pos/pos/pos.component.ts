@@ -57,7 +57,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   carrito: CartItem[] = [];
   clienteNombre = 'Genérico';
   clienteTelefono = '';
+  /** Valor del input: monto Bs. o porcentaje según descuentoTipo. */
   descuento = 0;
+  descuentoTipo: 'MONTO' | 'PORCENTAJE' = 'MONTO';
   montoRecibido: number | null = null;
   esCredito = false;
   plazoDias: number | null = null;
@@ -520,6 +522,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clienteNombre = 'Genérico';
     this.clienteTelefono = '';
     this.descuento = 0;
+    this.descuentoTipo = 'MONTO';
     this.montoRecibido = null;
     this.esCredito = false;
     this.plazoDias = null;
@@ -566,11 +569,16 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Cupón ───────────────────────────────────────────────────────────────────
 
+  /** Base del cupón = misma del backend: subtotal − descuento manual efectivo. */
+  get baseParaCupon(): number {
+    return Math.max(0, this.round2(this.subtotal - this.descuentoEfectivo));
+  }
+
   aplicarCupon(): void {
     if (!this.cuponCodigo.trim()) return;
     this.cuponLoading = true;
     this.cuponError = '';
-    this.posService.validarCupon(this.cuponCodigo.trim(), this.subtotal).subscribe({
+    this.posService.validarCupon(this.cuponCodigo.trim(), this.baseParaCupon).subscribe({
       next: res => {
         this.cuponLoading = false;
         if (res.valido) {
@@ -578,6 +586,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
             descuento: parseFloat(res.descuento_aplicado || '0'),
             codigo: this.cuponCodigo.trim(),
           };
+          this.cuponError = '';
         } else {
           this.cuponError = res.error || 'Cupón inválido.';
           this.cuponAplicado = null;
@@ -596,13 +605,57 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cuponError = '';
   }
 
+  /** Al cambiar descuento manual: invalidar cupón (debe reaplicarse sobre la nueva base). */
+  onDescuentoManualChange(): void {
+    if (this.descuentoTipo === 'PORCENTAJE') {
+      const n = Number(this.descuento);
+      if (!Number.isFinite(n) || n < 0) {
+        this.descuento = 0;
+      } else if (n > 100) {
+        this.descuento = 100;
+      }
+    } else {
+      const n = Number(this.descuento);
+      if (!Number.isFinite(n) || n < 0) {
+        this.descuento = 0;
+      }
+    }
+    if (this.cuponAplicado || this.cuponCodigo) {
+      this.cuponAplicado = null;
+      this.cuponError = 'Cupón invalidado: el descuento manual cambió. Vuelve a aplicar el cupón.';
+    }
+  }
+
+  onDescuentoTipoChange(): void {
+    const hadCupon = !!(this.cuponAplicado || this.cuponCodigo);
+    this.descuento = 0;
+    if (hadCupon) {
+      this.cuponAplicado = null;
+      this.cuponError = 'Cupón invalidado: el descuento manual cambió. Vuelve a aplicar el cupón.';
+    }
+  }
+
   // ── Cálculos ────────────────────────────────────────────────────────────────
 
+  private round2(n: number): number {
+    return Math.round((Number(n) || 0) * 100) / 100;
+  }
+
   get subtotal(): number {
-    return this.carrito.reduce((s, c) => {
-      const precioEfectivo = Math.max(0, c.precio_unitario - (c.descuento_unitario || 0));
-      return s + precioEfectivo * c.cantidad;
-    }, 0);
+    return this.round2(this.carrito.reduce((s, c) => {
+      const precioEfectivo = Math.max(0, Number(c.precio_unitario) - (Number(c.descuento_unitario) || 0));
+      return s + precioEfectivo * (Number(c.cantidad) || 0);
+    }, 0));
+  }
+
+  /** Monto de descuento manual en Bs. (único usado en TOTAL y payload). */
+  get descuentoEfectivo(): number {
+    const raw = Number(this.descuento) || 0;
+    if (this.descuentoTipo === 'PORCENTAJE') {
+      const pct = Math.min(100, Math.max(0, raw));
+      return this.round2(this.subtotal * pct / 100);
+    }
+    return this.round2(Math.max(0, raw));
   }
 
   get descuentoCupon(): number {
@@ -610,8 +663,12 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get total(): number {
-    const desc = Number(this.descuento) || 0;
-    return Math.max(0, this.subtotal - desc - this.descuentoCupon);
+    return Math.max(0, this.round2(this.subtotal - this.descuentoEfectivo - this.descuentoCupon));
+  }
+
+  get descuentoPctSobreSubtotal(): number {
+    if (this.subtotal <= 0) return 0;
+    return this.round2((this.descuentoEfectivo / this.subtotal) * 100);
   }
 
   get vuelto(): number {
@@ -709,8 +766,24 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       return;
     }
+
+    if (this.subtotal > 0 && this.descuentoEfectivo > 0
+        && this.descuentoEfectivo / this.subtotal > 0.25) {
+      const ok = window.confirm(
+        `Estás aplicando un descuento de ${this.moneda} ${this.descuentoEfectivo.toFixed(2)} ` +
+        `(${this.descuentoPctSobreSubtotal}%). ¿Confirmar?`,
+      );
+      if (!ok) return;
+    }
+
+    this.enviarVenta();
+  }
+
+  private enviarVenta(): void {
+    if (!this.selectedSucursal || !this.selectedCaja || !this.turnoActivo) return;
     this.cobrando = true;
 
+    const totalEsperado = this.total;
     const payload: VentaPOSCreatePayload = {
       sucursal_id: this.selectedSucursal,
       caja_id: this.selectedCaja ?? null,
@@ -721,9 +794,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         product_id: c.product.id,
         variant_id: c.variant?.id ?? null,
         cantidad: c.cantidad,
-        precio_unitario: Math.max(0, c.precio_unitario - (c.descuento_unitario || 0)),
+        precio_unitario: Math.max(0, Number(c.precio_unitario) - (Number(c.descuento_unitario) || 0)),
       })),
-      descuento: this.descuento,
+      descuento: this.descuentoEfectivo,
+      total_esperado: totalEsperado,
       cupon_codigo: this.cuponAplicado?.codigo ?? null,
       monto_recibido: this.montoRecibido ?? null,
       es_credito: this.esCredito,
@@ -732,6 +806,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       canal_venta: this.canalVenta,
       direccion_envio: this.esEnvio ? this.direccionEnvio : null,
     };
+
+    if (this.descuentoTipo === 'PORCENTAJE') {
+      payload.discount_percentage = Math.min(100, Math.max(0, Number(this.descuento) || 0));
+      payload.discount_type = 'PERCENT';
+    } else {
+      payload.discount_percentage = null;
+      payload.discount_type = 'FIXED';
+    }
 
     if (this.modoPago === 'mixto' && !this.esCredito) {
       payload.pagos = this.pagosMixtos.map(p => ({

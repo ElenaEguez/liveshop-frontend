@@ -271,15 +271,32 @@
 
         <div class="footer-row discount-row">
           <span>Descuento</span>
-          <div class="discount-input-wrap">
-            <span>{{ moneda }}</span>
-            <input type="number" [(ngModel)]="descuento" min="0" class="discount-input">
+          <div class="discount-controls">
+            <mat-button-toggle-group [(ngModel)]="descuentoTipo" name="descuentoTipo"
+                                     (ngModelChange)="onDescuentoTipoChange()"
+                                     class="descuento-tipo-toggle" aria-label="Tipo de descuento">
+              <mat-button-toggle value="MONTO">{{ moneda }}</mat-button-toggle>
+              <mat-button-toggle value="PORCENTAJE">%</mat-button-toggle>
+            </mat-button-toggle-group>
+            <div class="discount-input-wrap">
+              <span *ngIf="descuentoTipo === 'MONTO'">{{ moneda }}</span>
+              <span *ngIf="descuentoTipo === 'PORCENTAJE'">%</span>
+              <input type="number" [(ngModel)]="descuento" min="0"
+                     [attr.max]="descuentoTipo === 'PORCENTAJE' ? 100 : null"
+                     (ngModelChange)="onDescuentoManualChange()"
+                     class="discount-input">
+            </div>
           </div>
         </div>
 
-        <div class="footer-row" *ngIf="descuento > 0" style="color:#e53935;">
+        <div class="footer-row" *ngIf="descuentoEfectivo > 0" style="color:#e53935;">
           <span>Descuento aplicado</span>
-          <strong>-{{ moneda }} {{ descuento | number:'1.2-2' }}</strong>
+          <strong>
+            -{{ moneda }} {{ descuentoEfectivo | number:'1.2-2' }}
+            <span *ngIf="descuentoTipo === 'PORCENTAJE'">
+              ({{ descuento | number:'1.0-2' }}%)
+            </span>
+          </strong>
         </div>
 
         <div class="footer-row cupon-row" *ngIf="cuponAplicado">

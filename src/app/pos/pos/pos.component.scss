@@ -370,6 +370,22 @@
     font-size: 13px;
   }
 
+  .discount-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .descuento-tipo-toggle {
+    height: 28px;
+    ::ng-deep .mat-button-toggle-label-content {
+      line-height: 28px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+
   .discount-input-wrap {
     display: flex;
     align-items: center;

@@ -187,6 +187,8 @@ export interface VentaPOSCreatePayload {
   descuento?: number;
   discount_percentage?: number | null;
   discount_type?: string | null;
+  /** Total mostrado en pantalla al cobrar; el backend lo valida si viene. */
+  total_esperado?: number;
   canal_venta?: string;
   direccion_envio?: string | null;
   cupon_codigo?: string | null;
