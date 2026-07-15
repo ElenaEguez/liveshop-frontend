@@ -62,7 +62,14 @@ export class CobrarCreditoDialogComponent implements OnInit {
   get porcentajePagado(): number { return this.total > 0 ? Math.min(100, (this.montoPagado / this.total) * 100) : 0; }
 
   registrarPago(): void {
-    if (!this.montoNuevo || this.montoNuevo <= 0) return;
+    if (!this.montoNuevo || this.montoNuevo <= 0 || !this.metodoSeleccionado) {
+      if (!this.metodoSeleccionado) {
+        this.snack.open('Seleccione un método de cobro.', 'OK', {
+          duration: 3000, panelClass: 'snack-error',
+        });
+      }
+      return;
+    }
     this.saving = true;
     this.posService.registrarPagoCredito(this.venta.id, {
       monto: this.montoNuevo,

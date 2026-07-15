@@ -98,8 +98,7 @@
 
       <mat-form-field appearance="outline" class="field-metodo">
         <mat-label>Método de cobro</mat-label>
-        <mat-select [(ngModel)]="metodoSeleccionado">
-          <mat-option [value]="null">— Sin especificar —</mat-option>
+        <mat-select [(ngModel)]="metodoSeleccionado" required>
           <mat-option *ngFor="let m of metodosPago" [value]="m.id">{{ m.nombre }}</mat-option>
         </mat-select>
       </mat-form-field>
@@ -130,7 +129,7 @@
       Cobrar todo
     </button>
     <button mat-raised-button color="primary"
-            [disabled]="!montoNuevo || montoNuevo <= 0 || saving"
+            [disabled]="!montoNuevo || montoNuevo <= 0 || !metodoSeleccionado || saving"
             (click)="registrarPago()" class="btn-registrar">
       <mat-spinner *ngIf="saving" diameter="16"></mat-spinner>
       <mat-icon *ngIf="!saving">payments</mat-icon>
