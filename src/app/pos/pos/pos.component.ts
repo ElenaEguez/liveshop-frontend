@@ -799,7 +799,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       descuento: this.descuentoEfectivo,
       total_esperado: totalEsperado,
       cupon_codigo: this.cuponAplicado?.codigo ?? null,
-      monto_recibido: this.montoRecibido ?? null,
+      monto_recibido: this.esCredito ? null : (this.montoRecibido ?? null),
       es_credito: this.esCredito,
       plazo_dias: this.esCredito ? this.plazoDias : null,
       notas: this.notas,
