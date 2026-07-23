@@ -144,8 +144,8 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   get maxStock(): number {
     if (this.selectedVariant) {
-      const vs = this.selectedVariant.stock;
-      if (vs != null && vs > 0) return vs;
+      const vs = Number(this.selectedVariant.stock);
+      if (!Number.isNaN(vs) && vs > 0) return vs;
     }
     return this.selectedProduct?.available_quantity ?? this.selectedProduct?.stock ?? 1;
   }
@@ -219,7 +219,6 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
     document.body.style.height = 'auto';
     this.slug = this.route.snapshot.paramMap.get('slug') || '';
     this.loadSession();
-    this.loadPromociones();
   }
 
   ngOnDestroy(): void {
@@ -231,7 +230,9 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   }
 
   private loadPromociones(): void {
-    this.http.get<any[]>(`/api/v1/vendors/public/${this.slug}/promociones/`).subscribe({
+    const slug = this.vendorSlug || this.slug;
+    if (!slug) return;
+    this.http.get<any[]>(`/api/v1/vendors/public/${slug}/promociones/`).subscribe({
       next: data => {
         this.promociones = data;
         if (data.length > 1) {
@@ -292,6 +293,8 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
         this.loading = false;
         if (data.status !== 'live') {
           this.error = 'Este live no está activo en este momento.';
+        } else {
+          this.loadPromociones();
         }
       },
       error: () => {
@@ -322,12 +325,19 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   }
 
   selectVariant(variant: any): void {
-    if (variant.stock === 0) return;
+    if (!this.isVariantAvailable(variant)) return;
     this.selectedVariant = variant;
     this.orderForm.patchValue({ quantity: 1 });
     if (!this.allowMultipleCart) {
       this.scrollToId('section-form');
     }
+  }
+
+  isVariantAvailable(variant: any): boolean {
+    if (!variant) return false;
+    if (variant.disponible === false) return false;
+    const stock = Number(variant.stock);
+    return !Number.isNaN(stock) && stock > 0;
   }
 
   clearSelection(): void {
@@ -462,9 +472,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   updateCartQty(index: number, delta: number): void {
     const item = this.cart[index];
-    const maxQ = item.variant
-      ? item.variant.stock
-      : (item.product.available_quantity ?? item.product.stock);
+    const variantStock = item.variant != null ? Number(item.variant.stock) : NaN;
+    const maxQ = (!Number.isNaN(variantStock) && variantStock > 0)
+      ? variantStock
+      : (item.product.available_quantity ?? item.product.stock ?? 1);
     const newQ = item.quantity + delta;
     if (newQ < 1 || newQ > maxQ) return;
     item.quantity = newQ;

@@ -164,14 +164,14 @@
             <button *ngFor="let variant of selectedProduct.variants"
                     class="variant-btn"
                     [class.selected]="selectedVariant === variant"
-                    [disabled]="variant.stock === 0"
+                    [disabled]="!isVariantAvailable(variant)"
                     (click)="selectVariant(variant)">
               <span class="variant-label">
                 <ng-container *ngIf="variant.size">Talla {{ variant.size }}</ng-container>
                 <ng-container *ngIf="variant.size && variant.color"> · </ng-container>
                 <ng-container *ngIf="variant.color">{{ variant.color }}</ng-container>
               </span>
-              <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
+              <span *ngIf="!isVariantAvailable(variant)" class="variant-stock">Sin stock</span>
             </button>
           </div>
           <div class="variant-hint-row">
@@ -514,14 +514,14 @@
               <button *ngFor="let variant of selectedProduct.variants"
                       class="variant-btn"
                       [class.selected]="selectedVariant === variant"
-                      [disabled]="variant.stock === 0"
+                      [disabled]="!isVariantAvailable(variant)"
                       (click)="selectVariant(variant)">
                 <span class="variant-label">
                   <ng-container *ngIf="variant.size">Talla {{ variant.size }}</ng-container>
                   <ng-container *ngIf="variant.size && variant.color"> · </ng-container>
                   <ng-container *ngIf="variant.color">{{ variant.color }}</ng-container>
                 </span>
-                <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
+                <span *ngIf="!isVariantAvailable(variant)" class="variant-stock">Sin stock</span>
               </button>
             </div>
             <div class="variant-hint-row">
