@@ -139,7 +139,7 @@
             <img [src]="getProductImageUrl(selectedProduct.images[0])"
                  [alt]="selectedProduct.name">
             <button type="button"
-                    class="img-eye-btn detail-eye"
+                    class="img-eye-btn"
                     *ngIf="selectedProduct.images?.length > 1"
                     (click)="openGallery(selectedProduct, $event)"
                     aria-label="Ver fotos">
@@ -489,7 +489,7 @@
               <img [src]="getProductImageUrl(selectedProduct.images[0])"
                    [alt]="selectedProduct.name">
               <button type="button"
-                      class="img-eye-btn detail-eye"
+                      class="img-eye-btn"
                       *ngIf="selectedProduct.images?.length > 1"
                       (click)="openGallery(selectedProduct, $event)"
                       aria-label="Ver fotos">
