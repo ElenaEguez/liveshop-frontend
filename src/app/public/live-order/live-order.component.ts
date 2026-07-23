@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -94,6 +94,12 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
   cuponDescuento = '0';
   cuponError = '';
 
+  // ── Image gallery lightbox ────────────────────────────────────────────────
+  galleryOpen = false;
+  galleryImages: string[] = [];
+  galleryIndex = 0;
+  galleryTitle = '';
+
   // ── Computed ──────────────────────────────────────────────────────────────
   selectedCategory = 'all';
   currentPage = 1;
@@ -175,6 +181,10 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   get cuponDescuentoNum(): number {
     return parseFloat(this.cuponDescuento) || 0;
+  }
+
+  get hasVendorWhatsApp(): boolean {
+    return !!this.cleanPhone(this.session?.whatsapp || '');
   }
 
   constructor(
@@ -581,6 +591,120 @@ export class LiveOrderComponent implements OnInit, OnDestroy {
 
   trackByProductId(_: number, item: any): number {
     return item.id;
+  }
+
+  // ── Images / gallery / sizes / WhatsApp ───────────────────────────────────
+
+  getProductImageUrl(img: any): string {
+    if (!img) return '';
+    return typeof img === 'string' ? img : (img.image || '');
+  }
+
+  getProductImages(product: any): string[] {
+    if (!product?.images?.length) return [];
+    return product.images
+      .map((img: any) => this.getProductImageUrl(img))
+      .filter((url: string) => !!url);
+  }
+
+  getProductSizes(product: any): string[] {
+    if (!product?.variants?.length) return [];
+    const seen = new Set<string>();
+    const available: string[] = [];
+    const all: string[] = [];
+    for (const v of product.variants) {
+      const size = (v.size || '').toString().trim();
+      if (!size || seen.has(size)) continue;
+      seen.add(size);
+      all.push(size);
+      if (v.stock !== 0 && v.disponible !== false) {
+        available.push(size);
+      }
+    }
+    return available.length ? available : all;
+  }
+
+  openGallery(product: any, event?: Event): void {
+    event?.stopPropagation();
+    const imgs = this.getProductImages(product);
+    if (!imgs.length) return;
+    this.galleryImages = imgs;
+    this.galleryIndex = 0;
+    this.galleryTitle = product?.name || '';
+    this.galleryOpen = true;
+  }
+
+  closeGallery(): void {
+    this.galleryOpen = false;
+    this.galleryImages = [];
+    this.galleryIndex = 0;
+    this.galleryTitle = '';
+  }
+
+  galleryNext(event?: Event): void {
+    event?.stopPropagation();
+    if (this.galleryImages.length < 2) return;
+    this.galleryIndex = (this.galleryIndex + 1) % this.galleryImages.length;
+  }
+
+  galleryPrev(event?: Event): void {
+    event?.stopPropagation();
+    if (this.galleryImages.length < 2) return;
+    this.galleryIndex =
+      (this.galleryIndex - 1 + this.galleryImages.length) % this.galleryImages.length;
+  }
+
+  selectGalleryThumb(index: number, event?: Event): void {
+    event?.stopPropagation();
+    this.galleryIndex = index;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.galleryOpen) this.closeGallery();
+  }
+
+  openWhatsAppConsult(product?: any, event?: Event): void {
+    event?.stopPropagation();
+    const phone = this.cleanPhone(this.session?.whatsapp || '');
+    if (!phone) {
+      this.snackBar.open('Esta tienda no tiene WhatsApp configurado.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    const p = product || this.selectedProduct;
+    if (!p) return;
+
+    const lines = [
+      `Hola! Vi el live "${this.session?.title || ''}" y me interesa:`,
+      `• ${p.name}`,
+      `• Precio: Bs. ${Number(p.price).toFixed(2)}`,
+    ];
+    const desc = (p.description || '').toString().trim();
+    if (desc) {
+      lines.push(`• ${desc.length > 220 ? desc.slice(0, 220) + '…' : desc}`);
+    }
+    if (this.selectedVariant && this.selectedProduct?.id === p.id && this.variantDetail) {
+      lines.push(`• ${this.variantDetail}`);
+    } else {
+      const sizes = this.getProductSizes(p);
+      if (sizes.length) lines.push(`• Tallas: ${sizes.join(', ')}`);
+    }
+    lines.push('', '¿Me pueden atender?');
+
+    const text = encodeURIComponent(lines.join('\n'));
+    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+  }
+
+  cleanPhone(phone: string): string {
+    if (!phone) return '';
+    let cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '591' + cleaned.slice(1);
+    }
+    if (/^[67]\d{7}$/.test(cleaned)) {
+      cleaned = '591' + cleaned;
+    }
+    return cleaned;
   }
 
   private normalizeDepartment(raw: any): string {

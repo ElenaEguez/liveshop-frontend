@@ -86,11 +86,19 @@
                (click)="selectProduct(product)">
             <div class="product-image">
               <img *ngIf="product.images?.length"
-                   [src]="product.images[0].image || product.images[0]"
+                   [src]="getProductImageUrl(product.images[0])"
                    [alt]="product.name">
               <div *ngIf="!product.images?.length" class="product-no-image">
                 <mat-icon>inventory_2</mat-icon>
               </div>
+              <button type="button"
+                      class="img-eye-btn"
+                      *ngIf="product.images?.length > 1"
+                      (click)="openGallery(product, $event)"
+                      aria-label="Ver fotos">
+                <mat-icon>visibility</mat-icon>
+                <span>{{ product.images.length }}</span>
+              </button>
               <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
                 <mat-icon>check_circle</mat-icon>
               </div>
@@ -98,6 +106,9 @@
             <div class="product-info">
               <h3 class="product-name">{{ product.name }}</h3>
               <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
+              <div class="size-chips" *ngIf="getProductSizes(product).length">
+                <span class="size-chip" *ngFor="let size of getProductSizes(product)">{{ size }}</span>
+              </div>
               <span class="stock-badge"
                     [class.out]="(product.available_quantity ?? product.stock) === 0">
                 {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
@@ -115,19 +126,32 @@
       <!-- ── Paso 2: Detalle + variantes ───────────────── -->
       <div class="step-card" *ngIf="selectedProduct && !orderConfirmed" [@slideIn] id="section-detail">
         <div class="product-detail">
-          <div class="detail-image" *ngIf="selectedProduct.images?.length">
-            <img [src]="selectedProduct.images[0].image || selectedProduct.images[0]"
+          <div class="detail-image" *ngIf="selectedProduct.images?.length"
+               (click)="openGallery(selectedProduct, $event)">
+            <img [src]="getProductImageUrl(selectedProduct.images[0])"
                  [alt]="selectedProduct.name">
+            <button type="button"
+                    class="img-eye-btn detail-eye"
+                    *ngIf="selectedProduct.images?.length > 1"
+                    (click)="openGallery(selectedProduct, $event)"
+                    aria-label="Ver fotos">
+              <mat-icon>visibility</mat-icon>
+              <span>{{ selectedProduct.images.length }}</span>
+            </button>
           </div>
           <div class="detail-info">
             <h2>{{ selectedProduct.name }}</h2>
             <p class="detail-desc" *ngIf="selectedProduct.description">{{ selectedProduct.description }}</p>
             <div class="detail-price"><span>Bs. {{ selectedProduct.price | number:'1.2-2' }}</span></div>
+            <div class="size-chips detail-sizes" *ngIf="getProductSizes(selectedProduct).length">
+              <span class="size-chips-label">Tallas</span>
+              <span class="size-chip" *ngFor="let size of getProductSizes(selectedProduct)">{{ size }}</span>
+            </div>
           </div>
         </div>
 
         <div *ngIf="selectedProduct.variants?.length" class="variants-section">
-          <h3 class="variants-title">Elegí la variante</h3>
+          <h3 class="variants-title">Elegí talla / color</h3>
           <div class="variants-grid">
             <button *ngFor="let variant of selectedProduct.variants"
                     class="variant-btn"
@@ -135,7 +159,9 @@
                     [disabled]="variant.stock === 0"
                     (click)="selectVariant(variant)">
               <span class="variant-label">
-                {{ variant.size ? variant.size : '' }}{{ variant.size && variant.color ? ' / ' : '' }}{{ variant.color ? variant.color : '' }}
+                <ng-container *ngIf="variant.size">Talla {{ variant.size }}</ng-container>
+                <ng-container *ngIf="variant.size && variant.color"> · </ng-container>
+                <ng-container *ngIf="variant.color">{{ variant.color }}</ng-container>
               </span>
               <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
             </button>
@@ -151,6 +177,14 @@
             </span>
           </div>
         </div>
+
+        <button type="button"
+                class="whatsapp-consult-btn"
+                *ngIf="hasVendorWhatsApp"
+                (click)="openWhatsAppConsult(selectedProduct, $event)">
+          <mat-icon>chat</mat-icon>
+          Consultar por WhatsApp
+        </button>
       </div>
 
       <!-- ── Paso 3: Formulario ─────────────────────────── -->
@@ -394,11 +428,19 @@
                  (click)="selectProduct(product)">
               <div class="product-image">
                 <img *ngIf="product.images?.length"
-                     [src]="product.images[0].image || product.images[0]"
+                     [src]="getProductImageUrl(product.images[0])"
                      [alt]="product.name">
                 <div *ngIf="!product.images?.length" class="product-no-image">
                   <mat-icon>inventory_2</mat-icon>
                 </div>
+                <button type="button"
+                        class="img-eye-btn"
+                        *ngIf="product.images?.length > 1"
+                        (click)="openGallery(product, $event)"
+                        aria-label="Ver fotos">
+                  <mat-icon>visibility</mat-icon>
+                  <span>{{ product.images.length }}</span>
+                </button>
                 <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
                   <mat-icon>check_circle</mat-icon>
                 </div>
@@ -406,6 +448,9 @@
               <div class="product-info">
                 <h3 class="product-name">{{ product.name }}</h3>
                 <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
+                <div class="size-chips" *ngIf="getProductSizes(product).length">
+                  <span class="size-chip" *ngFor="let size of getProductSizes(product)">{{ size }}</span>
+                </div>
                 <span class="stock-badge"
                       [class.out]="(product.available_quantity ?? product.stock) === 0">
                   {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
@@ -423,19 +468,32 @@
         <!-- Product detail + variants + add to cart -->
         <div class="step-card" *ngIf="selectedProduct" [@slideIn] id="section-detail">
           <div class="product-detail">
-            <div class="detail-image" *ngIf="selectedProduct.images?.length">
-              <img [src]="selectedProduct.images[0].image || selectedProduct.images[0]"
+            <div class="detail-image" *ngIf="selectedProduct.images?.length"
+                 (click)="openGallery(selectedProduct, $event)">
+              <img [src]="getProductImageUrl(selectedProduct.images[0])"
                    [alt]="selectedProduct.name">
+              <button type="button"
+                      class="img-eye-btn detail-eye"
+                      *ngIf="selectedProduct.images?.length > 1"
+                      (click)="openGallery(selectedProduct, $event)"
+                      aria-label="Ver fotos">
+                <mat-icon>visibility</mat-icon>
+                <span>{{ selectedProduct.images.length }}</span>
+              </button>
             </div>
             <div class="detail-info">
               <h2>{{ selectedProduct.name }}</h2>
               <p class="detail-desc" *ngIf="selectedProduct.description">{{ selectedProduct.description }}</p>
               <div class="detail-price"><span>Bs. {{ selectedProduct.price | number:'1.2-2' }}</span></div>
+              <div class="size-chips detail-sizes" *ngIf="getProductSizes(selectedProduct).length">
+                <span class="size-chips-label">Tallas</span>
+                <span class="size-chip" *ngFor="let size of getProductSizes(selectedProduct)">{{ size }}</span>
+              </div>
             </div>
           </div>
 
           <div *ngIf="selectedProduct.variants?.length" class="variants-section">
-            <h3 class="variants-title">Elegí la variante</h3>
+            <h3 class="variants-title">Elegí talla / color</h3>
             <div class="variants-grid">
               <button *ngFor="let variant of selectedProduct.variants"
                       class="variant-btn"
@@ -443,7 +501,9 @@
                       [disabled]="variant.stock === 0"
                       (click)="selectVariant(variant)">
                 <span class="variant-label">
-                  {{ variant.size ? variant.size : '' }}{{ variant.size && variant.color ? ' / ' : '' }}{{ variant.color ? variant.color : '' }}
+                  <ng-container *ngIf="variant.size">Talla {{ variant.size }}</ng-container>
+                  <ng-container *ngIf="variant.size && variant.color"> · </ng-container>
+                  <ng-container *ngIf="variant.color">{{ variant.color }}</ng-container>
                 </span>
                 <span *ngIf="variant.stock === 0" class="variant-stock">Sin stock</span>
               </button>
@@ -483,6 +543,14 @@
               Agregar al carrito
             </button>
           </div>
+
+          <button type="button"
+                  class="whatsapp-consult-btn"
+                  *ngIf="hasVendorWhatsApp"
+                  (click)="openWhatsAppConsult(selectedProduct, $event)">
+            <mat-icon>chat</mat-icon>
+            Consultar por WhatsApp
+          </button>
         </div>
 
       </ng-container><!-- /shopping -->
@@ -745,6 +813,45 @@
   <div class="live-footer">
     <span>Powered by</span>
     <strong>LiveShop Bolivia</strong>
+  </div>
+
+  <!-- Image gallery lightbox -->
+  <div class="gallery-overlay" *ngIf="galleryOpen" (click)="closeGallery()">
+    <div class="gallery-modal" (click)="$event.stopPropagation()">
+      <button type="button" class="gallery-close" (click)="closeGallery()" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+      <p class="gallery-title" *ngIf="galleryTitle">{{ galleryTitle }}</p>
+      <div class="gallery-main">
+        <button type="button"
+                class="gallery-nav gallery-nav--prev"
+                *ngIf="galleryImages.length > 1"
+                (click)="galleryPrev($event)"
+                aria-label="Anterior">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <img [src]="galleryImages[galleryIndex]" [alt]="galleryTitle">
+        <button type="button"
+                class="gallery-nav gallery-nav--next"
+                *ngIf="galleryImages.length > 1"
+                (click)="galleryNext($event)"
+                aria-label="Siguiente">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <div class="gallery-counter" *ngIf="galleryImages.length > 1">
+        {{ galleryIndex + 1 }} / {{ galleryImages.length }}
+      </div>
+      <div class="gallery-thumbs" *ngIf="galleryImages.length > 1">
+        <button type="button"
+                class="gallery-thumb"
+                *ngFor="let img of galleryImages; let i = index"
+                [class.active]="i === galleryIndex"
+                (click)="selectGalleryThumb(i, $event)">
+          <img [src]="img" [alt]="'Foto ' + (i + 1)">
+        </button>
+      </div>
+    </div>
   </div>
 
 </div>
