@@ -215,9 +215,11 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
   border: 2px solid $border;
   border-radius: 12px;
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   transition: all 0.2s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     border-color: $red;
@@ -229,6 +231,10 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
     border-color: $red;
     box-shadow: 0 0 0 3px rgba(219,0,0,0.15);
   }
+
+  &.out-of-stock {
+    opacity: 0.72;
+  }
 }
 
 .product-image {
@@ -236,6 +242,10 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
   background: #f5f5f5;
   position: relative;
   overflow: hidden;
+
+  &.clickable {
+    cursor: zoom-in;
+  }
 
   img {
     width: 100%;
@@ -303,6 +313,10 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
 
 .product-info {
   padding: 10px;
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-name {
@@ -365,9 +379,39 @@ $shadow:     0 2px 12px rgba(0,0,0,0.08);
   color: #166534;
   padding: 2px 8px;
   border-radius: 10px;
+  margin-bottom: 8px;
+  width: fit-content;
 
   &.low { background: #fef9c3; color: #854d0e; }
   &.out { background: #fee2e2; color: #991b1b; }
+}
+
+.select-product-btn {
+  width: 100%;
+  margin-top: auto;
+  border: none;
+  border-radius: 8px;
+  background: $red;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: $red-dark;
+  }
+
+  &:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+
+  .product-card.selected & {
+    background: #166534;
+  }
 }
 
 // ── PRODUCT DETAIL ───────────────────────────────────────

@@ -83,8 +83,10 @@
           <div *ngFor="let product of paginatedProducts; trackBy: trackByProductId"
                class="product-card"
                [class.selected]="selectedProduct?.id === product.id"
-               (click)="selectProduct(product)">
-            <div class="product-image">
+               [class.out-of-stock]="(product.available_quantity ?? product.stock) === 0">
+            <div class="product-image"
+                 [class.clickable]="product.images?.length"
+                 (click)="openGallery(product, $event)">
               <img *ngIf="product.images?.length"
                    [src]="getProductImageUrl(product.images[0])"
                    [alt]="product.name">
@@ -93,17 +95,17 @@
               </div>
               <button type="button"
                       class="img-eye-btn"
-                      *ngIf="product.images?.length > 1"
+                      *ngIf="product.images?.length"
                       (click)="openGallery(product, $event)"
                       aria-label="Ver fotos">
                 <mat-icon>visibility</mat-icon>
-                <span>{{ product.images.length }}</span>
+                <span *ngIf="product.images.length > 1">{{ product.images.length }}</span>
               </button>
               <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
                 <mat-icon>check_circle</mat-icon>
               </div>
             </div>
-            <div class="product-info">
+            <div class="product-info" (click)="selectProduct(product)">
               <h3 class="product-name">{{ product.name }}</h3>
               <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
               <div class="size-chips" *ngIf="getProductSizes(product).length">
@@ -113,6 +115,12 @@
                     [class.out]="(product.available_quantity ?? product.stock) === 0">
                 {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
               </span>
+              <button type="button"
+                      class="select-product-btn"
+                      [disabled]="(product.available_quantity ?? product.stock) === 0"
+                      (click)="selectProduct(product); $event.stopPropagation()">
+                {{ selectedProduct?.id === product.id ? 'Seleccionado' : 'Seleccionar' }}
+              </button>
             </div>
           </div>
         </div>
@@ -425,8 +433,10 @@
             <div *ngFor="let product of paginatedProducts; trackBy: trackByProductId"
                  class="product-card"
                  [class.selected]="selectedProduct?.id === product.id"
-                 (click)="selectProduct(product)">
-              <div class="product-image">
+                 [class.out-of-stock]="(product.available_quantity ?? product.stock) === 0">
+              <div class="product-image"
+                   [class.clickable]="product.images?.length"
+                   (click)="openGallery(product, $event)">
                 <img *ngIf="product.images?.length"
                      [src]="getProductImageUrl(product.images[0])"
                      [alt]="product.name">
@@ -435,17 +445,17 @@
                 </div>
                 <button type="button"
                         class="img-eye-btn"
-                        *ngIf="product.images?.length > 1"
+                        *ngIf="product.images?.length"
                         (click)="openGallery(product, $event)"
                         aria-label="Ver fotos">
                   <mat-icon>visibility</mat-icon>
-                  <span>{{ product.images.length }}</span>
+                  <span *ngIf="product.images.length > 1">{{ product.images.length }}</span>
                 </button>
                 <div class="product-selected-overlay" *ngIf="selectedProduct?.id === product.id">
                   <mat-icon>check_circle</mat-icon>
                 </div>
               </div>
-              <div class="product-info">
+              <div class="product-info" (click)="selectProduct(product)">
                 <h3 class="product-name">{{ product.name }}</h3>
                 <p class="product-price">Bs. {{ product.price | number:'1.2-2' }}</p>
                 <div class="size-chips" *ngIf="getProductSizes(product).length">
@@ -455,6 +465,12 @@
                       [class.out]="(product.available_quantity ?? product.stock) === 0">
                   {{ (product.available_quantity ?? product.stock) === 0 ? 'Sin stock' : 'Disponible' }}
                 </span>
+                <button type="button"
+                        class="select-product-btn"
+                        [disabled]="(product.available_quantity ?? product.stock) === 0"
+                        (click)="selectProduct(product); $event.stopPropagation()">
+                  {{ selectedProduct?.id === product.id ? 'Seleccionado' : 'Seleccionar' }}
+                </button>
               </div>
             </div>
           </div>
