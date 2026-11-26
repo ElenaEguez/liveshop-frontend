@@ -75,6 +75,18 @@ export class OrderDetailComponent {
     this.dialogRef.close(true);
   }
 
+  /** Evita mixed-content si la API armó el comprobante con http://. */
+  get receiptUrl(): string | null {
+    const raw = this.order.payment_receipt_image;
+    if (!raw) {
+      return null;
+    }
+    if (raw.startsWith('http://') && typeof window !== 'undefined' && window.location?.protocol === 'https:') {
+      return 'https://' + raw.slice('http://'.length);
+    }
+    return raw;
+  }
+
   // ── WhatsApp ──────────────────────────────────────────────────────
   openWhatsApp(): void {
     const phone = this.cleanPhone(this.order.customer_phone);

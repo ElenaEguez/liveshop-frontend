@@ -245,17 +245,17 @@
           <div class="stat-text">
             <p class="stat-label">Pedidos por confirmar</p>
             <h2 class="stat-value"
-                [style.color]="salesData.pending_payment_confirmation > 0 ? '#dc2626' : '#111827'">
-              {{ salesData.pending_payment_confirmation }}
+                [style.color]="(pendingConfirmationCount || 0) > 0 ? '#dc2626' : '#111827'">
+              {{ pendingConfirmationCount === null ? '…' : pendingConfirmationCount }}
             </h2>
-            <p *ngIf="salesData.pending_payment_confirmation > 0" class="stat-alert">
+            <p *ngIf="(pendingConfirmationCount || 0) > 0" class="stat-alert">
               ⚠&nbsp;Requieren atención
             </p>
           </div>
           <div class="stat-icon-bg"
-               [style.background]="salesData.pending_payment_confirmation > 0 ? '#fef2f2' : '#f9fafb'">
+               [style.background]="(pendingConfirmationCount || 0) > 0 ? '#fef2f2' : '#f9fafb'">
             <mat-icon
-              [style.color]="salesData.pending_payment_confirmation > 0 ? '#dc2626' : '#9ca3af'">
+              [style.color]="(pendingConfirmationCount || 0) > 0 ? '#dc2626' : '#9ca3af'">
               pending_actions
             </mat-icon>
           </div>

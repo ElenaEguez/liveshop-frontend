@@ -1,5 +1,5 @@
 // app.module.ts
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -11,6 +11,7 @@ import { SharedModule } from './shared/shared.module';
 
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { JwtInterceptor } from './jwt.interceptor';
+import { AuthService, restoreSessionFactory } from './auth/auth.service';
 import { environment } from '../environments/environment';
 
 const socketConfig: SocketIoConfig = { url: environment.apiUrl.replace('/api/v1', ''), options: {} };
@@ -29,7 +30,13 @@ const socketConfig: SocketIoConfig = { url: environment.apiUrl.replace('/api/v1'
     SocketIoModule.forRoot(socketConfig)
   ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: restoreSessionFactory,
+      deps: [AuthService],
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent]
 })
