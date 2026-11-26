@@ -10,7 +10,9 @@ import { AuthService } from '../auth.service';
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
-  errorMessage: string = '';
+  errorMessage = '';
+  saving = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -19,30 +21,47 @@ export class LoginComponent implements OnInit {
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
+      remember: [true],
     });
   }
 
   ngOnInit(): void {
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe(
-        () => {
-          this.router.navigate(['/dashboard']);
-        },
-        (error) => {
-          if (error.status === 400) {
-            this.errorMessage = 'Datos inválidos. Verifique su correo electrónico y contraseña.';
-          } else if (error.status === 401) {
-            this.errorMessage = 'Correo electrónico o contraseña incorrectos.';
-          } else {
-            this.errorMessage = 'Error del servidor. Por favor, intente nuevamente más tarde.';
-          }
-        }
-      );
+    if (this.saving) {
+      return;
     }
+    this.errorMessage = '';
+
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
+    this.saving = true;
+    const { email, password, remember } = this.loginForm.value;
+    this.authService.login({ email, password }, remember).subscribe({
+      next: () => {
+        this.saving = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        this.saving = false;
+        if (error.status === 400) {
+          this.errorMessage = 'Datos inválidos. Verifique su correo electrónico y contraseña.';
+        } else if (error.status === 401) {
+          this.errorMessage = 'Correo electrónico o contraseña incorrectos.';
+        } else {
+          this.errorMessage = 'Error del servidor. Por favor, intente nuevamente más tarde.';
+        }
+      },
+    });
   }
 
   get email() {

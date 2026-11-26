@@ -16,6 +16,7 @@ import { MovimientoCajaDialogComponent } from '../movimiento-caja-dialog/movimie
 import { TicketPreviewDialogComponent } from '../ticket-preview/ticket-preview-dialog.component';
 import { SettingsService, TicketConfig } from '../../settings/settings.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
+import { AuthService } from '../../auth/auth.service';
 import { ScannerConfigDialogComponent } from '../scanner-config-dialog/scanner-config-dialog.component';
 import { EditarFondoDialogComponent } from '../editar-fondo-dialog/editar-fondo-dialog.component';
 
@@ -99,19 +100,17 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     private snack: MatSnackBar,
     private settingsService: SettingsService,
     private vendorProfileService: VendorProfileService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     // Reloj en tiempo real
     setInterval(() => { this.now = new Date(); }, 1000);
 
-    // Lee nombre de tienda del JWT
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      try {
-        const p = JSON.parse(atob(token.split('.')[1]));
-        this.vendorName = p.store_name || p.username || 'Mi Tienda';
-      } catch { /* keep default */ }
+    // Lee nombre de tienda del JWT (payload ya decodificado correctamente, base64url)
+    const payload = this.authService.getTokenPayload();
+    if (payload) {
+      this.vendorName = payload.store_name || payload.username || 'Mi Tienda';
     }
 
     // Carga configuración de ticket

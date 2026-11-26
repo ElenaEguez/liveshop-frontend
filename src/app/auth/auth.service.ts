@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, finalize, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { PermisosService } from '../core/services/permisos.service';
+import { SessionStorageService } from '../core/services/session-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,14 +17,18 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private permisosService: PermisosService,
+    private session: SessionStorageService,
   ) { }
 
-  login(credentials: { email: string; password: string }): Observable<any> {
+  /** remember=true (default) guarda en localStorage; false guarda solo mientras dure la pestaña/navegador. */
+  login(credentials: { email: string; password: string }, remember: boolean = true): Observable<any> {
     return this.http.post(`${this.apiUrl}/login/`, credentials).pipe(
       tap((response: any) => {
         if (response?.tokens?.access) {
-          localStorage.setItem('access_token', response.tokens.access);
-          localStorage.setItem('refresh_token', response.tokens.refresh);
+          this.session.startSession(remember, {
+            access: response.tokens.access,
+            refresh: response.tokens.refresh,
+          });
         }
         this.refreshInFlight = null;
       }),
@@ -32,18 +37,17 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    this.session.clear();
     this.refreshInFlight = null;
     this.permisosService.limpiar();
   }
 
   refreshToken(): Observable<any> {
-    const refreshToken = localStorage.getItem('refresh_token');
+    const refreshToken = this.session.get('refresh_token');
     return this.http.post(`${this.apiUrl}/refresh/`, { refresh: refreshToken }).pipe(
       tap((response: any) => {
         if (response?.access) {
-          localStorage.setItem('access_token', response.access);
+          this.session.set('access_token', response.access);
         }
       }),
     );
@@ -55,12 +59,12 @@ export class AuthService {
    * Ambos vencidos o ilegibles → limpia y devuelve false.
    */
   ensureSession(): Observable<boolean> {
-    const access = localStorage.getItem('access_token');
+    const access = this.session.get('access_token');
     if (access && !this.isTokenExpired(access)) {
       return of(true);
     }
 
-    const refresh = localStorage.getItem('refresh_token');
+    const refresh = this.session.get('refresh_token');
     if (!refresh || this.isTokenExpired(refresh)) {
       if (access || refresh) {
         this.logout();
@@ -111,12 +115,12 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('access_token');
+    const token = this.session.get('access_token');
     return token ? !this.isTokenExpired(token) : false;
   }
 
   getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return this.session.get('access_token');
   }
 
   getTokenPayload(): any {
