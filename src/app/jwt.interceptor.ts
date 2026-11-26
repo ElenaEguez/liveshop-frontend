@@ -3,13 +3,14 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError, switchMap, filter, take } from 'rxjs/operators';
 import { AuthService } from './auth/auth.service';
+import { SessionStorageService } from './core/services/session-storage.service';
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private session: SessionStorageService) {}
 
   private isAuthRoute(url: string): boolean {
     return url.includes('/auth/login') ||
@@ -53,7 +54,7 @@ export class JwtInterceptor implements HttpInterceptor {
       return this.authService.refreshToken().pipe(
         switchMap((token: any) => {
           this.isRefreshing = false;
-          localStorage.setItem('access_token', token.access);
+          this.session.set('access_token', token.access);
           this.refreshTokenSubject.next(token.access);
           return next.handle(this.addToken(request, token.access));
         }),
