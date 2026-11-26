@@ -32,11 +32,22 @@ export function httpErrorMessage(error: unknown, fallback = 'Ocurrió un error.'
     if (typeof obj.detail === 'string') {
       return obj.detail;
     }
-    const firstKey = Object.keys(obj)[0];
+    if (Array.isArray(obj.detail) && obj.detail.length) {
+      return String(obj.detail[0]);
+    }
+    const preferred = ['internal_code', 'price', 'non_field_errors'];
+    for (const key of preferred) {
+      const val = obj[key];
+      if (val == null) {
+        continue;
+      }
+      return Array.isArray(val) ? String(val[0]) : String(val);
+    }
+    const firstKey = Object.keys(obj).find(k => !k.startsWith('existing_'));
     if (firstKey) {
       const val = obj[firstKey];
       const msg = Array.isArray(val) ? val.join(' ') : String(val);
-      return `${firstKey}: ${msg}`;
+      return firstKey === 'detail' ? msg : `${firstKey}: ${msg}`;
     }
   }
 

@@ -26,7 +26,7 @@ export class ProductListComponent implements OnInit {
   tallaControl     = new FormControl('');
   colorControl     = new FormControl('');
 
-  displayedColumns: string[] = ['name', 'stock', 'category', 'status', 'actions'];
+  displayedColumns: string[] = ['name', 'internal_code', 'price', 'stock', 'category', 'status', 'actions'];
 
   constructor(
     private productService: ProductService,
@@ -118,8 +118,22 @@ export class ProductListComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
+      if (result === true) {
         this.loadProducts();
+        return;
+      }
+      const openId = result?.openProductId;
+      if (openId) {
+        this.productService.getProduct(openId).subscribe({
+          next: product => this.viewProduct(product),
+          error: () => {
+            this.snackBar.open(
+              `No se pudo abrir el producto #${openId}.`,
+              'Cerrar',
+              { duration: 5000, panelClass: ['snack-error'] },
+            );
+          },
+        });
       }
     });
   }

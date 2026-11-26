@@ -740,16 +740,45 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.saving = false;
         console.error('Error saving product:', error);
-        this.snackBar.open(this.getSaveErrorMessage(error), 'Cerrar', {
-          duration: 6000,
-          panelClass: ['snack-error'],
-        });
+        this.handleSaveError(error);
       },
     });
   }
 
-  private getSaveErrorMessage(error: unknown): string {
-    return httpErrorMessage(error, 'No se pudo guardar el producto.');
+  private handleSaveError(error: unknown): void {
+    const dup = this.parseDuplicateCodeError(error);
+    if (dup) {
+      const ref = this.snackBar.open(dup.message, `Ver #${dup.id}`, {
+        duration: 12000,
+        panelClass: ['snack-error'],
+      });
+      ref.onAction().subscribe(() => {
+        this.dialogRef.close({ openProductId: dup.id });
+      });
+      return;
+    }
+    this.snackBar.open(httpErrorMessage(error, 'No se pudo guardar el producto.'), 'Cerrar', {
+      duration: 6000,
+      panelClass: ['snack-error'],
+    });
+  }
+
+  private parseDuplicateCodeError(error: unknown): { id: number; message: string } | null {
+    const body = (error as { error?: Record<string, unknown> })?.error;
+    if (!body || typeof body !== 'object') {
+      return null;
+    }
+    const rawId = body['existing_product_id'];
+    const idVal = Array.isArray(rawId) ? rawId[0] : rawId;
+    const id = Number(idVal);
+    if (!Number.isFinite(id) || id <= 0) {
+      return null;
+    }
+    const detail = body['detail'] ?? body['internal_code'];
+    const message = Array.isArray(detail)
+      ? String(detail[0])
+      : (typeof detail === 'string' ? detail : httpErrorMessage(error, 'Código interno duplicado.'));
+    return { id, message };
   }
 
   onCancel(): void {
