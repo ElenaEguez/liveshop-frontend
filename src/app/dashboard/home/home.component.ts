@@ -25,6 +25,7 @@ import {
 import { Category, CategoryService } from '../../categories/services/category.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
 import { VendorSocketService } from '../../core/vendor-socket.service';
+import { OrderService } from '../../orders/services/order.service';
 import {
   ProductVariantsSalesDialogComponent,
   ProductVariantsSalesDialogData,
@@ -56,6 +57,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   })();
 
   salesData: SalesDashboardData | null = null;
+  /**
+   * Mismo filtro que la pestaña Pedidos → Por confirmar (status=confirmed).
+   * El número que manda orders/dashboard cuenta pagos submitted e incluye cancelados;
+   * ese módulo no se modifica. null = todavía no llegó la consulta.
+   */
+  pendingConfirmationCount: number | null = null;
   categories: Category[] = [];
 
   movimientos: MovimientoCaja[] = [];
@@ -120,6 +127,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private categoryService:      CategoryService,
     private vendorProfileService: VendorProfileService,
     private vendorSocket:         VendorSocketService,
+    private orderService:         OrderService,
     private dialog:               MatDialog,
     public  router:               Router
   ) {}
@@ -158,6 +166,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     }
 
+    this.loadPendingConfirmation();
     this.dashboardService.getSalesDashboard(params).subscribe({
       next: data => {
         this.salesData = data;
@@ -459,6 +468,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.selectedPeriod === 'week') return 'week';
     if (this.selectedPeriod === 'month') return 'month';
     return 'year';
+  }
+
+  /** Misma condición que OrderListComponent.loadPendingCount: reservas status=confirmed. */
+  private loadPendingConfirmation(): void {
+    this.orderService.getOrders({ status: 'confirmed', page: 1, page_size: 1 }).subscribe({
+      next: res => {
+        this.pendingConfirmationCount = res.count;
+      },
+      error: () => {
+        this.pendingConfirmationCount = null;
+      },
+    });
   }
 
   get pendingPaymentHint(): string {
