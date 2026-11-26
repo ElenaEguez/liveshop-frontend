@@ -55,8 +55,15 @@ export class PaymentService {
 
   getReceiptUrl(path: string | null): string | null {
     if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${this.mediaBase}${path.startsWith('/') ? '' : '/'}${path}`;
+    let url = path;
+    if (!url.startsWith('http')) {
+      url = `${this.mediaBase}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+    // orders/serializer aún puede devolver http:// detrás del proxy; no tocamos orders/.
+    if (url.startsWith('http://') && typeof window !== 'undefined' && window.location?.protocol === 'https:') {
+      url = 'https://' + url.slice('http://'.length);
+    }
+    return url;
   }
 
   getMethodLabel(method: string): string {

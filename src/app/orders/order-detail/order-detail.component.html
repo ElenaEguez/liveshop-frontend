@@ -88,15 +88,15 @@
   </div>
 
   <!-- Comprobante de pago -->
-  <div *ngIf="order.payment_receipt_image"
+  <div *ngIf="receiptUrl"
        style="border:1px solid #e5e7eb; border-radius:8px; padding:12px 16px; margin-bottom:12px;">
     <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">
       Comprobante de pago
     </div>
     <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-      <a [href]="order.payment_receipt_image" target="_blank"
+      <a [href]="receiptUrl" target="_blank"
          style="flex-shrink:0; display:block;">
-        <img [src]="order.payment_receipt_image"
+        <img [src]="receiptUrl"
              alt="Comprobante"
              style="width:96px; height:96px; object-fit:cover; border-radius:6px;
                     border:1px solid #e5e7eb; cursor:pointer;">
@@ -120,7 +120,7 @@
                order.payment_status === 'confirmed' ? 'Confirmado' : order.payment_status }}
           </span>
         </div>
-        <a [href]="order.payment_receipt_image" target="_blank"
+        <a [href]="receiptUrl" target="_blank"
            style="color:#db0000; font-size:0.8rem; margin-top:4px;">
           Ver imagen completa ↗
         </a>
