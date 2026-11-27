@@ -16,11 +16,13 @@ import { MatTableDataSource } from '@angular/material/table';
 import {
   DashboardService,
   MovimientoCaja,
+  ReportingDashboardData,
   SalesByProduct,
   SalesDashboardData,
   SalesDashboardParams,
   VarianteVenta,
-  VentaMetodoPago,
+  VentaPorProducto,
+  VentaPorVariante,
 } from '../dashboard.service';
 import { Category, CategoryService } from '../../categories/services/category.service';
 import { VendorProfileService } from '../../my-store/services/vendor-profile.service';
@@ -57,6 +59,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   })();
 
   salesData: SalesDashboardData | null = null;
+  /** Fuente única de ventas (Fase 2, objetivo 2B/2C): reemplaza los números de venta de salesData. */
+  reportingData: ReportingDashboardData | null = null;
+  reportingError = false;
   /**
    * Mismo filtro que la pestaña Pedidos → Por confirmar (status=confirmed).
    * El número que manda orders/dashboard cuenta pagos submitted e incluye cancelados;
@@ -167,6 +172,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     this.loadPendingConfirmation();
+    this.loadReportingDashboard();
     this.dashboardService.getSalesDashboard(params).subscribe({
       next: data => {
         this.salesData = data;
@@ -183,6 +189,48 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  /** Rango [desde, hasta] equivalente al period/year/month/date actual, en YYYY-MM-DD. */
+  private periodoADesdeHasta(): { desde: string; hasta: string } {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    if (this.selectedPeriod === 'day') {
+      return { desde: this.selectedDate, hasta: this.selectedDate };
+    }
+    if (this.selectedPeriod === 'year') {
+      return { desde: `${this.selectedYear}-01-01`, hasta: `${this.selectedYear}-12-31` };
+    }
+    if (this.selectedPeriod === 'week') {
+      const now = new Date();
+      const weekday = (now.getDay() + 6) % 7; // lunes = 0
+      const start = new Date(now);
+      start.setDate(now.getDate() - weekday);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return { desde: fmt(start), hasta: fmt(end) };
+    }
+    // month (default)
+    const ultimoDia = new Date(this.selectedYear, this.selectedMonth, 0).getDate();
+    const mm = String(this.selectedMonth).padStart(2, '0');
+    return {
+      desde: `${this.selectedYear}-${mm}-01`,
+      hasta: `${this.selectedYear}-${mm}-${String(ultimoDia).padStart(2, '0')}`,
+    };
+  }
+
+  /** Fuente única de ventas (Fase 2, objetivo 2B/2C): tarjetas de ingreso, grafico, producto/variante y metodo de pago. */
+  loadReportingDashboard(): void {
+    this.reportingError = false;
+    const { desde, hasta } = this.periodoADesdeHasta();
+    this.dashboardService
+      .getReportingDashboard({ desde, hasta, canal: this.selectedCanal })
+      .subscribe({
+        next: data => { this.reportingData = data; },
+        error: () => {
+          this.reportingData = null;
+          this.reportingError = true;
+        },
+      });
   }
 
   onPeriodChange(): void {
@@ -335,14 +383,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get maxRevenue(): number {
-    if (!this.salesData?.sales_by_period?.length) return 1;
+    if (!this.reportingData?.ventas_por_periodo?.length) return 1;
     return (
-      Math.max(...this.salesData.sales_by_period.map(d => parseFloat(d.revenue) || 0)) || 1
+      Math.max(...this.reportingData.ventas_por_periodo.map(d => parseFloat(d.ingreso) || 0)) || 1
     );
   }
 
-  getBarWidth(revenue: string): number {
-    return Math.round((parseFloat(revenue) / this.maxRevenue) * 100);
+  getBarWidth(ingreso: string): number {
+    return Math.round((parseFloat(ingreso) / this.maxRevenue) * 100);
   }
 
   get maxGasto(): number {
@@ -363,15 +411,61 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get metodosPagoArray(): { nombre: string; monto: number; cantidad: number }[] {
-    const map = this.salesData?.ventas_por_metodo_pago;
-    if (!map) return [];
-    return Object.entries(map)
-      .map(([nombre, v]) => ({
-        nombre,
-        monto: Number((v as VentaMetodoPago)?.monto ?? (v as VentaMetodoPago)?.total ?? 0),
-        cantidad: Number(v?.cantidad ?? 0),
+    const lista = this.reportingData?.ventas_por_metodo_pago;
+    if (!lista) return [];
+    return lista
+      .map(v => ({
+        nombre: v.metodo_pago,
+        monto: Number(v.ingreso) || 0,
+        cantidad: v.cantidad_documentos,
       }))
       .sort((a, b) => b.monto - a.monto);
+  }
+
+  // ── Fuente única de ventas (Fase 2, objetivo 2D) ────────────────────────
+  get ingresoVentas(): number {
+    return Number(this.reportingData?.ingreso_ventas ?? 0);
+  }
+
+  get porVerificarMonto(): number {
+    return Number(this.reportingData?.por_verificar?.monto ?? 0);
+  }
+
+  get porVerificarCantidad(): number {
+    return this.reportingData?.por_verificar?.cantidad ?? 0;
+  }
+
+  get devolucionesMonto(): number {
+    return Number(this.reportingData?.devoluciones ?? 0);
+  }
+
+  get ingresoNeto(): number {
+    return Number(this.reportingData?.ingreso_neto ?? 0);
+  }
+
+  get costoVentas(): number | null {
+    return this.reportingData?.costo != null ? Number(this.reportingData.costo) : null;
+  }
+
+  get utilidadBrutaNueva(): number | null {
+    const v = this.reportingData?.utilidad_bruta;
+    return v != null ? Number(v) : null;
+  }
+
+  get pctVentasConCosto(): number {
+    return Number(this.reportingData?.pct_ventas_con_costo ?? 100);
+  }
+
+  get mostrarAvisoCostoIncompleto(): boolean {
+    return this.pctVentasConCosto < 100;
+  }
+
+  get ventasPorProductoNuevo(): VentaPorProducto[] {
+    return this.reportingData?.ventas_por_producto ?? [];
+  }
+
+  get ventasPorVarianteNuevo(): VentaPorVariante[] {
+    return this.reportingData?.ventas_por_variante ?? [];
   }
 
   get maxMetodoMonto(): number {

@@ -116,6 +116,11 @@
       Mostrando datos de: <strong>{{ salesData.period_label }}</strong>
     </p>
 
+    <p class="stat-warning" *ngIf="reportingError" style="margin: -8px 0 16px;">
+      No se pudieron cargar los números de venta (fuente única). Los totales de ingreso,
+      el gráfico y las tarjetas relacionadas no están disponibles en este momento.
+    </p>
+
     <!-- ── METRIC CARDS ────────────────────────────────────────────────── -->
     <div class="stats-grid">
 
@@ -169,33 +174,60 @@
         <p class="stat-footer">Bs.&nbsp;{{ (salesData.web_total_revenue || '0') | number:'1.2-2' }}</p>
       </div>
 
-      <!-- Ingresos del canal seleccionado -->
+      <!-- Ingresos del canal seleccionado (fuente única, objetivo 2B/2D) -->
       <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Ingresos — {{ canalLabel }}</p>
-            <h2 class="stat-value">Bs.&nbsp;{{ canalRevenue | number:'1.2-2' }}</h2>
+            <h2 class="stat-value">Bs.&nbsp;{{ ingresoVentas | number:'1.2-2' }}</h2>
           </div>
           <div class="stat-icon-bg" style="background:#fefce8;">
             <mat-icon style="color:#ca8a04;">payments</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">{{ canalOrders }} pedido{{ canalOrders !== 1 ? 's' : '' }} confirmado{{ canalOrders !== 1 ? 's' : '' }}</p>
+        <p class="stat-footer">
+          {{ reportingData?.cantidad_documentos || 0 }}
+          pedido{{ (reportingData?.cantidad_documentos || 0) !== 1 ? 's' : '' }} verificado{{ (reportingData?.cantidad_documentos || 0) !== 1 ? 's' : '' }}
+        </p>
+      </div>
+
+      <!-- Por verificar: pedidos Live/Web con comprobante aún sin confirmar (falla 06) -->
+      <div
+        class="stat-card stat-card-clickable"
+        *ngIf="reportingData"
+        (click)="router.navigate(['/orders'], { queryParams: { status: 'confirmed' } })">
+        <div class="stat-card-inner">
+          <div class="stat-text">
+            <p class="stat-label">Por verificar</p>
+            <h2 class="stat-value" [style.color]="porVerificarCantidad > 0 ? '#d97706' : '#111827'">
+              Bs.&nbsp;{{ porVerificarMonto | number:'1.2-2' }}
+            </h2>
+          </div>
+          <div class="stat-icon-bg" style="background:#fffbeb;">
+            <mat-icon style="color:#d97706;">hourglass_top</mat-icon>
+          </div>
+        </div>
+        <p class="stat-footer">
+          {{ porVerificarCantidad }} pedido{{ porVerificarCantidad !== 1 ? 's' : '' }} con comprobante sin confirmar
+        </p>
       </div>
 
       <div class="stat-card">
         <div class="stat-card-inner">
           <div class="stat-text">
             <p class="stat-label">Utilidad bruta</p>
-            <h2 class="stat-value">Bs.&nbsp;{{ salesData.gross_margin | number:'1.2-2' }}</h2>
+            <h2 class="stat-value" *ngIf="utilidadBrutaNueva !== null">
+              Bs.&nbsp;{{ utilidadBrutaNueva | number:'1.2-2' }}
+            </h2>
+            <h2 class="stat-value" *ngIf="utilidadBrutaNueva === null">Sin datos de costo</h2>
           </div>
           <div class="stat-icon-bg" style="background:#fefce8;">
             <mat-icon style="color:#ca8a04;">trending_up</mat-icon>
           </div>
         </div>
-        <p class="stat-footer">Ingresos − Costo de compra</p>
-        <p *ngIf="showMissingCostWarning" class="stat-warning">
-          Costo no configurado en uno o más productos.
+        <p class="stat-footer">Ingreso neto − Costo de compra</p>
+        <p *ngIf="mostrarAvisoCostoIncompleto" class="stat-warning">
+          Calculada sobre el {{ pctVentasConCosto | number:'1.0-0' }}% de las ventas: hay productos vendidos sin costo cargado.
         </p>
       </div>
 
@@ -414,14 +446,14 @@
       </div>
     </div>
 
-    <!-- ── VENTAS POR MÉTODO DE PAGO ─────────────────────────────────── -->
-    <div class="section-card" *ngIf="selectedCanal === 'todos' || selectedCanal === 'tienda'">
+    <!-- ── VENTAS POR MÉTODO DE PAGO (fuente única, objetivo 2B/2D) ────── -->
+    <div class="section-card" *ngIf="reportingData">
       <h3 class="section-title">
         <mat-icon class="section-title-icon">credit_card</mat-icon>
-        Ventas por método de pago (tienda POS — {{ salesData.period_label }})
+        Ventas por método de pago — {{ canalLabel }} ({{ salesData?.period_label }})
       </h3>
       <p *ngIf="metodosPagoArray.length === 0" class="no-data-chart" style="padding:12px 0;">
-        No hay ventas POS en este período.
+        No hay ventas verificadas en este período.
       </p>
       <div class="chart-container" *ngIf="metodosPagoArray.length > 0">
         <div *ngFor="let m of metodosPagoArray" class="bar-row">
@@ -445,35 +477,77 @@
       </div>
     </div>
 
-    <!-- ── CHART: Evolución de ingresos ───────────────────────────────── -->
-    <div class="section-card" *ngIf="salesData.sales_by_period.length > 0">
+    <!-- ── CHART: Evolución de ingresos (fuente única, objetivo 2B/2D) ─── -->
+    <div class="section-card" *ngIf="(reportingData?.ventas_por_periodo?.length || 0) > 0">
       <h3 class="section-title">
         <mat-icon class="section-title-icon">bar_chart</mat-icon>
         Evolución de ingresos
       </h3>
       <div class="chart-container">
-        <div *ngFor="let item of salesData.sales_by_period" class="bar-row">
-          <span class="bar-label">{{ item.label }}</span>
+        <div *ngFor="let item of reportingData!.ventas_por_periodo" class="bar-row">
+          <span class="bar-label">{{ item.periodo }}</span>
           <div class="bar-track">
             <div class="bar-fill"
-                 [style.width.%]="getBarWidth(item.revenue)"
-                 [title]="'Bs. ' + item.revenue + ' · ' + item.orders + ' pedidos'">
+                 [style.width.%]="getBarWidth(item.ingreso)"
+                 [title]="'Bs. ' + item.ingreso + ' · ' + item.documentos + ' pedidos'">
             </div>
           </div>
           <div class="bar-meta">
-            <span class="bar-value">Bs.&nbsp;{{ item.revenue | number:'1.0-0' }}</span>
-            <span class="bar-orders">{{ item.orders }} pedidos</span>
+            <span class="bar-value">Bs.&nbsp;{{ item.ingreso | number:'1.0-0' }}</span>
+            <span class="bar-orders">{{ item.documentos }} pedidos</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="section-card no-data-chart" *ngIf="salesData.sales_by_period.length === 0">
+    <div class="section-card no-data-chart" *ngIf="reportingData && reportingData.ventas_por_periodo.length === 0">
       <mat-icon>show_chart</mat-icon>
       <p>No hay datos de ventas para este período.</p>
     </div>
 
-    <!-- ── TABLE: Ventas por producto ─────────────────────────────────── -->
+    <!-- ── VENTAS POR PRODUCTO Y VARIANTE (fuente única, objetivo 2B/2D) ─
+         Vista simple y correcta (fallas 04/07). La tabla de abajo, con filtro
+         por categoría/talla/color y costo/margen por producto, sigue leyendo
+         la fuente vieja (deuda documentada: esos campos no existen todavía
+         en reporting.services — ver _analisis/reportes/FASE_2.md). -->
+    <div class="section-card" *ngIf="reportingData">
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon">inventory_2</mat-icon>
+        Ventas por producto — {{ canalLabel }} ({{ salesData?.period_label }})
+      </h3>
+      <p *ngIf="ventasPorProductoNuevo.length === 0" class="no-data-chart" style="padding:12px 0;">
+        No hay ventas verificadas en este período.
+      </p>
+      <div class="chart-container" *ngIf="ventasPorProductoNuevo.length > 0">
+        <div *ngFor="let p of ventasPorProductoNuevo" class="bar-row">
+          <span class="bar-label">{{ p.producto }}</span>
+          <div class="bar-meta">
+            <span class="bar-value">Bs.&nbsp;{{ p.ingreso | number:'1.2-2' }}</span>
+            <span class="bar-orders">{{ p.cantidad }} unidad{{ p.cantidad !== 1 ? 'es' : '' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title" style="margin-top:20px;">
+        <mat-icon class="section-title-icon">style</mat-icon>
+        Ventas por variante
+      </h3>
+      <p *ngIf="ventasPorVarianteNuevo.length === 0" class="no-data-chart" style="padding:12px 0;">
+        No hay ventas verificadas en este período.
+      </p>
+      <div class="chart-container" *ngIf="ventasPorVarianteNuevo.length > 0">
+        <div *ngFor="let v of ventasPorVarianteNuevo" class="bar-row">
+          <span class="bar-label">{{ v.producto }} — {{ v.variante }}</span>
+          <div class="bar-meta">
+            <span class="bar-value">Bs.&nbsp;{{ v.ingreso | number:'1.2-2' }}</span>
+            <span class="bar-orders">{{ v.cantidad }} unidad{{ v.cantidad !== 1 ? 'es' : '' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TABLE: Ventas por producto (detalle con categoría/costo — deuda,
+         sigue leyendo la fuente vieja; ver nota arriba) ──────────────────── -->
     <div class="section-card">
 
       <div class="table-header-row">

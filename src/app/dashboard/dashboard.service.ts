@@ -101,10 +101,67 @@ export interface SalesDashboardParams {
   canal?: 'todos' | 'live' | 'tienda' | 'web';
 }
 
+// ── Fuente única de ventas (Fase 2, objetivo 2B/2C/2D) ──────────────────────
+export interface PorVerificar {
+  monto: string;
+  cantidad: number;
+}
+
+export interface VentaPorPeriodo {
+  periodo: string;
+  ingreso: string;
+  documentos: number;
+}
+
+export interface VentaPorProducto {
+  producto_id: number;
+  producto: string;
+  cantidad: number;
+  ingreso: string;
+}
+
+export interface VentaPorVariante {
+  producto_id: number;
+  producto: string;
+  variante: string;
+  cantidad: number;
+  ingreso: string;
+}
+
+export interface VentaPorMetodoPago {
+  metodo_pago: string;
+  cantidad_documentos: number;
+  ingreso: string;
+}
+
+export interface ReportingDashboardData {
+  ingreso_ventas: string;
+  por_verificar: PorVerificar;
+  devoluciones: string;
+  ingreso_neto: string;
+  costo: string;
+  utilidad_bruta: string | null;
+  pct_ventas_con_costo: string;
+  envio: string;
+  cantidad_documentos: number;
+  ticket_promedio: string;
+  ventas_por_periodo: VentaPorPeriodo[];
+  ventas_por_producto: VentaPorProducto[];
+  ventas_por_variante: VentaPorVariante[];
+  ventas_por_metodo_pago: VentaPorMetodoPago[];
+}
+
+export interface ReportingDashboardParams {
+  desde: string; // YYYY-MM-DD
+  hasta: string; // YYYY-MM-DD
+  canal?: 'todos' | 'live' | 'tienda' | 'web';
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private vendorDashboardUrl = `${environment.apiUrl}/vendors/dashboard/`;
   private salesDashboardUrl  = `${environment.apiUrl}/orders/dashboard/`;
+  private reportingDashboardUrl = `${environment.apiUrl}/reporting/dashboard/`;
 
   constructor(private http: HttpClient) {}
 
@@ -174,5 +231,15 @@ export class DashboardService {
       httpParams = httpParams.set('canal', params.canal);
     }
     return this.http.get<SalesDashboardData>(this.salesDashboardUrl, { params: httpParams });
+  }
+
+  getReportingDashboard(params: ReportingDashboardParams): Observable<ReportingDashboardData> {
+    let httpParams = new HttpParams()
+      .set('desde', params.desde)
+      .set('hasta', params.hasta);
+    if (params.canal) {
+      httpParams = httpParams.set('canal', params.canal);
+    }
+    return this.http.get<ReportingDashboardData>(this.reportingDashboardUrl, { params: httpParams });
   }
 }
