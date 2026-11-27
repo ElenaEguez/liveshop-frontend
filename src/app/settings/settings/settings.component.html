@@ -298,6 +298,11 @@
                 <div *ngFor="let a of (suc.almacenes || [])" class="item-row">
                   <mat-icon>inventory</mat-icon>
                   <span class="item-name">{{ a.nombre }}</span>
+                  <mat-slide-toggle [checked]="a.disponible_live_web" (change)="toggleAlmacenLiveWeb(a)"
+                                     color="primary" class="almacen-live-web-toggle"
+                                     matTooltip="Si está apagado, Live y la tienda web no venden de este almacén">
+                    Vende en Live y tienda web
+                  </mat-slide-toggle>
                   <button mat-icon-button color="warn" class="item-delete-btn"
                           matTooltip="Eliminar almacén"
                           (click)="eliminarAlmacen(suc.id, a)">

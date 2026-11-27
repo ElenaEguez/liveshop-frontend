@@ -166,8 +166,9 @@
   .suc-dir { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #666; margin: 0 0 12px; mat-icon { font-size: 16px; } }
   .section-subtitle { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #555; margin: 8px 0 6px; mat-icon { font-size: 16px; } }
   .item-list { margin-left: 8px; }
-  .item-row { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 4px; mat-icon { font-size: 16px; color: #888; }
-    .item-name { flex: 1; }
+  .item-row { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 4px; flex-wrap: wrap; mat-icon { font-size: 16px; color: #888; }
+    .item-name { flex: 1; min-width: 80px; }
+    .almacen-live-web-toggle { font-size: 12px; white-space: nowrap; }
     .item-delete-btn { width: 28px; height: 28px; line-height: 28px; mat-icon { font-size: 18px; } }
   }
   .add-inline { display: flex; align-items: center; gap: 4px; margin-top: 4px;

@@ -280,6 +280,14 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  toggleAlmacenLiveWeb(almacen: { id: number; disponible_live_web: boolean }): void {
+    const nuevoValor = !almacen.disponible_live_web;
+    this.svc.updateAlmacenDisponibleLiveWeb(almacen.id, nuevoValor).subscribe({
+      next: () => { almacen.disponible_live_web = nuevoValor; },
+      error: () => this.snack.open('Error al actualizar el almacén.', 'OK', { duration: 3000 }),
+    });
+  }
+
   // ── Comprobantes ──────────────────────────────────────────────────────────
 
   editarCorrelativo(c: Comprobante): void {

@@ -34,7 +34,7 @@ export interface Sucursal {
   direccion: string;
   es_principal: boolean;
   activa: boolean;
-  almacenes: { id: number; nombre: string; activo: boolean }[];
+  almacenes: { id: number; nombre: string; activo: boolean; disponible_live_web: boolean }[];
 }
 
 export interface Caja {
@@ -130,6 +130,10 @@ export class SettingsService {
 
   deleteAlmacen(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/branches/almacenes/${id}/`);
+  }
+
+  updateAlmacenDisponibleLiveWeb(id: number, disponible_live_web: boolean): Observable<any> {
+    return this.http.patch<any>(`${API}/branches/almacenes/${id}/`, { disponible_live_web });
   }
 
   // ── Cupones ───────────────────────────────────────────────────────────────
