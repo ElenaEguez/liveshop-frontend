@@ -1,0 +1,117 @@
+.promo-root {
+  padding: 16px;
+}
+
+.promo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 20px;
+  }
+}
+
+.promo-loading,
+.promo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 0;
+  color: #9ca3af;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.promo-table {
+  width: 100%;
+
+  .canal-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #16a34a;
+    margin-right: 4px;
+
+    &.canal-off {
+      color: #d1d5db;
+    }
+  }
+
+  .estado-badge {
+    font-weight: 600;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+}
+
+.promo-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.promo-mobile-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+
+  .promo-mobile-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .promo-mobile-row {
+    font-size: 13px;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+
+    .canal-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #16a34a;
+
+      &.canal-off {
+        color: #d1d5db;
+      }
+    }
+
+    .promo-mobile-vigencia {
+      margin-left: 8px;
+    }
+  }
+
+  .promo-mobile-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .estado-badge {
+    font-weight: 600;
+    font-size: 12px;
+  }
+}

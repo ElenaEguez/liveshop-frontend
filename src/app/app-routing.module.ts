@@ -44,6 +44,12 @@ const routes: Routes = [
         data: { modulo: 'productos' }
       },
       {
+        path: 'promociones',
+        loadChildren: () => import('./promociones/promociones.module').then(m => m.PromocionesModule),
+        canActivate: [ModuloGuard],
+        data: { modulo: 'productos' }
+      },
+      {
         path: 'inventory',
         loadChildren: () => import('./inventory/inventory.module').then(m => m.InventoryModule),
         canActivate: [ModuloGuard],

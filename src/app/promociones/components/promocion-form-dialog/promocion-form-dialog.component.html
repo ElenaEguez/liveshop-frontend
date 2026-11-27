@@ -1,0 +1,120 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar' : 'Nueva' }} promoción de precio</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="promo-form">
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Ej. 10% en bikinis">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo" (selectionChange)="vistaPrevia = null">
+          <mat-option value="porcentaje">Porcentaje (%)</mat-option>
+          <mat-option value="monto">Monto fijo (Bs.)</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Valor</mat-label>
+        <input matInput type="number" formControlName="valor" min="0.01"
+               (input)="vistaPrevia = null">
+        <span matSuffix>{{ form.get('tipo')?.value === 'porcentaje' ? '%' : 'Bs.' }}</span>
+      </mat-form-field>
+    </div>
+
+    <!-- Productos -->
+    <div class="section-label">Productos</div>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Buscar por nombre o código</mat-label>
+      <input matInput [ngModel]="busquedaProducto" [ngModelOptions]="{standalone: true}"
+             (ngModelChange)="onBusquedaChange($event)" placeholder="Ej. Bikini o COD-123">
+    </mat-form-field>
+
+    <div class="busqueda-resultados" *ngIf="busquedaProducto && (buscando || resultadosBusqueda.length > 0)">
+      <p *ngIf="buscando" class="busqueda-hint">Buscando…</p>
+      <div *ngFor="let p of resultadosBusqueda" class="busqueda-item" (click)="agregarProducto(p)">
+        <span class="busqueda-nombre">{{ p.name }}</span>
+        <span class="busqueda-meta">{{ p.internal_code || '—' }} · Bs.&nbsp;{{ p.price }}</span>
+        <mat-icon>add_circle_outline</mat-icon>
+      </div>
+    </div>
+
+    <div class="chips-row" *ngIf="productosSeleccionados.length > 0">
+      <mat-chip-list>
+        <mat-chip *ngFor="let p of productosSeleccionados" (removed)="quitarProducto(p.id)">
+          {{ p.nombre }} <span class="chip-meta">({{ p.sku || 's/código' }} · Bs.&nbsp;{{ p.precio }})</span>
+          <button matChipRemove><mat-icon>cancel</mat-icon></button>
+        </mat-chip>
+      </mat-chip-list>
+    </div>
+    <p *ngIf="productosSeleccionados.length === 0" class="no-selection-hint">
+      Sin productos seleccionados (puede alcanzar con una categoría).
+    </p>
+
+    <!-- Categorías -->
+    <div class="section-label">Categorías (incluye subcategorías)</div>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Categorías</mat-label>
+      <mat-select formControlName="categorias" multiple (selectionChange)="vistaPrevia = null">
+        <mat-option *ngFor="let c of categorias" [value]="c.id">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Canales -->
+    <div class="section-label">Canales</div>
+    <div class="toggles-row">
+      <mat-slide-toggle formControlName="aplica_web">Tienda web</mat-slide-toggle>
+      <span class="proximamente-toggle" matTooltip="POS: requiere cambios que hoy no se pueden hacer sin tocar archivos fuera de alcance. Próximamente.">
+        <mat-slide-toggle [checked]="false" disabled>POS</mat-slide-toggle>
+        <small>Próximamente</small>
+      </span>
+      <span class="proximamente-toggle" matTooltip="Live: requiere cambios que hoy no se pueden hacer sin tocar archivos fuera de alcance. Próximamente.">
+        <mat-slide-toggle [checked]="false" disabled>Live</mat-slide-toggle>
+        <small>Próximamente</small>
+      </span>
+    </div>
+
+    <!-- Fechas -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de inicio (opcional)</mat-label>
+        <input matInput type="date" formControlName="fecha_inicio">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de fin (opcional)</mat-label>
+        <input matInput type="date" formControlName="fecha_fin">
+      </mat-form-field>
+    </div>
+
+    <mat-slide-toggle formControlName="activa">Activa</mat-slide-toggle>
+
+    <!-- Vista previa -->
+    <div class="preview-section">
+      <button mat-stroked-button type="button" (click)="verVistaPrevia()" [disabled]="cargandoVistaPrevia">
+        <mat-icon>visibility</mat-icon>
+        Ver vista previa
+      </button>
+      <div *ngIf="vistaPrevia" class="preview-result">
+        <p><strong>{{ vistaPrevia.productos_afectados }}</strong> producto{{ vistaPrevia.productos_afectados !== 1 ? 's' : '' }} afectado{{ vistaPrevia.productos_afectados !== 1 ? 's' : '' }}.</p>
+        <div class="preview-ejemplo" *ngFor="let e of vistaPrevia.ejemplos">
+          {{ e.producto }}: <s>Bs.&nbsp;{{ e.precio_antes }}</s> → <strong>Bs.&nbsp;{{ e.precio_despues }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <mat-error *ngIf="error">{{ error }}</mat-error>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="guardando">Cancelar</button>
+  <button mat-raised-button color="primary" [disabled]="form.invalid || guardando" (click)="guardar()">
+    <mat-spinner *ngIf="guardando" diameter="18" style="display:inline-block"></mat-spinner>
+    <span *ngIf="!guardando">Guardar</span>
+  </button>
+</mat-dialog-actions>

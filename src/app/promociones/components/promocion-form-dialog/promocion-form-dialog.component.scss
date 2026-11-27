@@ -1,0 +1,131 @@
+.promo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 280px;
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      flex: 1;
+      min-width: 140px;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin: 12px 0 4px;
+  }
+
+  .busqueda-resultados {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+
+    .busqueda-hint {
+      padding: 8px 12px;
+      margin: 0;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .busqueda-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+
+      &:hover {
+        background: #f9fafb;
+      }
+
+      .busqueda-nombre {
+        flex: 1;
+        font-weight: 500;
+      }
+
+      .busqueda-meta {
+        color: #6b7280;
+        font-size: 12px;
+      }
+
+      mat-icon {
+        color: #16a34a;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .chips-row {
+    margin-bottom: 8px;
+
+    .chip-meta {
+      color: #6b7280;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+  }
+
+  .no-selection-hint {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0 0 8px;
+  }
+
+  .toggles-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .proximamente-toggle {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      opacity: 0.6;
+
+      small {
+        font-size: 10px;
+        color: #9ca3af;
+      }
+    }
+  }
+
+  .preview-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+
+    .preview-result {
+      margin-top: 8px;
+      font-size: 13px;
+
+      p {
+        margin: 0 0 6px;
+      }
+
+      .preview-ejemplo {
+        padding: 4px 0;
+        color: #374151;
+      }
+    }
+  }
+}

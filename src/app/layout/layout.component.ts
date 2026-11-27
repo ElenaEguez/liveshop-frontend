@@ -56,6 +56,7 @@ export class LayoutComponent implements OnInit {
     { label: 'Proveedores',     icon: 'business',            route: '/compras/proveedores',    jwtPerm: 'proveedores',      moduloApi: 'proveedores'      },
     { label: 'Productos',       icon: 'inventory_2',         route: '/products',               jwtPerm: 'products',         moduloApi: 'products'         },
     { label: 'Categorías',      icon: 'category',            route: '/categories',             jwtPerm: 'categories',       moduloApi: 'categories'       },
+    { label: 'Promociones',     icon: 'sell',                 route: '/promociones',            jwtPerm: 'products',         moduloApi: 'productos'        },
     { label: 'Equipo',          icon: 'group',               route: '/team',                   jwtPerm: 'team',             moduloApi: 'team'             },
     { label: 'Configuración',   icon: 'settings',            route: '/configuracion',          jwtPerm: 'configuracion',    moduloApi: 'configuracion'    },
     { label: 'Mi Tienda',       icon: 'storefront',          route: '/my-store',               jwtPerm: 'my_store',         moduloApi: 'my_store'         },

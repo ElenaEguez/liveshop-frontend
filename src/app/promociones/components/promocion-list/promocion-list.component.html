@@ -1,0 +1,115 @@
+<div class="promo-root">
+  <div class="promo-header">
+    <h2>
+      <mat-icon>sell</mat-icon>
+      Promociones de precio
+    </h2>
+    <button mat-raised-button color="primary" (click)="abrirFormulario()">
+      <mat-icon>add</mat-icon>
+      Nueva promoción
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="promo-loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading && promociones.length === 0" class="promo-empty">
+    <mat-icon>sell</mat-icon>
+    <p>Todavía no hay promociones de precio.</p>
+  </div>
+
+  <!-- Desktop table -->
+  <div class="table-wrapper desktop-only" *ngIf="!loading && promociones.length > 0">
+    <table mat-table [dataSource]="promociones" class="promo-table">
+
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="tipo_valor">
+        <th mat-header-cell *matHeaderCellDef>Tipo / valor</th>
+        <td mat-cell *matCellDef="let p">
+          {{ p.tipo === 'porcentaje' ? '-' + p.valor + '%' : '-Bs. ' + p.valor }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="alcance">
+        <th mat-header-cell *matHeaderCellDef>Alcance</th>
+        <td mat-cell *matCellDef="let p">{{ alcanceLabel(p) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="canales">
+        <th mat-header-cell *matHeaderCellDef>Canales</th>
+        <td mat-cell *matCellDef="let p">
+          <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_web" matTooltip="Tienda web">shopping_bag</mat-icon>
+          <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_pos" matTooltip="POS (próximamente)">storefront</mat-icon>
+          <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_live" matTooltip="Live (próximamente)">live_tv</mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="vigencia">
+        <th mat-header-cell *matHeaderCellDef>Vigencia</th>
+        <td mat-cell *matCellDef="let p">
+          <span *ngIf="!p.fecha_inicio && !p.fecha_fin">Sin límite</span>
+          <span *ngIf="p.fecha_inicio || p.fecha_fin">
+            {{ p.fecha_inicio || '…' }} → {{ p.fecha_fin || '…' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="estado-badge" [style.color]="estadoColor(p.estado)">
+            {{ estadoLabel(p.estado) }}
+          </span>
+          <mat-slide-toggle [checked]="p.activa" (change)="toggleActiva(p)" color="primary">
+          </mat-slide-toggle>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          <button mat-icon-button (click)="abrirFormulario(p)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="eliminar(p)" matTooltip="Eliminar">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="mobile-only promo-mobile-list" *ngIf="!loading && promociones.length > 0">
+    <div class="promo-mobile-card" *ngFor="let p of promociones">
+      <div class="promo-mobile-head">
+        <strong>{{ p.nombre }}</strong>
+        <span class="estado-badge" [style.color]="estadoColor(p.estado)">{{ estadoLabel(p.estado) }}</span>
+      </div>
+      <div class="promo-mobile-row">
+        {{ p.tipo === 'porcentaje' ? '-' + p.valor + '%' : '-Bs. ' + p.valor }} · {{ alcanceLabel(p) }}
+      </div>
+      <div class="promo-mobile-row">
+        <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_web">shopping_bag</mat-icon>
+        <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_pos">storefront</mat-icon>
+        <mat-icon class="canal-icon" [class.canal-off]="!p.aplica_live">live_tv</mat-icon>
+        <span class="promo-mobile-vigencia">
+          {{ (p.fecha_inicio || p.fecha_fin) ? (p.fecha_inicio || '…') + ' → ' + (p.fecha_fin || '…') : 'Sin límite' }}
+        </span>
+      </div>
+      <div class="promo-mobile-actions">
+        <mat-slide-toggle [checked]="p.activa" (change)="toggleActiva(p)" color="primary">Activa</mat-slide-toggle>
+        <button mat-icon-button (click)="abrirFormulario(p)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button color="warn" (click)="eliminar(p)"><mat-icon>delete_outline</mat-icon></button>
+      </div>
+    </div>
+  </div>
+</div>
