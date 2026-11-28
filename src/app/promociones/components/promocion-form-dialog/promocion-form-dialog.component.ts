@@ -23,6 +23,9 @@ export class PromocionFormDialogComponent implements OnInit {
   guardando = false;
   error = '';
 
+  /** null mientras se consulta al backend. */
+  canalWebHabilitado: boolean | null = null;
+
   categorias: Category[] = [];
   productosSeleccionados: { id: number; nombre: string; sku: string | null; precio: string }[] = [];
 
@@ -64,6 +67,11 @@ export class PromocionFormDialogComponent implements OnInit {
       id: p.id, nombre: p.nombre, sku: p.sku, precio: p.precio,
     }));
 
+    this.svc.getConfig().subscribe({
+      next: cfg => (this.canalWebHabilitado = cfg.canal_web_habilitado),
+      error: () => (this.canalWebHabilitado = false),
+    });
+
     this.categoryService.getAllCategories().subscribe({
       next: cats => (this.categorias = cats),
       error: () => {},
@@ -89,6 +97,11 @@ export class PromocionFormDialogComponent implements OnInit {
       },
       error: () => { this.buscando = false; },
     });
+  }
+
+  /** Sin canal web, solo se puede guardar una promoción que ya lo tenía. */
+  get sinCanalDisponible(): boolean {
+    return this.canalWebHabilitado === false && !this.data?.promocion?.aplica_web;
   }
 
   onBusquedaChange(valor: string): void {
@@ -133,6 +146,7 @@ export class PromocionFormDialogComponent implements OnInit {
 
   guardar(): void {
     if (this.form.invalid || this.guardando) return;
+    if (this.canalWebHabilitado === null || this.sinCanalDisponible) return;
     const productos = this.productosSeleccionados.map(p => p.id);
     const categorias = this.form.get('categorias')?.value || [];
     if (!productos.length && !categorias.length) {
@@ -140,7 +154,8 @@ export class PromocionFormDialogComponent implements OnInit {
       return;
     }
     const { aplica_web, aplica_pos, aplica_live } = this.form.value;
-    if (!aplica_web && !aplica_pos && !aplica_live) {
+    const webEfectivo = this.canalWebHabilitado ? aplica_web : !!this.data?.promocion?.aplica_web;
+    if (!webEfectivo && !aplica_pos && !aplica_live) {
       this.error = 'Habilite al menos un canal.';
       return;
     }
@@ -148,6 +163,9 @@ export class PromocionFormDialogComponent implements OnInit {
     this.guardando = true;
     this.error = '';
     const payload = { ...this.form.value, productos, categorias };
+    if (!this.canalWebHabilitado) {
+      delete payload.aplica_web; // el backend conserva el valor guardado
+    }
     const obs = this.isEdit
       ? this.svc.updatePromocion(this.data.promocion!.id, payload)
       : this.svc.createPromocion(payload);
@@ -156,7 +174,8 @@ export class PromocionFormDialogComponent implements OnInit {
       next: promo => this.dialogRef.close(promo),
       error: err => {
         this.guardando = false;
-        this.error = err.error?.[0] || err.error?.valor?.[0] || err.error?.detail
+        this.error = err.error?.[0] || err.error?.valor?.[0] || err.error?.aplica_web?.[0]
+          || err.error?.detail
           || 'No se pudo guardar la promoción.';
       },
     });

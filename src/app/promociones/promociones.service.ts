@@ -83,6 +83,10 @@ export class PromocionesService {
     return this.http.delete<void>(`${this.apiUrl}/${id}/`);
   }
 
+  getConfig(): Observable<{ canal_web_habilitado: boolean }> {
+    return this.http.get<{ canal_web_habilitado: boolean }>(`${this.apiUrl}/config/`);
+  }
+
   vistaPrevia(data: {
     tipo: string; valor: number | string; productos: number[]; categorias: number[];
   }): Observable<VistaPrevia> {

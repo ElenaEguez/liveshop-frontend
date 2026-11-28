@@ -68,7 +68,15 @@
     <!-- Canales -->
     <div class="section-label">Canales</div>
     <div class="toggles-row">
-      <mat-slide-toggle formControlName="aplica_web">Tienda web</mat-slide-toggle>
+      <mat-slide-toggle *ngIf="canalWebHabilitado; else webNoDisponible" formControlName="aplica_web">
+        Tienda web
+      </mat-slide-toggle>
+      <ng-template #webNoDisponible>
+        <span class="proximamente-toggle" matTooltip="Tienda web: disponible cuando la tienda muestre el precio con descuento. Próximamente.">
+          <mat-slide-toggle [checked]="false" disabled>Tienda web</mat-slide-toggle>
+          <small>Próximamente</small>
+        </span>
+      </ng-template>
       <span class="proximamente-toggle" matTooltip="POS: requiere cambios que hoy no se pueden hacer sin tocar archivos fuera de alcance. Próximamente.">
         <mat-slide-toggle [checked]="false" disabled>POS</mat-slide-toggle>
         <small>Próximamente</small>
@@ -78,6 +86,10 @@
         <small>Próximamente</small>
       </span>
     </div>
+
+    <p *ngIf="sinCanalDisponible" class="no-selection-hint">
+      Por ahora no hay canales disponibles: todavía no se pueden crear promociones.
+    </p>
 
     <!-- Fechas -->
     <div class="form-row">
@@ -113,7 +125,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close [disabled]="guardando">Cancelar</button>
-  <button mat-raised-button color="primary" [disabled]="form.invalid || guardando" (click)="guardar()">
+  <button mat-raised-button color="primary" [disabled]="form.invalid || guardando || canalWebHabilitado === null || sinCanalDisponible" (click)="guardar()">
     <mat-spinner *ngIf="guardando" diameter="18" style="display:inline-block"></mat-spinner>
     <span *ngIf="!guardando">Guardar</span>
   </button>
